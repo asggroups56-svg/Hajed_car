@@ -27,18 +27,23 @@ class MiniDetailWidget extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (customIcon != null)
             customIcon!
           else if (icon != null)
             Icon(icon, color: AppColor.greyColor(context), size: 14.w),
-          Gap(6.w),
-          Text(
-            label,
-            style: AppTextStyle.bodySmall(context).copyWith(
-              color: AppColor.greyColor(context),
-              fontSize: 10.sp,
-              fontWeight: FontWeight.w600,
+          Gap(4.w),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTextStyle.bodySmall(context).copyWith(
+                color: AppColor.greyColor(context),
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

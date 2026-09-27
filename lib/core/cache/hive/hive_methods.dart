@@ -39,7 +39,7 @@ class HiveMethods {
   }
 
   static ThemeEnum getTheme() {
-    return _box.get('theme', defaultValue: ThemeEnum.system);
+    return _box.get('theme', defaultValue: ThemeEnum.light);
   }
 
   static void updateThem(ThemeEnum theme) {

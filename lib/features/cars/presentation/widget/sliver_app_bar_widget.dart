@@ -5,7 +5,6 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
-import 'package:car/features/admin/presentation/screen/car_quotation_preview_screen.dart';
 import 'package:car/features/cars/presentation/widget/full_image_gallery_screen.dart';
 import 'package:car/features/favorites/presentation/view/cubit/favorites_cubit.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
@@ -81,22 +80,6 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
             },
           ),
         ),
-        Padding(
-          padding: EdgeInsets.all(8.w),
-          child: IconButton(
-            icon: Icon(
-              Icons.picture_as_pdf_outlined,
-              color: AppColor.blackTextColor(context),
-              size: 20,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CarQuotationPreviewScreen(car: widget.car)),
-              );
-            },
-          ),
-        ),
         BlocBuilder<FavoritesCubit, FavoritesState>(
           builder: (context, state) {
             final isFav = context.read<FavoritesCubit>().isFavorite(widget.car.itemName);
@@ -109,11 +92,7 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
                   size: 20,
                 ),
                 onPressed: () {
-                  if (HiveMethods.getToken() == null) {
-                    CommonMethods.showLoginRequiredDialog(context);
-                  } else {
-                    context.read<FavoritesCubit>().toggleFavorite(widget.car.toMap());
-                  }
+                  context.read<FavoritesCubit>().toggleFavorite(widget.car.toMap());
                 },
               ),
             );

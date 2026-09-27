@@ -12,6 +12,7 @@ import 'package:car/features/cars/presentation/widget/bank_installments_banner_w
 import 'package:car/features/favorites/presentation/view/cubit/favorites_cubit.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
+import 'package:car/features/home/presentation/view/widgets/mini_detail_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,6 +37,18 @@ class PremiumCarCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String rawColor = (car.bodyColor.isNotEmpty && car.bodyColor.toLowerCase() != 'null'
+        ? car.bodyColor
+        : (car.color.isNotEmpty && car.color.toLowerCase() != 'null' ? car.color : '')).trim();
+    final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
+    final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
+    final String displayMileage = (car.kilometerReading != null &&
+            car.kilometerReading!.isNotEmpty &&
+            car.kilometerReading != 'null' &&
+            car.kilometerReading != '0')
+        ? '${car.kilometerReading} كم'
+        : (car.kilometerReading == '0' ? '0 كم' : '—');
+
     return GestureDetector(
       onTap: () {
         NavigatorMethods.pushNamed(
@@ -191,101 +204,113 @@ class PremiumCarCardWidget extends StatelessWidget {
                     ],
                   ),
                   Gap(10.w),
-                  Container(
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isOffer ? AppLocaleKey.price.tr() : AppLocaleKey.cash.tr(),
-                                  style: AppTextStyle.bodySmall(context).copyWith(
-                                    color: AppColor.blackTextColor(context),
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isOffer ? AppLocaleKey.price.tr() : AppLocaleKey.cash.tr(),
+                                style: AppTextStyle.bodySmall(context).copyWith(
+                                  color: AppColor.blackTextColor(context),
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                Gap(6.h),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          car.formattedPriceWithVat,
-                                          style: AppTextStyle.titleMedium(context).copyWith(
-                                            color: AppColor.greenColor(context),
-                                            fontWeight: FontWeight.w900,
-                                          ),
+                              ),
+                              Gap(6.h),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        car.formattedPriceWithVat,
+                                        style: AppTextStyle.titleMedium(context).copyWith(
+                                          color: AppColor.greenColor(context),
+                                          fontWeight: FontWeight.w900,
                                         ),
                                       ),
                                     ),
-                                    Gap(4.w),
-                                    SvgPicture.asset(
-                                      AppImages.sar,
-                                      height: 16.h,
-                                      width: 16.w,
-                                      colorFilter: ColorFilter.mode(
-                                        AppColor.greenColor(context),
-                                        BlendMode.srcIn,
-                                      ),
+                                  ),
+                                  Gap(4.w),
+                                  SvgPicture.asset(
+                                    AppImages.sar,
+                                    height: 16.h,
+                                    width: 16.w,
+                                    colorFilter: ColorFilter.mode(
+                                      AppColor.greenColor(context),
+                                      BlendMode.srcIn,
                                     ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                Text(
-                                  AppLocaleKey.agentIncludesVat.tr(),
-                                  style: AppTextStyle.bodySmall(context),
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Text(
+                                AppLocaleKey.agentIncludesVat.tr(),
+                                style: AppTextStyle.bodySmall(context),
+                              ),
+                            ],
                           ),
-                          if (isOffer || (offer != null) || financingOffers.isNotEmpty || car.hasFinancing) ...[
-                            VerticalDivider(color: AppColor.greyColor(context), width: 32.w),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => BankInstallmentsBannerWidget(
-                                        car: car,
-                                        isOffer: isOffer,
-                                        offer: offer,
-                                        offers: financingOffers,
-                                      ),
+                        ),
+                        if (isOffer ||
+                            (offer != null) ||
+                            financingOffers.isNotEmpty ||
+                            car.hasFinancing) ...[
+                          VerticalDivider(color: AppColor.greyColor(context), width: 32.w),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BankInstallmentsBannerWidget(
+                                      car: car,
+                                      isOffer: isOffer,
+                                      offer: offer,
+                                      offers: financingOffers,
                                     ),
-                                  );
-                                },
-                                child: BankInstallmentsBannerWidget(
-                                  car: car,
-                                  isOffer: isOffer,
-                                  offer: offer,
-                                  offers: financingOffers,
-                                ),
+                                  ),
+                                );
+                              },
+                              child: BankInstallmentsBannerWidget(
+                                car: car,
+                                isOffer: isOffer,
+                                offer: offer,
+                                offers: financingOffers,
                               ),
                             ),
-                          ],
+                          ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
 
                   Gap(12.h),
                   Row(
                     children: [
-                      _buildSpecIcon(context, Icons.speed_rounded, car.kilometerReading ?? '0'),
-                      Gap(16.w),
-                      _buildSpecIcon(context, Icons.settings_rounded, AppLocaleKey.normal.tr()),
-                      Gap(16.w),
-                      _buildSpecIcon(
-                        context,
-                        Icons.local_gas_station_rounded,
-                        AppLocaleKey.petrol.tr(),
+                      Expanded(
+                        child: MiniDetailWidget(
+                          icon: Icons.calendar_today_outlined,
+                          label: displayYear,
+                        ),
                       ),
-                      const Spacer(),
+                      Gap(6.w),
+                      Expanded(
+                        child: MiniDetailWidget(
+                          icon: Icons.speed_outlined,
+                          label: displayMileage,
+                        ),
+                      ),
+                      Gap(6.w),
+                      Expanded(
+                        child: MiniDetailWidget(
+                          customIcon: _buildColorIcon(context, displayColor),
+                          label: displayColor,
+                        ),
+                      ),
+                      Gap(6.w),
                       _buildCompareButton(context),
                     ],
                   ),
@@ -296,6 +321,106 @@ class PremiumCarCardWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Color> _parseCarColors(BuildContext context, String colorName) {
+    final name = colorName.trim().toLowerCase();
+    final List<Color> foundColors = [];
+
+    final Map<List<String>, Color> colorKeywords = {
+      ['أبيض', 'ابيض', 'white']: Colors.white,
+      ['أسود', 'اسود', 'black']: Colors.black,
+      ['فضي', 'silver']: Colors.grey.shade400,
+      ['رمادي', 'رصاصي', 'grey', 'gray']: Colors.grey,
+      ['أحمر', 'احمر', 'red']: Colors.red,
+      ['أزرق', 'ازرق', 'كحلي', 'blue', 'navy']: Colors.blue,
+      ['بيج', 'beige']: const Color(0xFFF5F5DC),
+      ['بني', 'brown']: Colors.brown,
+      ['أخضر', 'اخضر', 'زيتي', 'green']: AppColor.greenColor(context),
+      ['أصفر', 'اصفر', 'yellow']: Colors.yellow,
+      ['برتقالي', 'orange']: Colors.orange,
+      ['ذهبي', 'gold']: const Color(0xFFFFD700),
+      ['عنابي', 'خمري', 'maroon']: const Color(0xFF800000),
+    };
+
+    for (final entry in colorKeywords.entries) {
+      for (final keyword in entry.key) {
+        if (name.contains(keyword)) {
+          if (!foundColors.contains(entry.value)) {
+            foundColors.add(entry.value);
+          }
+          break;
+        }
+      }
+    }
+
+    return foundColors;
+  }
+
+  bool _isMultipleColors(String colorName) {
+    final name = colorName.trim().toLowerCase();
+    return name.contains('/') ||
+        name.contains('\\') ||
+        name.contains('+') ||
+        name.contains('مع') ||
+        name.contains('و') ||
+        name.contains('two tone') ||
+        name.contains('توتون') ||
+        name.contains('لونين') ||
+        name.contains('متعدد');
+  }
+
+  Widget _buildColorIcon(BuildContext context, String colorName) {
+    final colors = _parseCarColors(context, colorName);
+    final isMulti = colors.length >= 2 || _isMultipleColors(colorName);
+
+    if (isMulti) {
+      final List<Color> gradientColors = colors.length >= 2
+          ? colors
+          : const [
+              Color(0xFFE53935),
+              Color(0xFFFB8C00),
+              Color(0xFF43A047),
+              Color(0xFF1E88E5),
+              Color(0xFF8E24AA),
+            ];
+
+      return ShaderMask(
+        shaderCallback: (bounds) => LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ).createShader(bounds),
+        child: Icon(Icons.color_lens_rounded, size: 15.w, color: Colors.white),
+      );
+    }
+
+    if (colors.length == 1) {
+      final singleColor = colors.first;
+      return Container(
+        width: 12.w,
+        height: 12.w,
+        decoration: BoxDecoration(
+          color: singleColor,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: singleColor == Colors.white
+                ? AppColor.greyColor(context).withValues(alpha: 0.6)
+                : AppColor.blackTextColor(context).withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: singleColor.withValues(alpha: 0.25),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Icon(Icons.palette_outlined, color: AppColor.greyColor(context), size: 14.w);
   }
 
   Widget _buildCompareButton(BuildContext context) {
@@ -336,21 +461,6 @@ class PremiumCarCardWidget extends StatelessWidget {
           size: 18.sp,
         ),
       ),
-    );
-  }
-
-  Widget _buildSpecIcon(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColor.blackTextColor(context), size: 14.sp),
-        Gap(4.w),
-        Text(
-          text,
-          style: AppTextStyle.bodyMedium(
-            context,
-          ).copyWith(color: AppColor.blackTextColor(context), fontSize: 10.sp),
-        ),
-      ],
     );
   }
 }

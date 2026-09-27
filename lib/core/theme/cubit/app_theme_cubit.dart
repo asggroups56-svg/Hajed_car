@@ -8,13 +8,13 @@ part 'app_theme_state.dart';
 class AppThemeCubit extends Cubit<AppThemeState> {
   AppThemeCubit() : super(AppThemeInitial());
   void initial() {
-    _theme = HiveMethods.getTheme();
+    _theme = ThemeEnum.light;
     emit(AppThemeUpdate());
   }
 
-  ThemeEnum _theme = ThemeEnum.system;
+  ThemeEnum _theme = ThemeEnum.light;
   set theme(ThemeEnum value) {
-    _theme = value;
+    _theme = ThemeEnum.light;
     HiveMethods.updateThem(_theme);
     emit(AppThemeUpdate());
   }

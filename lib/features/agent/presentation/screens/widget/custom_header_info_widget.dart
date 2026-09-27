@@ -5,7 +5,6 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/agent/presentation/screens/widget/icon_btn_widget.dart';
 import 'package:car/features/agent/presentation/screens/widget/premium_language_toggle_widget.dart';
-import 'package:car/features/agent/presentation/screens/widget/premium_theme_toggle_widget.dart';
 import 'package:car/features/auth/presentation/view/cubit/auth_cubit.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -51,8 +50,6 @@ class CustomHeaderInfoWidget extends StatelessWidget {
             Navigator.pushNamedAndRemoveUntil(context, RoutesName.loginScreen, (route) => false);
           },
         ),
-        Gap(10.w),
-        const PremiumThemeToggle(),
         Gap(10.w),
         const PremiumLanguageToggle(),
       ],

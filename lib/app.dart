@@ -4,7 +4,6 @@ import 'package:car/core/custom_widgets/security_lock_wrapper.dart';
 import 'package:car/core/services/notification_service.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/cubit/app_theme_cubit.dart';
-import 'package:car/core/theme/theme_enum.dart';
 import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
 import 'package:car/features/auth/presentation/view/cubit/auth_cubit.dart';
@@ -75,11 +74,7 @@ class _CarAppState extends State<CarApp> {
                     debugShowCheckedModeBanner: false,
                     theme: appThemeData(context),
                     darkTheme: appThemeData(context),
-                    themeMode: context.read<AppThemeCubit>().theme == ThemeEnum.system
-                        ? ThemeMode.system
-                        : (context.read<AppThemeCubit>().theme == ThemeEnum.dark
-                              ? ThemeMode.dark
-                              : ThemeMode.light),
+                    themeMode: ThemeMode.light,
                     initialRoute: RoutesName.splashScreen,
                     onGenerateRoute: AppRouters.onGenerateRoute,
                     navigatorKey: AppRouters.navigatorKey,

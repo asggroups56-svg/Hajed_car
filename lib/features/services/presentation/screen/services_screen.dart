@@ -85,43 +85,6 @@ class ServicesScreen extends StatelessWidget {
             ),
           ),
 
-          // // Quick Actions Label
-          // SliverToBoxAdapter(
-          //   child: Padding(
-          //     padding: EdgeInsets.fromLTRB(20.w, 32.h, 20.w, 16.h),
-          //     child: FadeInLeft(
-          //       child: Text(
-          //         AppLocaleKey.quickActions.tr(),
-          //         style: AppTextStyle.titleMedium(context).copyWith(
-          //           color: AppColor.blackTextColor(context),
-          //           fontWeight: FontWeight.bold,
-          //           fontSize: 18.sp,
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-
-          // // Horizontal Quick Actions
-          // SliverToBoxAdapter(
-          //   child: SizedBox(
-          //     height: 100.h,
-          //     child: ListView.builder(
-          //       padding: EdgeInsets.symmetric(horizontal: 24.w),
-          //       scrollDirection: Axis.horizontal,
-          //       physics: const BouncingScrollPhysics(),
-          //       itemCount: _getQuickActions().length,
-          //       itemBuilder: (context, index) {
-          //         final action = _getQuickActions()[index];
-          //         return FadeInRight(
-          //           delay: Duration(milliseconds: 100 * index),
-          //           child: _buildQuickActionItem(context, action),
-          //         );
-          //       },
-          //     ),
-          //   ),
-          // ),
-
           // Main Services Section Title
           SliverToBoxAdapter(
             child: Padding(
@@ -181,47 +144,6 @@ class ServicesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActionItem(BuildContext context, Map<String, dynamic> action) {
-    return GestureDetector(
-      onTap: () {
-        if (HiveMethods.getToken() == null) {
-          CommonMethods.showLoginRequiredDialog(context);
-        } else {
-          _navigateToQuickAction(context, action['label']);
-        }
-      },
-      child: Container(
-        width: 85.w,
-        margin: EdgeInsets.only(right: 12.w),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppColor.secondAppColor(context),
-                borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(color: AppColor.blackTextColor(context).withValues(alpha: 0.05)),
-              ),
-              child: Icon(action['icon'], color: action['color'], size: 24.sp),
-            ),
-            Gap(8.h),
-            Text(
-              action['label'],
-              textAlign: TextAlign.center,
-              style: AppTextStyle.bodyMedium(context).copyWith(
-                color: AppColor.blackTextColor(context).withValues(alpha: 0.70),
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildImmersiveServiceCard(BuildContext context, Map<String, dynamic> service, int index) {
     return Container(
       margin: EdgeInsets.only(bottom: 16.h),
@@ -235,7 +157,11 @@ class ServicesScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            if (HiveMethods.getToken() == null) {
+            if (service['label'] == AppLocaleKey.compareCars.tr() ||
+                service['label'] == AppLocaleKey.aboutCompany.tr() ||
+                service['label'] == AppLocaleKey.support.tr()) {
+              _navigateToService(context, service['label']);
+            } else if (HiveMethods.getToken() == null) {
               CommonMethods.showLoginRequiredDialog(context);
             } else {
               _navigateToService(context, service['label']);
@@ -295,26 +221,6 @@ class ServicesScreen extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _getQuickActions() {
-    return [
-      {
-        'icon': Icons.car_rental_rounded,
-        'label': AppLocaleKey.requestCar.tr(),
-        'color': Colors.blueAccent,
-      },
-      {
-        'icon': Icons.calendar_month_rounded,
-        'label': AppLocaleKey.bookAppointments.tr(),
-        'color': Colors.orangeAccent,
-      },
-      {
-        'icon': Icons.history_rounded,
-        'label': AppLocaleKey.myHistory.tr(),
-        'color': Colors.greenAccent,
-      },
-    ];
-  }
-
   List<Map<String, dynamic>> _getServicesData() {
     return [
       {
@@ -372,18 +278,6 @@ class ServicesScreen extends StatelessWidget {
       Navigator.pushNamed(context, RoutesName.carComparisonScreen);
     } else if (label == AppLocaleKey.aboutCompany.tr()) {
       Navigator.pushNamed(context, RoutesName.aboutScreen);
-    } else if (label == AppLocaleKey.support.tr()) {
-      Navigator.pushNamed(context, RoutesName.supportScreen);
-    }
-  }
-
-  void _navigateToQuickAction(BuildContext context, String label) {
-    if (label == AppLocaleKey.requestCar.tr()) {
-      Navigator.pushNamed(context, RoutesName.requestCarScreen);
-    } else if (label == AppLocaleKey.bookAppointments.tr()) {
-      Navigator.pushNamed(context, RoutesName.bookingAppointmentScreen);
-    } else if (label == AppLocaleKey.myHistory.tr()) {
-      Navigator.pushNamed(context, RoutesName.serviceHistoryScreen);
     } else if (label == AppLocaleKey.support.tr()) {
       Navigator.pushNamed(context, RoutesName.supportScreen);
     }

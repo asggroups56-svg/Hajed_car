@@ -37,6 +37,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   Gap(24.h),
                   FadeInUp(
                     delay: const Duration(milliseconds: 250),
+
                     child: const ManagementHubWidget(),
                   ),
                   // Gap(32.h),

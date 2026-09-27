@@ -11,7 +11,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xff0066FF),
-      dark: const Color(0xff0066FF),
+      dark: const Color(0xFF3B82F6),
       listen: listen,
     );
   }
@@ -20,7 +20,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFFFFFFF),
-      dark: const Color(0xFF0F1B4E), // Galactic Surface
+      dark: const Color(0xFF1E1E24), // Luxury Carbon Card / Surface
       listen: listen,
     );
   }
@@ -29,7 +29,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFCBD5E1),
-      dark: const Color(0xFF1A2A6C),
+      dark: const Color(0xFF2C2D35), // Subtle Carbon Border
       listen: listen,
     );
   }
@@ -38,7 +38,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFF1F5F9),
-      dark: const Color(0xFF051139), // Rich Galactic Blue
+      dark: const Color(0xFF121214), // Deep Carbon / AMOLED Background
       listen: listen,
     );
   }
@@ -47,7 +47,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFF8FAFC),
-      dark: const Color(0xFF0F1B4E),
+      dark: const Color(0xFF18181D), // Inset Form Field
       listen: listen,
     );
   }
@@ -56,7 +56,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF94A3B8),
-      dark: const Color(0xffA6A6A6),
+      dark: const Color(0xFF71717A),
       listen: listen,
     );
   }
@@ -65,7 +65,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF1E293B),
-      dark: const Color(0xFFE2E8F0),
+      dark: const Color(0xFFF4F4F5),
       listen: listen,
     );
   }
@@ -74,7 +74,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF64748B),
-      dark: const Color(0xFFA5A5A5),
+      dark: const Color(0xFFA1A1AA),
       listen: listen,
     );
   }
@@ -83,7 +83,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF1E293B),
-      dark: const Color(0xFFF8FAFC),
+      dark: const Color(0xFFF4F4F5),
       listen: listen,
     );
   }
@@ -91,8 +91,8 @@ class AppColor {
   static Color blackTextColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(
       context,
-      light: const Color(0xFF0F172A), // Dark text in light mode
-      dark: const Color(0xFFFFFFFF), // White text in dark mode
+      light: const Color(0xFF0F172A),
+      dark: const Color(0xFFFFFFFF),
       listen: listen,
     );
   }
@@ -110,7 +110,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFCBD5E1),
-      dark: const Color(0xFF334155),
+      dark: const Color(0xFF2C2D35),
       listen: listen,
     );
   }
@@ -118,7 +118,7 @@ class AppColor {
   static Color textFormColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(
       context,
-      light: const Color(0xFF0F172A), // Dark input text in light mode
+      light: const Color(0xFF0F172A),
       dark: const Color(0xFFFFFFFF),
       listen: listen,
     );
@@ -127,7 +127,7 @@ class AppColor {
   static Color appBarTextColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(
       context,
-      light: const Color(0xFF0F172A), // Dark Slate
+      light: const Color(0xFF0F172A),
       dark: const Color(0xFFFFFFFF),
       listen: listen,
     );
@@ -136,8 +136,8 @@ class AppColor {
   static Color appBarColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(
       context,
-      light: const Color(0xFFFFFFFF), // Premium White
-      dark: const Color(0xFF051139), // Rich Galactic Navy
+      light: const Color(0xFFFFFFFF),
+      dark: const Color(0xFF121214), // Seamless Carbon AppBar
       listen: listen,
     );
   }
@@ -160,7 +160,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFFFFFFF),
-      dark: const Color(0xFF0F1B4E),
+      dark: const Color(0xFF1E1E24), // Luxury Carbon Card
       listen: listen,
     );
   }
@@ -168,8 +168,8 @@ class AppColor {
   static Color gradientSecondaryColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(
       context,
-      light: const Color(0xFFF8FAFC), // Cleaner Light White
-      dark: const Color(0xFF0A0F1A),
+      light: const Color(0xFFF8FAFC),
+      dark: const Color(0xFF18181D),
       listen: listen,
     );
   }
@@ -178,7 +178,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFFF3B3B),
-      dark: const Color(0xFFFF4D4D),
+      dark: const Color(0xFFF87171),
       listen: listen,
     );
   }
@@ -187,7 +187,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF00C06B),
-      dark: const Color(0xFF00CC71),
+      dark: const Color(0xFF34D399),
       listen: listen,
     );
   }
@@ -196,7 +196,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFFF8C00),
-      dark: const Color(0xFFFF9F1A),
+      dark: const Color(0xFFFBBF24),
       listen: listen,
     );
   }
@@ -205,7 +205,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFF0066FF),
-      dark: const Color(0xFF3385FF),
+      dark: const Color(0xFF3B82F6),
       listen: listen,
     );
   }
@@ -214,7 +214,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFF5A623),
-      dark: const Color(0xFFFFB347),
+      dark: const Color(0xFFFCD34D),
       listen: listen,
     );
   }
@@ -224,7 +224,7 @@ class AppColor {
     return AppTheme.getByTheme(
       context,
       light: const Color(0xFFE2E8F0),
-      dark: const Color(0xFF1A2A6C),
+      dark: const Color(0xFF27272A),
       listen: listen,
     );
   }
@@ -237,6 +237,4 @@ class AppColor {
   static Color iconColor(BuildContext context, {bool listen = true}) {
     return AppTheme.getByTheme(context, light: Colors.orange, dark: Colors.orange, listen: listen);
   }
-
-  /// Secondary color for backgrounds/gradients
 }

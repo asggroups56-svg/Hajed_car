@@ -23,6 +23,10 @@ ThemeData appThemeData(BuildContext context) {
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: AppColor.secondAppColor(context),
     ),
+    cardColor: AppColor.cardColor(context),
+    dialogTheme: DialogThemeData(
+      backgroundColor: AppColor.cardColor(context),
+    ),
     colorScheme: ColorScheme.fromSwatch().copyWith(
       primary: AppColor.primaryColor(context),
       secondary: AppColor.secondAppColor(context),
