@@ -17,21 +17,34 @@ class SendWhatsAppModel extends Equatable {
   final String toNumber;
   final String tempname;
   final String text;
+  final String? fileUrl;
+  final String? fileName;
 
   const SendWhatsAppModel({
     required this.toNumber,
     this.tempname = 'utility',
     required this.text,
+    this.fileUrl,
+    this.fileName,
   });
 
-  Map<String, dynamic> toJson() => {
-        'ToNumber': formatSaudiPhoneNumber(toNumber),
-        'tempname': tempname,
-        'Text': text.replaceAll('\n', ' - ').replaceAll(RegExp(r'\s+'), ' ').trim(),
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'ToNumber': formatSaudiPhoneNumber(toNumber),
+      'tempname': tempname,
+      'Text': text.replaceAll('\n', ' - ').replaceAll(RegExp(r'\s+'), ' ').trim(),
+    };
+    if (fileUrl != null && fileUrl!.isNotEmpty) {
+      map['fileurl'] = fileUrl;
+    }
+    if (fileName != null && fileName!.isNotEmpty) {
+      map['Filename'] = fileName;
+    }
+    return map;
+  }
 
   @override
-  List<Object?> get props => [toNumber, tempname, text];
+  List<Object?> get props => [toNumber, tempname, text, fileUrl, fileName];
 }
 
 

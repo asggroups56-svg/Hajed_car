@@ -387,7 +387,14 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                     'المبلغ الإجمالي: $_totalPrice ر.س\n'
                     'العربون: $_depositAmount ر.س\n';
                 context.read<HomeCubit>().sendWhatsApp(
-                  SendWhatsAppModel(toNumber: phone, text: textMsg),
+                  SendWhatsAppModel(
+                    toNumber: phone,
+                    text: textMsg,
+                    fileUrl: bookingNo.isNotEmpty
+                        ? 'https://delta-asg.com:54510/files/$bookingNo.pdf'
+                        : null,
+                    fileName: bookingNo.isNotEmpty ? '$bookingNo.pdf' : null,
+                  ),
                 );
               }
               // Notification is handled exclusively by FCM push endpoint
