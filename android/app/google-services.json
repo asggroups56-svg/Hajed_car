@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:640250185998:android:f4dd04cec649a59777ef5f",
         "android_client_info": {
-          "package_name": "com.asg.car"
+          "package_name": "com.Hajed.car"
         }
       },
       "oauth_client": [],
@@ -28,7 +28,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:640250185998:android:666899c6b8ada1fc77ef5f",
         "android_client_info": {
-          "package_name": "com.asg.car.dev"
+          "package_name": "com.Hajed.car.dev"
         }
       },
       "oauth_client": [],
@@ -47,7 +47,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:640250185998:android:d9591eb630c0ae0977ef5f",
         "android_client_info": {
-          "package_name": "com.asg.car.testing"
+          "package_name": "com.Hajed.car.testing"
         }
       },
       "oauth_client": [],

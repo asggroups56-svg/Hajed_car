@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '640250185998',
     projectId: 'cars-172a8',
     storageBucket: 'cars-172a8.firebasestorage.app',
-    iosBundleId: 'com.asg.car',
+    iosBundleId: 'com.Hajed.car',
   );
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAu_urKSLYBsb23UUtSXRmLrjNbgt4m9TE',

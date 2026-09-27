@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.in-app-payments</key>
 	<array>
-		<string>merchant.com.asg.car</string>
+		<string>merchant.com.Hajed.car</string>
 	</array>
 </dict>
 </plist>

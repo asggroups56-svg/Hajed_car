@@ -8,7 +8,7 @@ class Constants {
   // Test keys start with pk_test_ — safe to use on real devices
   static const String moyasarPublishableKey = 'pk_test_jdvdiyDA6PuwzC9dkKsKpuJt8yGmLDWa7KcnJzJt';
   // Apple Pay Merchant ID — must match:
-  static const String applePayMerchantId = 'merchant.com.asg.car';
+  static const String applePayMerchantId = 'merchant.com.Hajed.car';
 
   // ─── Moyasar Test Cards (sandbox only) ───────────────────────────────────
   // Use pk_test_ key above. Any future expiry date, any 3-digit CVV.

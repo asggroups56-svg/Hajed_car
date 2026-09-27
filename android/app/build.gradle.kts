@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.asg.car"
+    namespace = "com.Hajed.car"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.asg.car"
+        applicationId = "com.Hajed.car"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
