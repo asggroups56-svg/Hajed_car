@@ -260,7 +260,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
               right: 8,
               child: GestureDetector(
                 onTap: () {
-                  HiveMethods.removeFromComparison(car['name']);
+                  HiveMethods.removeFromComparison(car);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(4),

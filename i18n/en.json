@@ -1545,7 +1545,12 @@
     "website_label": "Website",
     "website": "delta-asg.com",
     "copy":"Copy",
-    "agentNoBookingsFound": "No bookings found"
+    "agentNoBookingsFound": "No bookings found",
+    "delete_account": "Delete Account",
+    "delete_account_confirmation": "Are you sure you want to permanently delete your account? This action cannot be undone and will erase your data.",
+    "delete_account_success": "Account deleted successfully",
+    "delete_account_warning": "Warning: All account data will be permanently deleted",
+    "confirm_delete_account": "Confirm Delete Account"
 
 }
 

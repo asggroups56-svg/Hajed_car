@@ -212,4 +212,20 @@ class AuthCubit extends Cubit<AuthState> {
     }
     emit(AuthState(rememberMe: rememberMe));
   }
+
+  Future<bool> deleteAccount() async {
+    emit(state.copyWith(deleteAccountStatus: const StatusState.loading()));
+    final result = await authRepo.deleteAccount();
+    return result.fold(
+      (failure) {
+        emit(state.copyWith(deleteAccountStatus: StatusState.failure(failure.errMessage)));
+        return false;
+      },
+      (success) async {
+        await logout();
+        emit(state.copyWith(deleteAccountStatus: const StatusState.success(true)));
+        return true;
+      },
+    );
+  }
 }

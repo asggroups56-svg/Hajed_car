@@ -16,12 +16,23 @@ abstract interface class AuthRepo {
   Future<Either<Failure, RegisterResponseModel>> register({required RegisterRequestModel request});
   Future<Either<Failure, bool>> editFCM({required String userId, required String fcmToken});
   Future<Either<Failure, bool>> changePassword({required ChangePasswordRequestModel request});
+  Future<Either<Failure, bool>> deleteAccount();
   Future<void> logout();
 }
 
 class AuthRepoImpl implements AuthRepo {
   final ApiConsumer apiConsumer;
   AuthRepoImpl(this.apiConsumer);
+
+  @override
+  Future<Either<Failure, bool>> deleteAccount() {
+    return handleDioRequest(
+      request: () async {
+        await apiConsumer.delete(EndPoints.deleteAccount);
+        return true;
+      },
+    );
+  }
 
   @override
   Future<void> logout() async {

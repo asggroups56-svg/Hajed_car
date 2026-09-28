@@ -1,8 +1,10 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/cars/presentation/widget/bank_installments_banner_widget.dart'
     show BankInstallmentsBannerWidget;
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
@@ -38,14 +40,19 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
     }
   }
 
-  /// Show financing panel only when explicit financing data exists from API or offers
+  /// Show financing panel when explicit financing data exists from API/offers or car has a valid price
   bool _shouldShowFinancing() {
-    return widget.offer != null || widget.offers.isNotEmpty || widget.car.hasFinancing;
+    final priceStr = widget.car.price?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '';
+    final hasValidPrice = (double.tryParse(priceStr) ?? 0) > 0;
+    return widget.offer != null ||
+        widget.offers.isNotEmpty ||
+        widget.car.hasFinancing ||
+        hasValidPrice;
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isInCompare = HiveMethods.isInComparison(widget.car.itemName);
+    final bool isInCompare = HiveMethods.isInComparison(widget.car.toMap());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,11 +147,18 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
             ),
             IconButton(
               onPressed: () {
+                final carMap = widget.car.toMap();
                 if (isInCompare) {
-                  HiveMethods.removeFromComparison(widget.car.itemName);
+                  HiveMethods.removeFromComparison(carMap);
                   setState(() {});
                 } else {
-                  HiveMethods.addToComparison(widget.car.toMap());
+                  bool added = HiveMethods.addToComparison(carMap);
+                  if (!added) {
+                    CommonMethods.showToast(
+                      message: AppLocaleKey.compare_list_full.tr(),
+                      type: ToastType.error,
+                    );
+                  }
                   setState(() {});
                 }
               },

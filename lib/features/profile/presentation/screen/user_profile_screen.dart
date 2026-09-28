@@ -16,6 +16,7 @@ import 'package:car/features/profile/presentation/screen/widget/financial_summar
 import 'package:car/features/profile/presentation/screen/widget/personal_details_section_widget.dart';
 import 'package:car/features/profile/presentation/screen/widget/profile_header_banner_widget.dart';
 import 'package:car/features/profile/presentation/screen/widget/section_widget.dart';
+import 'package:car/features/settings/presentation/screen/widget/delete_account_button_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -145,7 +146,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               ],
                             ),
                           ),
-                          Gap(40.h),
+                          Gap(16.h),
+                          FadeInUp(
+                            delay: const Duration(milliseconds: 150),
+                            child: const DeleteAccountButtonWidget(),
+                          ),
+                          Gap(32.h),
                           FadeInUp(
                             delay: const Duration(milliseconds: 200),
                             child: const LogoutButtonWidget(),

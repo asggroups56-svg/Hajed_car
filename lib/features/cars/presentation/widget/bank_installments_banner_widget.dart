@@ -109,6 +109,22 @@ class _BankInstallmentsBannerWidgetState extends State<BankInstallmentsBannerWid
       return widget.car.installments!.trim();
     }
 
+    // 5. Fallback to normal bank financing offers from cubit
+    if (cubitOffers.isNotEmpty) {
+      final lowestOffer = _getLowestOffer(cubitOffers);
+      if (lowestOffer != null) {
+        return NumberFormat('#,##0', 'en_US').format(lowestOffer.monthlyInstallmentForPrice(price));
+      }
+    }
+
+    // 6. Generic calculation fallback if price is present
+    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final priceWithVat = price * (1 + vatPercentage / 100);
+    final estimatedMonthly = (priceWithVat * 1.225) / 60;
+    if (estimatedMonthly > 0) {
+      return NumberFormat('#,##0', 'en_US').format(estimatedMonthly);
+    }
+
     // No financing data from API -> Hide
     return null;
   }

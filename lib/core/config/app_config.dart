@@ -15,6 +15,6 @@ class AppConfig {
   }
 
   static AppFlavor get flavor => _flavor ?? AppFlavor.prod;
-  static String get baseUrl => _baseUrl ?? 'https://delta-asg.com:54510/';
-  static String get baseImage => _baseImage ?? 'https://delta-asg.com:54510/MyVirtualDir/';
+  static String get baseUrl => _baseUrl ?? 'https://delta-asg.com:54513/';
+  static String get baseImage => _baseImage ?? 'https://delta-asg.com:54513/MyVirtualDir/';
 }

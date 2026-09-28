@@ -1599,4 +1599,9 @@ class AppLocaleKey {
   static const String website = 'website';
   static const String copy = 'copy';
   static const String agentNoBookingsFound = 'agentNoBookingsFound';
+  static const String deleteAccount = 'delete_account';
+  static const String deleteAccountConfirmation = 'delete_account_confirmation';
+  static const String deleteAccountSuccess = 'delete_account_success';
+  static const String deleteAccountWarning = 'delete_account_warning';
+  static const String confirmDeleteAccount = 'confirm_delete_account';
 }

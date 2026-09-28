@@ -114,24 +114,52 @@ class HiveMethods {
     return _box.get('comparisonList', defaultValue: []);
   }
 
+  static String getCarUniqueId(dynamic car) {
+    if (car is Map) {
+      final key = car['unique_id']?.toString().trim();
+      if (key != null && key.isNotEmpty) return key;
+      final itemCode = (car['itemCode'] ?? car['ITEM_CODE'])?.toString().trim() ?? '';
+      final chassis = (car['chassisNo'] ?? car['CHASSIS_NO'])?.toString().trim() ?? '';
+      if (itemCode.isNotEmpty && chassis.isNotEmpty) return '${itemCode}_$chassis';
+      if (itemCode.isNotEmpty) return itemCode;
+      if (chassis.isNotEmpty) return chassis;
+      return (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'])?.toString().trim() ?? '';
+    }
+    return car?.toString().trim() ?? '';
+  }
+
+  static bool _matchesCar(dynamic existingItem, dynamic target) {
+    if (existingItem == null || target == null) return false;
+    final existingId = getCarUniqueId(existingItem);
+    final targetId = getCarUniqueId(target);
+
+    if (existingId.isNotEmpty && targetId.isNotEmpty) {
+      return existingId == targetId;
+    }
+
+    return false;
+  }
+
   static bool addToComparison(Map<String, dynamic> car) {
     final List<dynamic> list = List.from(getComparisonList());
+    final carToSave = Map<String, dynamic>.from(car);
+    carToSave['unique_id'] = getCarUniqueId(car);
 
     // If it's already in the list, remove it so it can be added to the top
-    list.removeWhere((c) => c['name'] == car['name']);
+    list.removeWhere((c) => _matchesCar(c, carToSave));
 
     if (list.length >= 2) {
       return false;
     }
 
-    list.insert(0, car);
+    list.insert(0, carToSave);
     _box.put('comparisonList', list);
     return true;
   }
 
-  static void removeFromComparison(String carName) {
+  static void removeFromComparison(dynamic carOrKey) {
     final List<dynamic> list = List.from(getComparisonList());
-    list.removeWhere((c) => c['name'] == carName);
+    list.removeWhere((c) => _matchesCar(c, carOrKey));
     _box.put('comparisonList', list);
   }
 
@@ -139,8 +167,8 @@ class HiveMethods {
     _box.put('comparisonList', []);
   }
 
-  static bool isInComparison(String carName) {
-    return getComparisonList().any((c) => c['name'] == carName);
+  static bool isInComparison(dynamic carOrKey) {
+    return getComparisonList().any((c) => _matchesCar(c, carOrKey));
   }
 
   // ─── Recently Viewed ────────────────────────────────────────

@@ -257,7 +257,8 @@ class PremiumCarCardWidget extends StatelessWidget {
                         if (isOffer ||
                             (offer != null) ||
                             financingOffers.isNotEmpty ||
-                            car.hasFinancing) ...[
+                            car.hasFinancing ||
+                            (car.price != null && car.price!.isNotEmpty && car.price != '0')) ...[
                           VerticalDivider(color: AppColor.greyColor(context), width: 32.w),
                           Expanded(
                             child: GestureDetector(
@@ -424,6 +425,9 @@ class PremiumCarCardWidget extends StatelessWidget {
   }
 
   Widget _buildCompareButton(BuildContext context) {
+    final carMap = car.toMap();
+    final isInCompare = HiveMethods.isInComparison(carMap);
+
     return Container(
       height: 30.h,
       decoration: BoxDecoration(
@@ -433,14 +437,11 @@ class PremiumCarCardWidget extends StatelessWidget {
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: () {
-          final carName = car.itemName;
-          if (carName.isEmpty) return;
-
-          if (HiveMethods.isInComparison(carName)) {
-            HiveMethods.removeFromComparison(carName);
+          if (HiveMethods.isInComparison(carMap)) {
+            HiveMethods.removeFromComparison(carMap);
             (context as Element).markNeedsBuild();
           } else {
-            bool added = HiveMethods.addToComparison(car.toMap());
+            bool added = HiveMethods.addToComparison(carMap);
             if (added) {
               (context as Element).markNeedsBuild();
             } else {
@@ -452,10 +453,8 @@ class PremiumCarCardWidget extends StatelessWidget {
           }
         },
         icon: Icon(
-          HiveMethods.isInComparison(car.itemName)
-              ? Icons.compare_arrows_rounded
-              : Icons.add_chart_rounded,
-          color: HiveMethods.isInComparison(car.itemName)
+          isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
+          color: isInCompare
               ? AppColor.primaryColor(context)
               : AppColor.blackTextColor(context),
           size: 18.sp,

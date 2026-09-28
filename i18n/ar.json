@@ -1547,7 +1547,12 @@
   "website_label": "الموقع الإلكتروني",
   "website": "delta-asg.com",
   "copy":"نسخ",
-  "agentNoBookingsFound":"لا توجد حجوزات"
+  "agentNoBookingsFound":"لا توجد حجوزات",
+  "delete_account": "حذف الحساب",
+  "delete_account_confirmation": "هل أنت متأكد من رغبتك في حذف حسابك نهائياً؟ هذا الإجراء سيؤدي إلى مسح بياناتك ولن يمكنك استرجاعها.",
+  "delete_account_success": "تم حذف الحساب بنجاح",
+  "delete_account_warning": "تحذير: سيتم حذف جميع بيانات الحساب نهائياً",
+  "confirm_delete_account": "تأكيد حذف الحساب"
 
 
 }
