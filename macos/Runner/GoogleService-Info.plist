@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAu_urKSLYBsb23UUtSXRmLrjNbgt4m9TE</string>
+	<string>AIzaSyBEQjtWGgJ3ffrbY5mKQDGteYDFDY8v4dM</string>
 	<key>GCM_SENDER_ID</key>
-	<string>640250185998</string>
+	<string>30882313876</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.car</string>
 	<key>PROJECT_ID</key>
-	<string>cars-172a8</string>
+	<string>hajed-cars</string>
 	<key>STORAGE_BUCKET</key>
-	<string>cars-172a8.firebasestorage.app</string>
+	<string>hajed-cars.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:640250185998:ios:cd34f0900749495d77ef5f</string>
+	<string>1:30882313876:ios:c001f8e7a7d0c9d41f2681</string>
 </dict>
 </plist>

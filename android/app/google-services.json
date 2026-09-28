@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "640250185998",
-    "project_id": "cars-172a8",
-    "storage_bucket": "cars-172a8.firebasestorage.app"
+    "project_number": "30882313876",
+    "project_id": "hajed-cars",
+    "storage_bucket": "hajed-cars.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:640250185998:android:f4dd04cec649a59777ef5f",
+        "mobilesdk_app_id": "1:30882313876:android:b338af95f6e9e6291f2681",
         "android_client_info": {
           "package_name": "com.Hajed.car"
         }
@@ -15,64 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD9zywupridWLT8Wr0IZW0Wzug3pqJ2EKQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:640250185998:android:666899c6b8ada1fc77ef5f",
-        "android_client_info": {
-          "package_name": "com.Hajed.car.dev"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD9zywupridWLT8Wr0IZW0Wzug3pqJ2EKQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:640250185998:android:d9591eb630c0ae0977ef5f",
-        "android_client_info": {
-          "package_name": "com.Hajed.car.testing"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD9zywupridWLT8Wr0IZW0Wzug3pqJ2EKQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:640250185998:android:a0b964970926a03977ef5f",
-        "android_client_info": {
-          "package_name": "com.example.car"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD9zywupridWLT8Wr0IZW0Wzug3pqJ2EKQ"
+          "current_key": "AIzaSyBUuU1-w5_l0qwpeFtyNokD7tj89-l-N6c"
         }
       ],
       "services": {
