@@ -23,7 +23,8 @@ class FilterScreen extends StatefulWidget {
 }
 
 class _FilterScreenState extends State<FilterScreen> {
-  RangeValues _yearRange = const RangeValues(2000, 2024);
+  final int _currentYear = DateTime.now().year;
+  late RangeValues _yearRange = RangeValues(2000, _currentYear.toDouble());
   RangeValues _priceRange = const RangeValues(10000, 1000000);
   bool _isTaxInclusive = false;
   bool _isDiscountApplied = false;
@@ -77,7 +78,7 @@ class _FilterScreenState extends State<FilterScreen> {
     if (state.fromMakeYear != null && state.toMakeYear != null) {
       _yearRange = RangeValues(
         double.tryParse(state.fromMakeYear!) ?? 2000,
-        double.tryParse(state.toMakeYear!) ?? 2024,
+        double.tryParse(state.toMakeYear!) ?? _currentYear.toDouble(),
       );
     }
     if (state.fromPrice != null && state.toPrice != null) {
@@ -162,7 +163,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 _isTestDriveAvailable = false;
                 _isTaxInclusive = false;
                 _isDiscountApplied = false;
-                _yearRange = const RangeValues(2000, 2024);
+                _yearRange = RangeValues(2000, _currentYear.toDouble());
                 _priceRange = const RangeValues(10000, 1000000);
               });
               context.read<HomeCubit>().fetchAllCars(
@@ -276,7 +277,7 @@ class _FilterScreenState extends State<FilterScreen> {
               child: FilterRangeSlider(
                 values: _yearRange,
                 min: 1990,
-                max: 2025,
+                max: (_currentYear + 1).toDouble(),
                 onChanged: (values) => setState(() => _yearRange = values),
               ),
             ),
