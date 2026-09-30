@@ -22,7 +22,7 @@ class DeveloperContactBottomSheet extends StatelessWidget {
   const DeveloperContactBottomSheet({super.key});
 
   static const String developerPhone = '+966580926448';
-  static const String developerWhatsapp = '+966503605031';
+  static const String developerWhatsapp = '+966580926448';
   static const String developerEmail = 'erp@delta-asg.com';
   static const String developerWebsite = 'https://delta-asg.com/';
 
@@ -95,14 +95,9 @@ class DeveloperContactBottomSheet extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: 48.w,
-                  height: 48.w,
-                  decoration: BoxDecoration(
-                    color: AppColor.whiteColor(context).withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.code_rounded, color: AppColor.whiteColor(context), size: 26.sp),
+                CircleAvatar(
+                  radius: 25.w,
+                  child: Image.asset('assets/images/delta_loge.jpg', width: 50.w, height: 50.w),
                 ),
                 Gap(14.w),
                 Expanded(

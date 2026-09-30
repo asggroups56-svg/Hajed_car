@@ -13,7 +13,7 @@ class FavoriteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesCubit, FavoritesState>(
       builder: (context, state) {
-        final isFav = context.read<FavoritesCubit>().isFavorite(car['name']!);
+        final isFav = context.read<FavoritesCubit>().isFavorite(car);
         return GestureDetector(
           onTap: () => context.read<FavoritesCubit>().toggleFavorite(car),
           child: Container(

@@ -82,11 +82,7 @@ class CardFooter extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ).createShader(bounds),
-        child: Icon(
-          Icons.color_lens_rounded,
-          size: 15.sp,
-          color: Colors.white,
-        ),
+        child: Icon(Icons.color_lens_rounded, size: 15.sp, color: Colors.white),
       );
     }
 
@@ -124,8 +120,13 @@ class CardFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String rawColor = (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'] ?? '').toString().trim();
-    final String displayColor = rawColor.isNotEmpty && rawColor.toLowerCase() != 'null' ? rawColor : '—';
+    final String rawColor =
+        (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'] ?? '')
+            .toString()
+            .trim();
+    final String displayColor = rawColor.isNotEmpty && rawColor.toLowerCase() != 'null'
+        ? rawColor
+        : '—';
     final String? priceRaw = car['price']?.toString();
     final bool hasPrice =
         priceRaw != null && priceRaw != '0' && priceRaw.isNotEmpty && priceRaw != 'null';
@@ -137,19 +138,18 @@ class CardFooter extends StatelessWidget {
     // حساب السعر شامل الضريبة
     String priceWithVatText = '0';
     if (hasPrice) {
-      final cleanPrice = priceRaw.replaceAll(RegExp(r'[^0-9,]'), '');
-      final numericPrice = cleanPrice.replaceAll(',', '');
-      final double originalPrice = double.tryParse(numericPrice) ?? 0;
-      final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
-
-      // تنسيق السعر مع الضريبة
-      priceWithVatText = priceWithVat.toStringAsFixed(0);
+      final isAlreadyFormatted = priceRaw.contains(',');
+      final cleanPrice = priceRaw.replaceAll(RegExp(r'[^0-9.]'), '');
+      final double originalPrice = double.tryParse(cleanPrice) ?? 0;
+      if (isAlreadyFormatted) {
+        final formatter = NumberFormat('#,##0', 'en_US');
+        priceWithVatText = formatter.format(originalPrice);
+      } else {
+        final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
+        final formatter = NumberFormat('#,##0', 'en_US');
+        priceWithVatText = formatter.format(priceWithVat);
+      }
     }
-
-    // نص السعر المعروض (السعر الأصلي + السعر مع الضريبة)
-    final String displayPriceText = hasPrice
-        ? '$priceRaw ${AppLocaleKey.sar.tr()}'
-        : '0 ${AppLocaleKey.sar.tr()}';
 
     return Container(
       width: double.infinity,
@@ -171,18 +171,7 @@ class CardFooter extends StatelessWidget {
             ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w900),
           ),
           Gap(12.h),
-          // السعر الأصلي
-          Row(
-            children: [
-              ValueWithCurrencyIcon(
-                text: displayPriceText,
-                textStyle: AppTextStyle.titleMedium(context).copyWith(
-                  color: hasPrice ? AppColor.primaryColor(context) : AppColor.greyColor(context),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+
           if (hasPrice) ...[
             Gap(4.h),
             Row(

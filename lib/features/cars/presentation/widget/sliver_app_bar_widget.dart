@@ -63,26 +63,9 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
         ),
       ),
       actions: [
-        Padding(
-          padding: EdgeInsets.all(8.w),
-          child: IconButton(
-            icon: Icon(Icons.share_outlined, color: AppColor.blackTextColor(context), size: 20),
-            onPressed: () {
-              if (HiveMethods.getToken() == null) {
-                CommonMethods.showLoginRequiredDialog(context);
-              } else {
-                final String carName = widget.car.itemName;
-                final String carPrice = widget.car.price ?? '';
-                final String message =
-                    '${AppLocaleKey.checkOutThisCar.tr()} $carName ${AppLocaleKey.atPrice.tr()} $carPrice\n\n${AppLocaleKey.downloadApp.tr()}: https://hbwinternational.com';
-                SharePlus.instance.share(ShareParams(text: message));
-              }
-            },
-          ),
-        ),
         BlocBuilder<FavoritesCubit, FavoritesState>(
           builder: (context, state) {
-            final isFav = context.read<FavoritesCubit>().isFavorite(widget.car.itemName);
+            final isFav = context.read<FavoritesCubit>().isFavorite(widget.car.toMap());
             return Padding(
               padding: EdgeInsets.all(8.w),
               child: IconButton(

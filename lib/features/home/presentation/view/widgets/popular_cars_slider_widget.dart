@@ -100,6 +100,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
         '${Constants.baseImage}${path.replaceAll('../../Img/Emp/', '')}';
 
     return {
+      'unique_id': '${car.itemCode}_${car.chassisNo}',
       'name': car.itemName,
       'groupCode': car.groupCode.toString(),
       'itemCode': car.itemCode.toString(),
@@ -107,7 +108,8 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'image': '${Constants.baseImage}${car.carImage}',
       'extraImages': car.extraImages.map(imageUrl).toList(),
       'brand': car.groupName,
-      'price': '${car.price ?? "0"}',
+      'price': car.price,
+      'PRICE': car.price,
       'year': car.makeYear.toString(),
       'mileage': '${car.kilometerReading ?? "0"} كم',
       'engine': '${car.cylinder} Cyl',

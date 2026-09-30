@@ -115,7 +115,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                     children: [
                       BlocBuilder<FavoritesCubit, FavoritesState>(
                         builder: (context, state) {
-                          final isFav = context.read<FavoritesCubit>().isFavorite(car.itemName);
+                          final isFav = context.read<FavoritesCubit>().isFavorite(car.toMap());
                           return Container(
                             height: 30.h,
                             decoration: BoxDecoration(

@@ -64,7 +64,20 @@ class LoginScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: CustomFormLoginWidget(formKey: _formKey, cubit: cubit),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (Navigator.canPop(context))
+                        Align(
+                          alignment: AlignmentDirectional.topStart,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      CustomFormLoginWidget(formKey: _formKey, cubit: cubit),
+                    ],
+                  ),
                 ),
               ),
             );

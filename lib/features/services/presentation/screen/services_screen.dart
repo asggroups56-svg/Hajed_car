@@ -42,25 +42,6 @@ class ServicesScreen extends StatelessWidget {
                           ),
                         ),
                         Gap(4.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                          decoration: BoxDecoration(
-                            color: AppColor.primaryColor(context).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6.r),
-                            border: Border.all(
-                              color: AppColor.primaryColor(context).withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Text(
-                            'ELITE HUB',
-                            style: AppTextStyle.bodySmall(context).copyWith(
-                              color: AppColor.primaryColor(context),
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                     IconButton(

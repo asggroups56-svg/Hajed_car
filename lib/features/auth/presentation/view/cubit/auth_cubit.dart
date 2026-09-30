@@ -5,6 +5,7 @@ import 'package:car/core/services/notification_service.dart';
 import 'package:car/features/auth/data/model/change_password_request_model.dart';
 import 'package:car/features/auth/data/model/login_request_model.dart';
 import 'package:car/features/auth/data/model/login_response_model.dart';
+import 'package:car/features/auth/data/model/refresh_token_request_model.dart';
 import 'package:car/features/auth/data/model/register_request_model.dart';
 import 'package:car/features/auth/data/model/register_response_model.dart';
 import 'package:car/features/auth/data/repository/auth_repo.dart';
@@ -69,6 +70,7 @@ class AuthCubit extends Cubit<AuthState> {
       username: mobileController.text.trim(),
       password: passwordController.text.trim(),
       grantType: 'password',
+      clientType: 'mobile',
     );
 
     final result = await authRepo.login(request: request);
@@ -80,6 +82,9 @@ class AuthCubit extends Cubit<AuthState> {
       (response) async {
         HiveMethods.updateIsGuest(false);
         HiveMethods.updateToken(response.accessToken);
+        if (response.refreshToken.isNotEmpty) {
+          HiveMethods.updateRefreshToken(response.refreshToken);
+        }
         HiveMethods.updateRole(response.type);
         HiveMethods.updateUserName(response.userName);
         HiveMethods.updateUserCode(response.code);
@@ -195,10 +200,32 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  Future<void> refreshToken() async {
+    final storedRefreshToken = HiveMethods.getRefreshToken();
+    if (storedRefreshToken == null || storedRefreshToken.isEmpty) return;
+
+    final request = RefreshTokenRequest(refreshToken: storedRefreshToken);
+    final result = await authRepo.refreshToken(request: request);
+
+    result.fold(
+      (failure) {
+        debugPrint('Token refresh failed: ${failure.errMessage}');
+      },
+      (response) {
+        HiveMethods.updateToken(response.accessToken);
+        if (response.refreshToken.isNotEmpty) {
+          HiveMethods.updateRefreshToken(response.refreshToken);
+        }
+        debugPrint('Token refreshed successfully');
+      },
+    );
+  }
+
   Future<void> logout() async {
     await authRepo.logout();
     HiveMethods.updateIsGuest(false);
     HiveMethods.deleteToken();
+    HiveMethods.deleteRefreshToken();
     HiveMethods.updateRole('user');
     HiveMethods.updateUserName('');
     clearRegisterFields();

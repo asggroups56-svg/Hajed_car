@@ -4,6 +4,7 @@ class LoginResponse extends Equatable {
   final String accessToken;
   final String tokenType;
   final int expiresIn;
+  final String refreshToken;
   final String userName;
   final String userId;
   final String companyName;
@@ -29,6 +30,7 @@ class LoginResponse extends Equatable {
     required this.accessToken,
     required this.tokenType,
     required this.expiresIn,
+    required this.refreshToken,
     required this.userName,
     required this.userId,
     required this.companyName,
@@ -59,6 +61,7 @@ class LoginResponse extends Equatable {
       expiresIn: json['expires_in'] is int
           ? json['expires_in']
           : int.tryParse(json['expires_in']?.toString() ?? '') ?? 0,
+      refreshToken: json['refresh_token']?.toString() ?? '',
       userName: json['userName']?.toString() ?? '',
       userId: json['userid']?.toString() ?? '',
       companyName: json['compneyname']?.toString() ?? '',
@@ -88,6 +91,7 @@ class LoginResponse extends Equatable {
       'access_token': accessToken,
       'token_type': tokenType,
       'expires_in': expiresIn,
+      'refresh_token': refreshToken,
       'userName': userName,
       'userid': userId,
       'compneyname': companyName,
@@ -117,6 +121,7 @@ class LoginResponse extends Equatable {
     accessToken,
     tokenType,
     expiresIn,
+    refreshToken,
     userName,
     userId,
     companyName,

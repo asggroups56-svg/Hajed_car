@@ -70,6 +70,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
         "${Constants.baseImage}${path.replaceAll("../../Img/Emp/", "")}";
     final brand = selectedBrandName ?? car.groupName;
     return {
+      'unique_id': '${car.itemCode}_${car.chassisNo}',
       'name': car.itemName,
       'groupCode': car.groupCode.toString(),
       'itemCode': car.itemCode.toString(),
@@ -78,6 +79,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'extraImages': car.extraImages.map(imageUrl).toList(),
       'brand': brand,
       'price': car.price,
+      'PRICE': car.price,
       'year': car.makeYear.toString(),
       'mileage': car.kilometerReading != null ? '${car.kilometerReading} كم' : '0 كم',
       'engine': '${car.cylinder} Cyl',

@@ -24,14 +24,27 @@ class CardContentSection extends StatelessWidget {
   final VoidCallback onOrderNow;
   String get formattedPriceWithVat {
     final rawPrice = car['price']?.toString();
-    if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null') return '---';
-    final vatNumber = HiveMethods.getVatNumber();
-    final cleanPrice = double.tryParse('${car['price']}'.toString());
-    final double originalPrice = double.tryParse(cleanPrice.toString()) ?? 0;
-    final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
-    final double priceWithVat = originalPrice * ((vatPercentage / 100)) + originalPrice;
+    if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
+      return '---';
+    }
+    // If price already contains commas (already formatted from formattedPriceWithVat),
+    // strip commas and return formatted without re-applying VAT
+    final isAlreadyFormatted = rawPrice.contains(',');
+    final numericStr = rawPrice.replaceAll(RegExp(r'[^0-9.]'), '');
+    final double parsedPrice = double.tryParse(numericStr) ?? 0;
+    if (parsedPrice <= 0) return rawPrice;
 
-    final formatter = NumberFormat('#,###.00', 'ar_SA');
+    if (isAlreadyFormatted) {
+      // Price already includes VAT, just re-format to remove decimals
+      final formatter = NumberFormat('#,##0', 'en_US');
+      return formatter.format(parsedPrice);
+    }
+
+    // Raw price without VAT - add VAT
+    final vatNumber = HiveMethods.getVatNumber();
+    final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
+    final double priceWithVat = parsedPrice * (1 + (vatPercentage / 100));
+    final formatter = NumberFormat('#,##0', 'en_US');
     return formatter.format(priceWithVat);
   }
 

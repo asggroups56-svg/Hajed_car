@@ -30,6 +30,21 @@ class HiveMethods {
     _box.delete('token');
   }
 
+  static String? getRefreshToken() {
+    final String? encrypted = _box.get('refreshToken');
+    if (encrypted == null) return null;
+    return SecurityHelper.decrypt(encrypted);
+  }
+
+  static void updateRefreshToken(String refreshToken) {
+    final String encrypted = SecurityHelper.encrypt(refreshToken);
+    _box.put('refreshToken', encrypted);
+  }
+
+  static void deleteRefreshToken() {
+    _box.delete('refreshToken');
+  }
+
   static bool isFirstTime() {
     return _box.get('isFirstTime', defaultValue: true);
   }

@@ -3,7 +3,6 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/services/presentation/widgets/contact_item_widget.dart';
-import 'package:car/features/services/presentation/widgets/fqa_Item_widget.dart';
 import 'package:car/features/services/presentation/widgets/section_header_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -143,57 +142,8 @@ class SupportScreen extends StatelessWidget {
                     icon: Icons.alternate_email_rounded,
                   ),
                   Gap(20.h),
-                  // MANAGEMENT
-                  SectionHeaderWidget(
-                    title: AppLocaleKey.management.tr(),
-                    icon: Icons.admin_panel_settings_rounded,
-                  ),
-                  const ContactItemWidget(value: '0550266666', icon: Icons.phone_iphone_rounded),
-                  Gap(20.h),
-                  SectionHeaderWidget(
-                    title: AppLocaleKey.installmentSales.tr(),
-                    icon: Icons.account_balance_wallet_rounded,
-                  ),
-                  const ContactItemWidget(value: '0548272279', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0562012761', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0562012761', icon: Icons.phone_iphone_rounded),
-                  Gap(20.h),
-                  SectionHeaderWidget(
-                    title: AppLocaleKey.cashSales.tr(),
-                    icon: Icons.payments_rounded,
-                  ),
-                  const ContactItemWidget(value: '0501239318', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0557955538', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0559726744', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0564169370', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0504335378', icon: Icons.phone_iphone_rounded),
-                  const ContactItemWidget(value: '0562012761', icon: Icons.phone_iphone_rounded),
-                  Gap(30.h),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 400),
-                    child: Text(
-                      AppLocaleKey.faqs.tr(),
-                      style: AppTextStyle.titleLarge(context).copyWith(
-                        color: AppColor.blackTextColor(context),
 
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Gap(12.h),
-                  FqaItemWidget(
-                    question: AppLocaleKey.faqOrderStatus.tr(),
-                    answer: AppLocaleKey.faqA4.tr(),
-                  ),
-                  FqaItemWidget(
-                    question: AppLocaleKey.faqPaymentMethods.tr(),
-                    answer: AppLocaleKey.faqA2.tr(),
-                  ),
-                  FqaItemWidget(
-                    question: AppLocaleKey.faqCancelAppointment.tr(),
-                    answer: AppLocaleKey.faqA4.tr(),
-                  ),
-                  Gap(50.h),
+                  // MANAGEMENT
                 ],
               ),
             ),

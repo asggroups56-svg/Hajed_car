@@ -147,20 +147,27 @@ class GetBrandCarsDataModel extends Equatable {
   }
 
   String get formattedPriceWithVat {
-    if (price == null || price!.isEmpty) return '---';
-    final vatNumber = HiveMethods.getVatNumber();
+    if (price == null || price!.isEmpty || price == 'null' || price == '---') return '---';
+    final isAlreadyFormatted = price!.contains(',');
     final cleanPriceStr = price.toString().replaceAll(RegExp(r'[^0-9.]'), '');
     final double originalPrice = double.tryParse(cleanPriceStr) ?? 0;
     if (originalPrice <= 0) return '---';
+
+    final formatter = NumberFormat('#,##0', 'en_US');
+    if (isAlreadyFormatted) {
+      return formatter.format(originalPrice);
+    }
+
+    final vatNumber = HiveMethods.getVatNumber();
     final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
     final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
 
-    final formatter = NumberFormat('#,###.00', 'ar_SA');
     return formatter.format(priceWithVat);
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'unique_id': '${itemCode}_$chassisNo',
       'GROUP_CODE': groupCode,
       'GROUP_NAME': groupName,
       'GR_NAME': grName,

@@ -1,6 +1,8 @@
 import 'package:car/core/custom_widgets/buttons/custom_button.dart';
 import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
+import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -495,12 +497,18 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                   CustomButton(
                     radius: 12.r,
                     color: AppColor.greenColor(context),
-                    onPressed: () => Navigator.pop(context, {
-                      'duration': _durationYears,
-                      'down': _downPayment,
-                      'last': _lastPayment,
-                      'offer': _activeOffer,
-                    }),
+                    onPressed: () {
+                      if (HiveMethods.getToken() == null) {
+                        CommonMethods.showLoginRequiredDialog(context);
+                      } else {
+                        Navigator.pop(context, {
+                          'duration': _durationYears,
+                          'down': _downPayment,
+                          'last': _lastPayment,
+                          'offer': _activeOffer,
+                        });
+                      }
+                    },
 
                     child: Text(
                       AppLocaleKey.agentBuyNow.tr(),
