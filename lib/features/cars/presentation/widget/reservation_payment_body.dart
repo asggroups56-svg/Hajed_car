@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:car/core/custom_widgets/buttons/custom_button.dart';
@@ -16,7 +17,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:moyasar/moyasar.dart';
 import 'package:pay/pay.dart' as pay_pkg;
-import 'dart:convert';
 
 class ReservationPaymentBody extends StatelessWidget {
   final GetBrandCarsDataModel car;
@@ -37,6 +37,12 @@ class ReservationPaymentBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
+    // NOTE: The Apple Pay merchant name (label) MUST exactly match the name
+    // registered in your Apple Developer account under your Merchant ID.
+    // Using a mismatch here triggers Guideline 4.9 rejection.
+    // Registered merchant name: Hajed Trading Company
+    // (update this to match your exact Apple Pay merchant registration)
+    const merchantName = 'Hajed Trading Company';
     // IMPORTANT: Set callbackUrl so ThreeDSWebView can detect 3DS completion.
     // The WebView watches for a redirect to this host — must match what Moyasar
     // sends after 3DS. Keep in sync with the Moyasar dashboard callback setting.
@@ -44,12 +50,14 @@ class ReservationPaymentBody extends StatelessWidget {
     final paymentConfig = PaymentConfig(
       publishableApiKey: Constants.moyasarPublishableKey,
       amount: (depositAmount * 100).toInt(),
-      description: isArabic ? 'حجز سيارة ${car.itemName}' : 'Car Reservation - ${car.itemName}',
+      description: isArabic
+          ? 'عربون حجز سيارة ${car.itemName}'
+          : 'Car reservation deposit - ${car.itemName}',
       metadata: {'item_code': car.itemCode, 'chassis_no': car.chassisNo},
       creditCard: CreditCardConfig(saveCard: false, manual: false),
       applePay: ApplePayConfig(
         merchantId: Constants.applePayMerchantId,
-        label: isArabic ? 'شركة معرض السيارات' : 'Car Dealership App',
+        label: merchantName,
         manual: false,
         saveCard: false,
       ),
@@ -113,10 +121,44 @@ class _PaymentMethodSelectorState extends State<_PaymentMethodSelector> {
   @override
   void initState() {
     super.initState();
+    // Default safely to card first; if Apple Pay is verified available, switch to it
+    _selected = _PaymentTab.creditCard;
     if (Platform.isIOS) {
-      _selected = _PaymentTab.applePay;
-    } else {
-      _selected = _PaymentTab.creditCard;
+      _checkApplePayAvailability();
+    }
+  }
+
+  Future<void> _checkApplePayAvailability() async {
+    try {
+      final networks = widget.config.supportedNetworks.map((e) => e.toJson()).toList();
+      final applePayConfig = widget.config.applePay;
+      final data = <String, dynamic>{
+        'merchantIdentifier': applePayConfig?.merchantId,
+        'displayName': applePayConfig?.label,
+        'merchantCapabilities': applePayConfig?.merchantCapabilities,
+        'supportedNetworks': networks,
+        'countryCode': 'SA',
+        'currencyCode': 'SAR',
+      };
+      if (applePayConfig?.supportedCountries != null &&
+          applePayConfig!.supportedCountries.isNotEmpty) {
+        data['supportedCountries'] = applePayConfig.supportedCountries;
+      }
+      final configJson = jsonEncode({
+        'provider': 'apple_pay',
+        'data': data,
+      });
+      final payClient = pay_pkg.Pay({
+        pay_pkg.PayProvider.apple_pay: pay_pkg.PaymentConfiguration.fromJsonString(configJson),
+      });
+      final canPay = await payClient.userCanPay(pay_pkg.PayProvider.apple_pay);
+      if (mounted && canPay) {
+        setState(() {
+          _selected = _PaymentTab.applePay;
+        });
+      }
+    } catch (_) {
+      // Keep creditCard selected on error
     }
   }
 
@@ -256,6 +298,8 @@ class _PaymentMethodSelectorState extends State<_PaymentMethodSelector> {
           key: const ValueKey('applePay'),
           child: _DirectApplePayButton(
             config: widget.config,
+            isArabic: widget.isArabic,
+            onSwitchToCard: () => setState(() => _selected = _PaymentTab.creditCard),
             onPaymentResult: widget.onPaymentResult,
           ),
         );
@@ -760,14 +804,18 @@ class _GuaranteeBanner extends StatelessWidget {
   }
 }
 
-// ─── Direct Apple Pay Button (bypasses Moyasar availability check) ───────────
+// ─── Direct Apple Pay Button with Fallback ───────────────────────────────────
 
 class _DirectApplePayButton extends StatefulWidget {
   final PaymentConfig config;
+  final bool isArabic;
+  final VoidCallback? onSwitchToCard;
   final void Function(dynamic result, {required bool isApplePay}) onPaymentResult;
 
   const _DirectApplePayButton({
     required this.config,
+    required this.isArabic,
+    this.onSwitchToCard,
     required this.onPaymentResult,
   });
 
@@ -780,17 +828,22 @@ class _DirectApplePayButtonState extends State<_DirectApplePayButton> {
 
   String _buildPaymentConfig() {
     final networks = widget.config.supportedNetworks.map((e) => e.toJson()).toList();
+    final applePayConfig = widget.config.applePay;
+    final data = <String, dynamic>{
+      'merchantIdentifier': applePayConfig?.merchantId,
+      'displayName': applePayConfig?.label,
+      'merchantCapabilities': applePayConfig?.merchantCapabilities,
+      'supportedNetworks': networks,
+      'countryCode': 'SA',
+      'currencyCode': 'SAR',
+    };
+    if (applePayConfig?.supportedCountries != null &&
+        applePayConfig!.supportedCountries.isNotEmpty) {
+      data['supportedCountries'] = applePayConfig.supportedCountries;
+    }
     return jsonEncode({
       'provider': 'apple_pay',
-      'data': {
-        'merchantIdentifier': widget.config.applePay!.merchantId,
-        'displayName': widget.config.applePay!.label,
-        'merchantCapabilities': widget.config.applePay!.merchantCapabilities ?? ['3DS'],
-        'supportedCountries': widget.config.applePay!.supportedCountries ?? ['SA'],
-        'supportedNetworks': networks,
-        'countryCode': 'SA',
-        'currencyCode': 'SAR',
-      }
+      'data': data,
     });
   }
 
@@ -824,33 +877,97 @@ class _DirectApplePayButtonState extends State<_DirectApplePayButton> {
     }
   }
 
+  Widget _buildFallbackUI(BuildContext context) {
+    final isAr = widget.isArabic;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColor.cardColor(context),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColor.borderColor(context)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.apple_rounded,
+              size: 32.sp,
+              color: AppColor.darkTextColor(context),
+            ),
+          ),
+          Gap(12.h),
+          Text(
+            isAr
+                ? 'Apple Pay غير متوفر أو غير مفعّل على هذا الجهاز'
+                : 'Apple Pay is not set up on this device',
+            textAlign: TextAlign.center,
+            style: AppTextStyle.bodyMedium(context).copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColor.darkTextColor(context),
+            ),
+          ),
+          Gap(6.h),
+          Text(
+            isAr
+                ? 'يرجى إضافة بطاقة إلى تطبيق المحفظة (Wallet) من إعدادات الجهاز، أو إتمام الحجز مباشرة عبر البطاقة البنكية.'
+                : 'Please add a card to Apple Wallet in device Settings, or pay directly using a Credit/Debit Card.',
+            textAlign: TextAlign.center,
+            style: AppTextStyle.bodySmall(context).copyWith(
+              color: AppColor.greyColor(context),
+              height: 1.4,
+            ),
+          ),
+          Gap(16.h),
+          CustomButton(
+            height: 46.h,
+            width: double.infinity,
+            onPressed: widget.onSwitchToCard ?? () {},
+            text: isAr ? 'الدفع بالبطاقة البنكية' : 'Pay with Credit / Debit Card',
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    if (_isProcessing) {
+      return SizedBox(
+        height: 54.h,
+        child: Center(child: CircularProgressIndicator(color: AppColor.primaryColor(context))),
+      );
+    }
+
+    return pay_pkg.ApplePayButton(
+      paymentConfiguration: pay_pkg.PaymentConfiguration.fromJsonString(
+        _buildPaymentConfig(),
+      ),
+      paymentItems: [
+        pay_pkg.PaymentItem(
+          label: widget.config.applePay!.label,
+          amount: (widget.config.amount / 100).toStringAsFixed(2),
+          status: pay_pkg.PaymentItemStatus.final_price,
+        ),
+      ],
+      type: pay_pkg.ApplePayButtonType.buy,
+      style: pay_pkg.ApplePayButtonStyle.black,
       width: double.infinity,
       height: 54.h,
-      child: _isProcessing
-          ? Center(child: CircularProgressIndicator(color: AppColor.primaryColor(context)))
-          : pay_pkg.ApplePayButton(
-              paymentConfiguration: pay_pkg.PaymentConfiguration.fromJsonString(
-                _buildPaymentConfig(),
-              ),
-              paymentItems: [
-                pay_pkg.PaymentItem(
-                  label: widget.config.applePay!.label,
-                  amount: (widget.config.amount / 100).toStringAsFixed(2),
-                  status: pay_pkg.PaymentItemStatus.final_price,
-                ),
-              ],
-              type: pay_pkg.ApplePayButtonType.inStore,
-              style: pay_pkg.ApplePayButtonStyle.black,
-              onPaymentResult: _onApplePayResult,
-              loadingIndicator: Center(
-                child: CircularProgressIndicator(color: AppColor.primaryColor(context)),
-              ),
-              onError: (_) =>
-                  widget.onPaymentResult(PaymentCanceledError(), isApplePay: true),
-            ),
+      onPaymentResult: _onApplePayResult,
+      loadingIndicator: Center(
+        child: CircularProgressIndicator(color: AppColor.primaryColor(context)),
+      ),
+      onError: (error) {
+        debugPrint('Apple Pay error/dismissed: $error');
+      },
+      childOnError: _buildFallbackUI(context),
     );
   }
 }

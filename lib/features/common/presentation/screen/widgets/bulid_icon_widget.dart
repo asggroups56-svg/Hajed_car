@@ -22,6 +22,5 @@ class BulidIconWidget extends StatelessWidget {
         color: isSuccess ? AppColor.greenColor(context) : AppColor.redColor(context),
       ),
     );
-    ;
   }
 }

@@ -64,7 +64,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   final _idCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   String _selectedGender = 'male';
-  String _selectedCity = 'الرياض';
 
   // Work Info Form
   final _employerCtrl = TextEditingController();
@@ -83,6 +82,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   bool _isOtpSheetOpen = false;
   bool _isSendingOtp = false;
   bool _isSubmittingLoan = false;
+
 
   static const double _defaultApr = 4.5;
 
@@ -125,7 +125,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     super.initState();
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
-    _selectedCity = AppLocaleKey.cityRiyadh.tr();
+
 
     _selectedOffer = widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
@@ -258,6 +258,33 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final String makeYearStr = widget.car?.makeYear.toString() ?? DateTime.now().year.toString();
 
     final int customerNoVal = int.tryParse(HiveMethods.getcode() ?? '') ?? 0;
+
+    // ── Guard: validate required server fields before sending ──
+    if (customerNoVal == 0) {
+      _showSnack(
+        context.locale.languageCode == 'ar'
+            ? 'خطأ: رقم العميل غير موجود، يرجى تسجيل الخروج وإعادة الدخول'
+            : 'Error: Customer number not found, please log out and log in again',
+      );
+      return;
+    }
+    final salary = double.tryParse(_salaryCtrl.text.trim()) ?? 0.0;
+    if (salary <= 0) {
+      _showSnack(
+        context.locale.languageCode == 'ar'
+            ? 'يرجى إدخال الراتب الشهري بشكل صحيح'
+            : 'Please enter a valid monthly salary',
+      );
+      return;
+    }
+    if (_idCtrl.text.trim().isEmpty) {
+      _showSnack(
+        context.locale.languageCode == 'ar'
+            ? 'يرجى إدخال رقم الهوية'
+            : 'Please enter your ID number',
+      );
+      return;
+    }
 
     final model = AddLoanApplicationModel(
       applicationId: 0,
@@ -449,8 +476,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                 phoneCtrl: _phoneCtrl,
                 selectedGender: _selectedGender,
                 onGenderChanged: (g) => setState(() => _selectedGender = g ?? 'male'),
-                // selectedCity: _selectedCity,
-                // onCityChanged: (c) => setState(() => _selectedCity = c ?? 'الرياض'),
               ),
               FinancingWorkInfoTab(
                 formKey: _formKey2,

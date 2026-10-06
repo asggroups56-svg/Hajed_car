@@ -6,19 +6,23 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class DatePickerTile extends StatelessWidget {
   final String label;
   final DateTime? date;
+  final String? dateText;
   final VoidCallback onTap;
   final BuildContext context;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+
   const DatePickerTile({
     super.key,
     required this.label,
-    required this.date,
+    this.date,
+    this.dateText,
     required this.onTap,
     required this.context,
     this.controller,
     this.validator,
   });
+
   @override
   Widget build(BuildContext ctx) {
     return CustomFormField(
@@ -26,12 +30,13 @@ class DatePickerTile extends StatelessWidget {
       readOnly: true,
       onTap: onTap,
       title: label,
+      hintText: dateText,
       suffixIcon: Icon(
         Icons.calendar_month_rounded,
         color: AppColor.primaryColor(context),
-        size: 10.sp,
+        size: 14.sp,
       ),
-      controller: controller,
+      controller: controller ?? (dateText != null ? TextEditingController(text: dateText) : null),
       validator: validator,
     );
   }

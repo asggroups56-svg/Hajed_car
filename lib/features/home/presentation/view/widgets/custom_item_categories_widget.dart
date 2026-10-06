@@ -48,7 +48,7 @@ class CustomItemCategoriesWidget extends StatelessWidget {
             ),
             Gap(10.h),
             Text(
-              context.locale.languageCode == 'ar' ? item.groupName ?? '' : item.groupEName ?? '',
+              context.locale.languageCode == 'ar' ? item.groupName : item.groupEName ?? '',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyle.bodySmall(context).copyWith(

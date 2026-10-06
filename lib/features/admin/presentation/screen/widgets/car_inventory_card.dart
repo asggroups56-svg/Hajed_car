@@ -150,7 +150,7 @@ class CarInventoryCard extends StatelessWidget {
                         const Divider(height: 1),
                         Gap(10.h),
                         ValueWithCurrencyIcon(
-                          text: ' ${car.formattedPriceWithVat ?? ''} ${AppLocaleKey.sar.tr()}',
+                          text: ' ${car.formattedPriceWithVat} ${AppLocaleKey.sar.tr()}',
                           textStyle: AppTextStyle.bodyMedium(context).copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColor.blackTextColor(context),

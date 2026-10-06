@@ -334,6 +334,44 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                             },
                           ),
                         ),
+                        Gap(10.h),
+                        // Institution disclaimer
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                          decoration: BoxDecoration(
+                            color: AppColor.greyColor(context).withValues(alpha: 0.07),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: AppColor.greyColor(context).withValues(alpha: 0.18),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: 12.sp,
+                                color: AppColor.greyColor(context),
+                              ),
+                              Gap(5.w),
+                              Expanded(
+                                child: Text(
+                                  context.locale.languageCode == 'ar'
+                                      ? 'تُستخدم أسماء الجهات الظاهرة لأغراض الحساب فقط، ولا تمثل عرضًا تمويليًا أو توصية أو مقارنة بين الجهات التمويلية.'
+                                      : 'Institution names are displayed for calculation reference only and do not constitute a financing offer, recommendation, or comparison between financial institutions.',
+                                  style: AppTextStyle.bodySmall(context).copyWith(
+                                    color: AppColor.greyColor(context),
+                                    fontSize: 9.5.sp,
+                                    height: 1.55,
+                                 ),
+                                 textAlign: context.locale.languageCode == 'ar'
+                                     ? TextAlign.right
+                                     : TextAlign.left,
+                               ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Gap(16.h),
                       ],
                     )

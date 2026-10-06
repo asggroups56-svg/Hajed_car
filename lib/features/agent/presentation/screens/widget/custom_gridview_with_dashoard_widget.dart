@@ -2,6 +2,7 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/features/agent/data/model/agent_models.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
 import 'package:car/features/agent/presentation/cubit/agent_state.dart';
+import 'package:car/features/agent/presentation/screens/agent_external_offers_screen.dart';
 import 'package:car/features/agent/presentation/screens/agent_my_bookings_screen.dart';
 import 'package:car/features/agent/presentation/screens/agent_offers_screen.dart';
 import 'package:car/features/agent/presentation/screens/widget/agent_notification_widget.dart';
@@ -15,9 +16,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 
 class CustomGridviewWithDashoardWidget extends StatelessWidget {
-  const CustomGridviewWithDashoardWidget({
-    super.key,
-  });
+  const CustomGridviewWithDashoardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +25,13 @@ class CustomGridviewWithDashoardWidget extends StatelessWidget {
         return BlocBuilder<AgentCubit, AgentState>(
           builder: (context, state) {
             final offers = state.offersStatus.data ?? [];
+            final externalOffers = state.externalOffersStatus.data ?? [];
             final offersCount = offers.length;
             final reservedCount = cartState.reservedCars.length;
             final kpis = getAgentKpis(
               closedDeals: reservedCount,
               sales: offersCount.toDouble(),
+              externalQuotes: externalOffers.length,
             );
             return SliverPadding(
               padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 30.h),
@@ -72,6 +73,18 @@ class CustomGridviewWithDashoardWidget extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const AgentOffersScreen()),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(24.r),
+                          child: kpiCard,
+                        );
+                      }
+                      if (i == 2) {
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AgentExternalOffersScreen()),
                             );
                           },
                           borderRadius: BorderRadius.circular(24.r),

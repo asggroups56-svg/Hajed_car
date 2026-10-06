@@ -431,7 +431,7 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                     _showOtpSheet();
                   } else {
                     CommonMethods.showToast(
-                      message: '${status.data!.message ?? ''}',
+                      message: '${status.data!.message}',
                       type: ToastType.error,
                     );
                   }

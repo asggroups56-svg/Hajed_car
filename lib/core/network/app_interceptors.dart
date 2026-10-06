@@ -13,7 +13,7 @@ class AppInterceptors extends Interceptor {
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     isInternet = true;
     if (options.data is FormData) {
-      options.contentType = null;
+      options.contentType = Headers.multipartFormDataContentType;
       options.headers.remove(Headers.contentTypeHeader);
       options.headers.remove('Content-Type');
       options.headers.remove('content-type');

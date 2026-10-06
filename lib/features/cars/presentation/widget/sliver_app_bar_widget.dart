@@ -1,10 +1,8 @@
-import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
-import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/cars/presentation/widget/full_image_gallery_screen.dart';
 import 'package:car/features/favorites/presentation/view/cubit/favorites_cubit.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
@@ -14,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
-import 'package:share_plus/share_plus.dart';
 
 class SliverAppBarWidget extends StatefulWidget {
   const SliverAppBarWidget({

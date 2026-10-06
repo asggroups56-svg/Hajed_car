@@ -37,7 +37,7 @@ class PremiumAvatar extends StatelessWidget {
       child: Center(
         child: Text(
           text,
-          style: AppTextStyle.titleLarge(context)?.copyWith(
+          style: AppTextStyle.titleLarge(context).copyWith(
             color: AppColor.whiteColor(context),
             fontWeight: FontWeight.w900,
             fontSize: 18.sp,

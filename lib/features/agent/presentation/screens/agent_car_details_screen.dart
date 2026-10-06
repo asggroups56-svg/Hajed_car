@@ -691,26 +691,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     );
   }
 
-  double _parsePrice(dynamic price, {bool withTax = false}) {
-    if (price == null) return 0.0;
-    double value;
-    if (price is num) {
-      value = price.toDouble();
-    } else if (price is String) {
-      final clean = price.replaceAll(RegExp(r'[^0-9.]'), '');
-      value = double.tryParse(clean) ?? 0.0;
-    } else {
-      value = 0.0;
-    }
-    if (!value.isFinite) value = 0.0;
-    final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
-    final result = withTax ? value * ((100 + vatSerial) / 100) : value;
-    return _round2(result);
-  }
 
-  double _round2(double value) {
-    return double.parse(value.toStringAsFixed(2));
-  }
 
   void _submitReservation({
     required String customerName,

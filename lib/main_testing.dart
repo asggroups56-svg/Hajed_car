@@ -1,6 +1,5 @@
 import 'core/config/app_config.dart';
 import 'main.dart' as app_main;
-
 void main() async {
   AppConfig.init(
     appFlavor: AppFlavor.testing,

@@ -6,8 +6,11 @@ import 'package:printing/printing.dart';
 
 class _C {
   // Font sizes
+  // ignore: unused_field
   static const double fsTitle = 14.0;
+  // ignore: unused_field
   static const double fsEnTitle = 9.0;
+  // ignore: unused_field
   static const double fsRegInfo = 8.0;
   static const double fsDateBank = 9.5;
   static const double fsTableHeader = 8.0;
@@ -15,6 +18,7 @@ class _C {
   static const double fsSpecs = 8.0;
   static const double fsTotal = 10.0;
   static const double fsCondition = 8.5;
+  // ignore: unused_field
   static const double fsFooter = 8.0;
 
   // Spacing
@@ -30,8 +34,11 @@ class _C {
   static const PdfColor headerBg = PdfColors.red50;
   static const PdfColor totalBg = PdfColors.red50;
   static const PdfColor borderColor = PdfColors.black;
+  // ignore: unused_field
   static const PdfColor accentRed = PdfColors.red800;
+  // ignore: unused_field
   static const PdfColor watermark = PdfColors.blue50;
+  // ignore: unused_field
   static const PdfColor greyText = PdfColors.grey700;
 }
 
@@ -337,7 +344,7 @@ pw.Widget _buildTable({
               _headerCell('قيمة اللوحات', bold),
               _headerCell('قيمة مضافة', bold),
               _headerCell('سعر الوحدة', bold),
-              _headerCell('الهيكل', bold),
+              _headerCell('رقم الهيكل', bold),
               _headerCell('الموديل', bold),
               _headerCell('اللون', bold),
               _headerCell('نوع ومواصفات السيارة', bold),

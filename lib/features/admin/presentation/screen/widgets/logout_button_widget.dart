@@ -31,11 +31,7 @@ class LogoutButtonWidget extends StatelessWidget {
                     color: AppColor.redColor(context).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.logout_rounded,
-                    color: AppColor.redColor(context),
-                    size: 32.sp,
-                  ),
+                  child: Icon(Icons.logout_rounded, color: AppColor.redColor(context), size: 32.sp),
                 ),
                 Gap(16.h),
                 Text(
@@ -88,9 +84,13 @@ class LogoutButtonWidget extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
                           elevation: 0,
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          final authCubit = context.read<AuthCubit>();
+                          final navigator = Navigator.of(context);
                           Navigator.pop(context); // Close dialog
                           context.read<AuthCubit>().logout();
+                          await authCubit.logout();
+                          if (!navigator.mounted) return;
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             RoutesName.loginScreen,

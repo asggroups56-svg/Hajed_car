@@ -184,6 +184,8 @@ class AppRouters {
         return MaterialPageRoute(
           builder: (_) => AgentCustomerDetailsScreen(customer: args as CustomerModel),
         );
+      case RoutesName.agentExternalQuoteScreen:
+        return MaterialPageRoute(builder: (_) => const AgentExternalQuoteScreen());
       case RoutesName.financingProgramOffersScreen:
       case RoutesName.offersScreen:
       default:

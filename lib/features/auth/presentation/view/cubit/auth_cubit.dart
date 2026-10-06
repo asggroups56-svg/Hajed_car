@@ -90,7 +90,7 @@ class AuthCubit extends Cubit<AuthState> {
         HiveMethods.updateUserCode(response.code);
         HiveMethods.updateVatNumber(response.vatSerial);
         HiveMethods.updatecode(response.code);
-        HiveMethods.phone(response.tel1 ?? '');
+        HiveMethods.phone(response.tel1);
         HiveMethods.updateName(response.name);
         HiveMethods.updateRepresentativeNo(response.represNo);
         String fcmToken = await NotificationService.getFCMToken() ?? '';

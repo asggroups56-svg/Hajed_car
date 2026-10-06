@@ -20,7 +20,6 @@ class FinancingDocumentsTab extends StatefulWidget {
     AppLocaleKey.agentNationalIdCopy.tr(),
     AppLocaleKey.agentDrivingLicenseCopy.tr(),
     AppLocaleKey.agentSalaryStatement.tr(),
-    AppLocaleKey.customsCard.tr(),
   ];
 
   const FinancingDocumentsTab({super.key, this.uploadedFiles, this.onFilesChanged});

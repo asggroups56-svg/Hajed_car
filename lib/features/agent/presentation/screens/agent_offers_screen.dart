@@ -3,6 +3,7 @@ import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/features/agent/data/model/offer_model.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
 import 'package:car/features/agent/presentation/cubit/agent_state.dart';
 import 'package:car/features/agent/presentation/screens/car_quotation_preview_screen.dart';
@@ -10,6 +11,7 @@ import 'package:car/features/agent/presentation/screens/widget/empty_state_widge
 import 'package:car/features/agent/presentation/screens/widget/error_state_widget.dart';
 import 'package:car/features/agent/presentation/screens/widget/loading_state_widget.dart';
 import 'package:car/features/agent/presentation/screens/widget/offer_card_widget.dart';
+import 'package:car/features/agent/presentation/screens/widget/quotation_chassis_choice_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,6 +49,22 @@ class _AgentOffersScreenState extends State<AgentOffersScreen> {
   void _onSearch(String v) {
     final represNo = int.tryParse(HiveMethods.getUserCode() ?? '1') ?? 1;
     context.read<AgentCubit>().getOffers(v.isEmpty ? null : v, represNo, null);
+  }
+
+  Future<void> _showOffer(OfferModel offer, List<OfferModel> offers) async {
+    final showChassis = await showQuotationChassisChoiceDialog(context);
+    if (showChassis == null || !mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CarQuotationOffersPreviewScreen(
+          offerId: offer.listNo,
+          offers: offers,
+          showChassis: showChassis,
+        ),
+      ),
+    );
   }
 
   @override
@@ -160,17 +178,7 @@ class _AgentOffersScreenState extends State<AgentOffersScreen> {
                     itemBuilder: (context, index) {
                       final offer = offers[index];
                       return GestureDetector(
-                        onTap: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CarQuotationOffersPreviewScreen(
-                                offerId: offer.listNo,
-                                offers: offers,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => _showOffer(offer, offers),
                         child: OfferCard(offer: offer),
                       );
                     },

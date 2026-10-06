@@ -22,6 +22,7 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
       final userCode = HiveMethods.getUserCode() ?? '1';
       final represNo = int.tryParse(userCode) ?? 1;
       context.read<AgentCubit>().getOffers(null, represNo, null);
+      context.read<AgentCubit>().getExternalOffers(null, represNo, null);
       context.read<CartCubit>().loadReservedCars(isAgent: true);
     });
   }

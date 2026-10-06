@@ -65,6 +65,9 @@ class CustomerModel extends Equatable {
   final double? balance;
   final double? balanceLocal1;
 
+  String get customerMobile => tel1 ?? tel2 ?? tel3 ?? '';
+  String get mobile => customerMobile;
+
   const CustomerModel({
     this.customerNo,
     this.address,

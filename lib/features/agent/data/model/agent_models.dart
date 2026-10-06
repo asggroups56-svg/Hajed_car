@@ -213,7 +213,11 @@ class AgentCar {
 }
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
-List<AgentKpi> getAgentKpis({required int closedDeals, required double sales}) {
+List<AgentKpi> getAgentKpis({
+  required int closedDeals,
+  required double sales,
+  required int externalQuotes,
+}) {
   return [
     AgentKpi(
       label: AppLocaleKey.agentClosedDeals.tr(),
@@ -230,6 +234,13 @@ List<AgentKpi> getAgentKpis({required int closedDeals, required double sales}) {
       icon: Icons.trending_up_rounded,
       color: const Color(0xFFFBBF24),
       change: 18.0,
+    ),
+    AgentKpi(
+      label: AppLocaleKey.externalQuote.tr(),
+      value: externalQuotes.toString(),
+      subtitle: AppLocaleKey.agentThisMonth.tr(),
+      icon: Icons.request_quote_rounded,
+      color: const Color(0xFF3B82F6),
     ),
   ];
 }

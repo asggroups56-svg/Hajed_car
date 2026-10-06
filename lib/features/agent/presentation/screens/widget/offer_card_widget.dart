@@ -16,9 +16,9 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final paymentLabel = offer.paymentType!.toUpperCase() == 'CSH'
+    final paymentLabel = offer.paymentType?.toUpperCase() == 'CSH'
         ? AppLocaleKey.chs.tr()
-        : offer.paymentType;
+        : offer.paymentType ?? AppLocaleKey.noData.tr();
 
     final initials = offer.customerName
         .trim()

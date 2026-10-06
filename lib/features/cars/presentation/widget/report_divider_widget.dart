@@ -11,6 +11,5 @@ class ReportDividerWidget extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 12.h),
       child: Divider(color: AppColor.blackTextColor(context).withValues(alpha: 0.05), height: 1),
     );
-    ;
   }
 }

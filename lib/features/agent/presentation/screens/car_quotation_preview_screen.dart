@@ -15,8 +15,16 @@ import 'package:printing/printing.dart';
 class CarQuotationOffersPreviewScreen extends StatefulWidget {
   final List<OfferModel> offers;
   final int offerId;
+  final bool showChassis;
+  final bool isExternalOffer;
 
-  const CarQuotationOffersPreviewScreen({super.key, required this.offers, required this.offerId});
+  const CarQuotationOffersPreviewScreen({
+    super.key,
+    required this.offers,
+    required this.offerId,
+    this.showChassis = true,
+    this.isExternalOffer = false,
+  });
 
   @override
   State<CarQuotationOffersPreviewScreen> createState() => _CarQuotationOffersPreviewScreenState();
@@ -33,8 +41,10 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
     } catch (e) {
       _selectedOffer = null;
     }
-    final represNo = int.tryParse(HiveMethods.getUserCode() ?? '1') ?? 1;
-    context.read<AgentCubit>().getSingleOffer(represNo, widget.offerId);
+    if (!widget.isExternalOffer) {
+      final represNo = int.tryParse(HiveMethods.getUserCode() ?? '1') ?? 1;
+      context.read<AgentCubit>().getSingleOffer(represNo, widget.offerId);
+    }
   }
 
   @override
@@ -50,7 +60,9 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
       ),
       body: BlocListener<AgentCubit, AgentState>(
         listener: (context, state) {
-          if (state.singleOfferStatus.isSuccess && state.singleOfferStatus.data != null) {
+          if (!widget.isExternalOffer &&
+              state.singleOfferStatus.isSuccess &&
+              state.singleOfferStatus.data != null) {
             setState(() {
               _selectedOffer = state.singleOfferStatus.data;
             });
@@ -73,6 +85,7 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
                 build: (format) => CarQuotationOffersGenerator.generateOffersQuotationPdf(
                   offer: _selectedOffer!,
                   bankName: _selectedOffer!.customerName,
+                  showChassis: widget.showChassis,
                 ),
                 pdfFileName:
                     '${AppLocaleKey.quotation_file_name.tr()}_${_selectedOffer!.customerName}.pdf',

@@ -16,17 +16,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'core/routes/app_routers_import.dart';
 import 'core/routes/routes_name.dart';
 import 'core/theme/style.dart';
-
 class CarApp extends StatefulWidget {
   const CarApp({super.key});
   @override
   State<CarApp> createState() => _CarAppState();
 }
-
 class _CarAppState extends State<CarApp> {
   @override
   Widget build(BuildContext context) {

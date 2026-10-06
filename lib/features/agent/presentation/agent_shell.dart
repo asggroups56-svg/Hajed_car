@@ -3,6 +3,7 @@ import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:car/features/agent/presentation/screens/agent_dashboard_screen.dart';
+import 'package:car/features/agent/presentation/screens/agent_external_quote_screen.dart';
 import 'package:car/features/agent/presentation/screens/agent_inventory_screen.dart';
 import 'package:car/features/agent/presentation/screens/agent_leads_screen.dart';
 import 'package:car/features/agent/presentation/screens/widget/nav_meta_widget.dart';
@@ -25,11 +26,13 @@ class _AgentShellState extends State<AgentShell> {
       const AgentDashboardScreen(),
       const AgentLeadsScreen(),
       BlocProvider.value(value: sl<AdminCubit>(), child: const AgentInventoryScreen()),
+      const AgentExternalQuoteScreen(),
     ];
     final navItems = [
       NavMeta(icon: Icons.dashboard_rounded, label: AppLocaleKey.agentNavHome.tr()),
       NavMeta(icon: Icons.people_rounded, label: AppLocaleKey.agentNavCustomers.tr()),
       NavMeta(icon: Icons.directions_car_rounded, label: AppLocaleKey.agentNavInventory.tr()),
+      NavMeta(icon: Icons.request_quote_rounded, label: AppLocaleKey.externalQuote.tr()),
     ];
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnnotatedRegion<SystemUiOverlayStyle>(

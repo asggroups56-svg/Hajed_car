@@ -9,6 +9,19 @@ class AgentCubit extends Cubit<AgentState> {
 
   AgentCubit(this.agentRepo) : super(const AgentState());
 
+  Future<void> getColors(String? searchVal) async {
+    emit(state.copyWith(colorsStatus: const StatusState.loading()));
+    final result = await agentRepo.getColors(searchVal);
+    result.fold(
+      (failure) {
+        emit(state.copyWith(colorsStatus: StatusState.failure(failure.errMessage)));
+      },
+      (response) {
+        emit(state.copyWith(colorsStatus: StatusState.success(response)));
+      },
+    );
+  }
+
   Future<void> getCustomer(String? Searchval) async {
     emit(state.copyWith(customersStatus: const StatusState.loading()));
     final result = await agentRepo.getCustomer(Searchval);
@@ -35,6 +48,19 @@ class AgentCubit extends Cubit<AgentState> {
     );
   }
 
+  Future<void> getExternalOffers(String? searchVal, int represNo, int? listNo) async {
+    emit(state.copyWith(externalOffersStatus: const StatusState.loading()));
+    final result = await agentRepo.getExternalOffers(searchVal, represNo, listNo);
+    result.fold(
+      (failure) {
+        emit(state.copyWith(externalOffersStatus: StatusState.failure(failure.errMessage)));
+      },
+      (response) {
+        emit(state.copyWith(externalOffersStatus: StatusState.success(response)));
+      },
+    );
+  }
+
   Future<void> getSingleOffer(int REPRESNO, int LISTNO) async {
     emit(state.copyWith(singleOfferStatus: const StatusState.loading()));
     final result = await agentRepo.getOffers(null, REPRESNO, LISTNO);
@@ -52,6 +78,19 @@ class AgentCubit extends Cubit<AgentState> {
   Future<void> addbookingpermission(CreatOfferModel offer) async {
     emit(state.copyWith(createOfferStatus: const StatusState.loading()));
     final result = await agentRepo.addbookingpermission(offer);
+    result.fold(
+      (failure) {
+        emit(state.copyWith(createOfferStatus: StatusState.failure(failure.errMessage)));
+      },
+      (response) {
+        emit(state.copyWith(createOfferStatus: StatusState.success(response)));
+      },
+    );
+  }
+
+  Future<void> addExternalofferprice(CreatOfferModel offer) async {
+    emit(state.copyWith(createOfferStatus: const StatusState.loading()));
+    final result = await agentRepo.addExternalofferprice(offer);
     result.fold(
       (failure) {
         emit(state.copyWith(createOfferStatus: StatusState.failure(failure.errMessage)));

@@ -4,7 +4,7 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/services/presentation/widgets/car_summary_card.dart';
-import 'package:car/features/services/presentation/widgets/city_dropdown.dart';
+
 import 'package:car/features/services/presentation/widgets/gender_button.dart';
 import 'package:car/features/services/presentation/widgets/info_banner.dart';
 import 'package:car/features/services/presentation/widgets/whats_app_consent_widget.dart';
@@ -32,6 +32,7 @@ class FinancingPersonalInfoTab extends StatefulWidget {
   final ValueChanged<String?>? onGenderChanged;
   final String? selectedCity;
   final ValueChanged<String?>? onCityChanged;
+
 
   const FinancingPersonalInfoTab({
     super.key,
@@ -63,9 +64,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
   late TextEditingController _idCtrl;
   late TextEditingController _phoneCtrl;
 
-  bool _whatsappConsent = true;
   String? _selectedGender;
-  String? _selectedCity;
   final name = HiveMethods.getname();
   final phone = HiveMethods.getphone();
 
@@ -76,7 +75,6 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
     _idCtrl = widget.idCtrl ?? TextEditingController();
     _phoneCtrl = widget.phoneCtrl ?? TextEditingController(text: phone ?? '');
     _selectedGender = widget.selectedGender;
-    _selectedCity = widget.selectedCity ?? AppLocaleKey.cityRiyadh.tr();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onPhoneChanged?.call(_phoneCtrl.text);
@@ -207,15 +205,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             ),
             Gap(16.h),
             const WhatsAppConsentWidget(),
-            Gap(20.h),
-            // CityDropdown(
-            //   selectedCity: _selectedCity,
-            //   onChanged: (city) {
-            //     setState(() => _selectedCity = city);
-            //     widget.onCityChanged?.call(city);
-            //   },
-            // ),
-            // Gap(20.h),
+            Gap(16.h),
             InfoBanner(onTap: widget.onShowRequirements),
             Gap(16.h),
           ],

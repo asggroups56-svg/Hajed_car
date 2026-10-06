@@ -19,7 +19,7 @@ class HomeGuestScreen extends StatefulWidget {
 }
 
 class _HomeGuestScreenState extends State<HomeGuestScreen> {
-  int _selectedBudgetIndex = 0;
+
 
   @override
   void initState() {

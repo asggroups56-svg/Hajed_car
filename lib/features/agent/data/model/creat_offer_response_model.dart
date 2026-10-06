@@ -13,9 +13,9 @@ class CreatOfferResponseModel extends Equatable {
 
   factory CreatOfferResponseModel.fromJson(Map<String, dynamic> json) {
     return CreatOfferResponseModel(
-      success: json['success'] ?? false,
+      success: json['success'] == true || json['success']?.toString() == '1',
       listNo: json['LISTNO']?.toString() ?? '',
-      message: json['msg'] ?? '',
+      message: json['msg']?.toString() ?? '',
     );
   }
 

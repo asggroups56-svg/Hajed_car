@@ -65,4 +65,5 @@ class RoutesName {
   static const String agentCustomerDetailsScreen = 'agentCustomerDetailsScreen';
   static const String financingProgramOffersScreen = 'financingProgramOffersScreen';
   static const String offersScreen = 'offersScreen';
+  static const String agentExternalQuoteScreen = 'agentExternalQuoteScreen';
 }

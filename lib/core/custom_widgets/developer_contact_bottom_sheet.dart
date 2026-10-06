@@ -97,7 +97,7 @@ class DeveloperContactBottomSheet extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 25.w,
-                  child: Image.asset('assets/images/delta_loge.jpg', width: 50.w, height: 50.w),
+                  child: Image.asset('assets/images/loge_delta.jpeg', width: 50.w, height: 50.w),
                 ),
                 Gap(14.w),
                 Expanded(

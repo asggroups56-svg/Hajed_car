@@ -6,8 +6,11 @@ import 'package:printing/printing.dart';
 
 class _C {
   // Font sizes
+  // ignore: unused_field
   static const double fsTitle = 14.0;
+  // ignore: unused_field
   static const double fsEnTitle = 9.0;
+  // ignore: unused_field
   static const double fsRegInfo = 8.0;
   static const double fsDateBank = 9.5;
   static const double fsTableHeader = 8.0;
@@ -15,6 +18,7 @@ class _C {
   static const double fsSpecs = 8.0;
   static const double fsTotal = 10.0;
   static const double fsCondition = 8.5;
+  // ignore: unused_field
   static const double fsFooter = 8.0;
 
   // Spacing
@@ -30,8 +34,11 @@ class _C {
   static const PdfColor headerBg = PdfColors.red50;
   static const PdfColor totalBg = PdfColors.red50;
   static const PdfColor borderColor = PdfColors.black;
+  // ignore: unused_field
   static const PdfColor accentRed = PdfColors.red800;
+  // ignore: unused_field
   static const PdfColor watermark = PdfColors.blue50;
+  // ignore: unused_field
   static const PdfColor greyText = PdfColors.grey700;
 }
 
@@ -138,6 +145,7 @@ class _H {
     return '${parts.join(' و')} ريال';
   }
 
+  // ignore: unused_element
   static String todayStr() {
     final now = DateTime.now();
     return arabicDigits(
@@ -278,7 +286,12 @@ pw.Widget _bodyCell(String text, pw.Font font, {bool rtl = false}) => pw.Contain
 );
 
 // ── 5. Specs cell ─────────────────────────────────────────────
-pw.Widget _specsCell({required OfferModel offer, required pw.Font bold, required pw.Font regular}) {
+pw.Widget _specsCell({
+  required OfferModel offer,
+  required pw.Font bold,
+  required pw.Font regular,
+  required bool showChassis,
+}) {
   final specs = <String>[];
 
   if (offer.groupName != null && offer.groupName!.isNotEmpty) {
@@ -290,7 +303,7 @@ pw.Widget _specsCell({required OfferModel offer, required pw.Font bold, required
   if (offer.colorName != null && offer.colorName!.isNotEmpty) {
     specs.add('اللون: ${offer.colorName}');
   }
-  if (offer.chassisNo != null && offer.chassisNo!.isNotEmpty) {
+  if (showChassis && offer.chassisNo != null && offer.chassisNo!.isNotEmpty) {
     specs.add('رقم الهيكل: ${offer.chassisNo}');
   }
   if (offer.itemCode != null && offer.itemCode!.isNotEmpty) {
@@ -319,6 +332,7 @@ pw.Widget _buildTable({
   required OfferModel offer,
   required pw.Font bold,
   required pw.Font regular,
+  required bool showChassis,
 }) {
   final price = offer.price;
   final vat = offer.taxVal;
@@ -329,16 +343,16 @@ pw.Widget _buildTable({
     children: [
       pw.Table(
         border: pw.TableBorder.all(color: _C.borderColor, width: 0.8),
-        columnWidths: const {
+        columnWidths: {
           0: pw.FlexColumnWidth(1.2), // Total
           1: pw.FlexColumnWidth(1.0), // Paintings
           2: pw.FlexColumnWidth(1.1), // VAT
           3: pw.FlexColumnWidth(1.1), // Price
-          4: pw.FlexColumnWidth(1.5), // Chassis
-          5: pw.FlexColumnWidth(0.9), // Year
-          6: pw.FlexColumnWidth(0.9), // Color
-          7: pw.FlexColumnWidth(3.5), // Specs
-          8: pw.FlexColumnWidth(0.5), // No.
+          if (showChassis) 4: pw.FlexColumnWidth(1.5), // Chassis
+          (showChassis ? 5 : 4): pw.FlexColumnWidth(0.9), // Year
+          (showChassis ? 6 : 5): pw.FlexColumnWidth(0.9), // Color
+          (showChassis ? 7 : 6): pw.FlexColumnWidth(3.5), // Specs
+          (showChassis ? 8 : 7): pw.FlexColumnWidth(0.5), // No.
         },
         children: [
           pw.TableRow(
@@ -348,7 +362,7 @@ pw.Widget _buildTable({
               _headerCell('قيمة اللوحات', bold),
               _headerCell('قيمة مضافة 15%', bold),
               _headerCell('سعر الوحدة', bold),
-              _headerCell('الهيكل', bold),
+              if (showChassis) _headerCell('رقم الهيكل', bold),
               _headerCell('الموديل', bold),
               _headerCell('اللون', bold),
               _headerCell('نوع ومواصفات السيارة', bold),
@@ -361,10 +375,10 @@ pw.Widget _buildTable({
               _bodyCell(paintings.toStringAsFixed(2), bold),
               _bodyCell(vat.toStringAsFixed(2), bold),
               _bodyCell(price.toStringAsFixed(2), bold),
-              _bodyCell(offer.chassisNo ?? '—', bold),
+              if (showChassis) _bodyCell(offer.chassisNo ?? '—', bold),
               _bodyCell(offer.makeYear?.toString() ?? '—', bold),
               _bodyCell(offer.colorName ?? '—', bold, rtl: true),
-              _specsCell(offer: offer, bold: bold, regular: regular),
+              _specsCell(offer: offer, bold: bold, regular: regular, showChassis: showChassis),
               _bodyCell('1', bold),
             ],
           ),
@@ -494,6 +508,7 @@ class CarQuotationOffersGenerator {
   static Future<Uint8List> generateOffersQuotationPdf({
     required OfferModel offer,
     String? bankName,
+    bool showChassis = true,
   }) async {
     final pdf = pw.Document();
     final fontRegular = await PdfGoogleFonts.cairoRegular();
@@ -532,7 +547,12 @@ class CarQuotationOffersGenerator {
                   _buildHeader(bold: fontBold, logo: logoImage),
                   pw.SizedBox(height: _C.spXS),
                   _buildTitleAndSalutation(bold: fontBold, bankName: bank, offer: offer),
-                  _buildTable(offer: offer, bold: fontBold, regular: fontRegular),
+                  _buildTable(
+                    offer: offer,
+                    bold: fontBold,
+                    regular: fontRegular,
+                    showChassis: showChassis,
+                  ),
                   pw.SizedBox(height: _C.spMD),
                   pw.Expanded(
                     child: pw.Column(

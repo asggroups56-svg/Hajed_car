@@ -51,7 +51,7 @@ class CustomItemBrandWidget extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(8.w, 0, 8.w, 10.h),
               child: Text(
                 context.locale.languageCode == 'ar'
-                    ? brand.groupName ?? ''
+                    ? brand.groupName
                     : brand.groupEName ?? '',
                 textAlign: TextAlign.center,
                 style: AppTextStyle.bodyMedium(

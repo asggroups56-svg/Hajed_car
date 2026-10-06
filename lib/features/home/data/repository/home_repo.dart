@@ -208,12 +208,12 @@ class HomeRepoImpl implements HomeRepo {
     return handleDioRequest(
       request: () async {
         final queryParams = {
-          'id': brandId.toString() ?? null,
-          'frommakeyear': frommakeyear ?? "",
-          'tomakeyear': tomakeyear ?? "",
-          'fromprice': fromprice.toString() ?? null,
-          'toprice': toprice.toString() ?? null,
-          'FUEL_TYPE': fuelType ?? "",
+          'id': brandId.toString(),
+          'frommakeyear': frommakeyear ?? '',
+          'tomakeyear': tomakeyear ?? '',
+          'fromprice': fromprice.toString(),
+          'toprice': toprice.toString(),
+          'FUEL_TYPE': fuelType ?? '',
         };
 
         try {
@@ -340,8 +340,16 @@ class HomeRepoImpl implements HomeRepo {
     return handleDioRequest(
       request: () async {
         final formData = FormData();
-        formData.fields.add(MapEntry('modelData', jsonEncode(model.toJson())));
 
+        final modelJson = model.toJson();
+        if (kDebugMode) {
+          print('[addLoanApplicationWithFiles] modelData: ${jsonEncode(modelJson)}');
+        }
+        formData.fields.add(MapEntry('modelData', jsonEncode(modelJson)));
+
+        // Use a unique key per file (file_0, file_1, ...) so the
+        // server can distinguish between uploaded documents.
+        int fileIndex = 0;
         for (final file in files) {
           if (await file.exists()) {
             final fileName = file.path.split('/').last;
@@ -352,7 +360,7 @@ class HomeRepoImpl implements HomeRepo {
 
             formData.files.add(
               MapEntry(
-                '1',
+                'file_$fileIndex',
                 await MultipartFile.fromFile(
                   file.path,
                   filename: fileName,
@@ -360,7 +368,12 @@ class HomeRepoImpl implements HomeRepo {
                 ),
               ),
             );
+            fileIndex++;
           }
+        }
+
+        if (kDebugMode) {
+          print('[addLoanApplicationWithFiles] Total files attached: $fileIndex');
         }
 
         final response = await apiConsumer.post(
@@ -420,7 +433,7 @@ class HomeRepoImpl implements HomeRepo {
     if (tokens.isEmpty) return;
 
     final String userName = HiveMethods.getname() ?? '';
-    final String userPhone = HiveMethods.getphone() ?? HiveMethods.getSavedMobile() ?? '';
+    final String userPhone = HiveMethods.getphone() ?? HiveMethods.getSavedMobile();
     final String userInfo = [
       if (userName.isNotEmpty) 'اسم العميل: $userName',
       if (userPhone.isNotEmpty) 'الجوال: $userPhone',
@@ -595,10 +608,7 @@ class HomeRepoImpl implements HomeRepo {
   Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(SendWhatsAppModel model) async {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(
-          EndPoints.sendWhatsApp,
-          body: model.toJson(),
-        );
+        final response = await apiConsumer.post(EndPoints.sendWhatsApp, body: model.toJson());
         return SendWhatsAppResponseModel.fromJson(response);
       },
     );

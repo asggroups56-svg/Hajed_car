@@ -11,9 +11,7 @@ class PremiumKpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUp = (kpi.change ?? 0) > 0;
-    final successColor = AppColor.greenColor(context);
-    final errorColor = AppColor.redColor(context);
+
     return Container(
       padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(

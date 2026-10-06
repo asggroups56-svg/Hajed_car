@@ -58,7 +58,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
+
+
 
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
