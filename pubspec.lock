@@ -902,7 +902,7 @@ packages:
     source: hosted
     version: "2.3.0"
   pay:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: pay
       sha256: e012871f065c188e4c275e30b0000c174f6df99101ef137f9cc52ed13fad80e8
