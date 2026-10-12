@@ -80,14 +80,15 @@ class AppImages {
 
   /// Assets for assetsImagesLoge
   /// assets/images/bin_wazir_real_logo_animation_plain_red.gif
-  static const String assetsImagesLoge = "assets/images/bin_wazir_real_logo_animation_plain_red.gif";
+  static const String assetsImagesLoge =
+      "assets/images/bin_wazir_real_logo_animation_plain_red.gif";
 
   /// Assets for static loge.png (used in PDFs)
   /// assets/images/loge.png
   static const String assetsImagesLogeStatic = "assets/images/loge.png";
 
   /// Black logo asset for letterhead / PDFs
-  static const String assetsImagesLogeBlack = "assets/images/loge_black.png";
+  static const String assetsImagesLogeBlack = "assets/images/bin_wazir_logo_black.gif";
 
   /// Assets for assetsImagesOnboardingCarSelection
   /// assets/images/onboarding_car_selection.png
