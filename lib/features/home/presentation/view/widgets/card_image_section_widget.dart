@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -106,7 +107,7 @@ class _CardImageSectionState extends State<CardImageSection> {
                 child: Hero(
                   tag:
                       widget.heroTag ??
-                      'car_image_${widget.car['itemCode'] ?? widget.car['name']}_$_currentImageIndex',
+                      'car_image_${HiveMethods.getCarUniqueId(widget.car)}_$_currentImageIndex',
                   child: Stack(
                     fit: StackFit.expand,
                     alignment: Alignment.center,

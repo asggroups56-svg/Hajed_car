@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -81,7 +82,7 @@ class _FullImageGalleryScreenState extends State<FullImageGalleryScreen> {
                   minScale: 0.5,
                   maxScale: 4.0,
                   child: Hero(
-                    tag: 'car_image_full_${widget.car.itemCode}_$index',
+                    tag: 'car_image_full_${HiveMethods.getCarUniqueId(widget.car.toMap())}_$index',
                     child: Center(
                       child: isNetwork
                           ? CustomNetworkImage(

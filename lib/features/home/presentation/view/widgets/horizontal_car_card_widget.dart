@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -58,7 +59,7 @@ class HorizontalCarCardWidget extends StatelessWidget {
                   topRight: Radius.circular(20.r),
                 ),
                 child: Hero(
-                  tag: heroTag ?? 'car_image_${car['itemCode'] ?? car['name']}',
+                  tag: heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car)}',
                   child: (car['image'] != null && car['image'].toString().trim().startsWith('http'))
                       ? CustomNetworkImage(
                           imageUrl: car['image'],

@@ -37,12 +37,15 @@ class PremiumCarCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String rawColor = (car.bodyColor.isNotEmpty && car.bodyColor.toLowerCase() != 'null'
-        ? car.bodyColor
-        : (car.color.isNotEmpty && car.color.toLowerCase() != 'null' ? car.color : '')).trim();
+    final String rawColor =
+        (car.bodyColor.isNotEmpty && car.bodyColor.toLowerCase() != 'null'
+                ? car.bodyColor
+                : (car.color.isNotEmpty && car.color.toLowerCase() != 'null' ? car.color : ''))
+            .trim();
     final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
     final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
-    final String displayMileage = (car.kilometerReading != null &&
+    final String displayMileage =
+        (car.kilometerReading != null &&
             car.kilometerReading!.isNotEmpty &&
             car.kilometerReading != 'null' &&
             car.kilometerReading != '0')
@@ -66,7 +69,7 @@ class PremiumCarCardWidget extends StatelessWidget {
             Stack(
               children: [
                 Hero(
-                  tag: heroTag ?? 'car_image_${car.itemCode}',
+                  tag: heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car.toMap())}',
                   child: car.fullCarImage.isNotEmpty && car.fullCarImage.startsWith('http')
                       ? CustomNetworkImage(
                           imageUrl: car.fullCarImage,
@@ -299,10 +302,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                       ),
                       Gap(6.w),
                       Expanded(
-                        child: MiniDetailWidget(
-                          icon: Icons.speed_outlined,
-                          label: displayMileage,
-                        ),
+                        child: MiniDetailWidget(icon: Icons.speed_outlined, label: displayMileage),
                       ),
                       Gap(6.w),
                       Expanded(
@@ -428,36 +428,62 @@ class PremiumCarCardWidget extends StatelessWidget {
     final carMap = car.toMap();
     final isInCompare = HiveMethods.isInComparison(carMap);
 
-    return Container(
-      height: 30.h,
-      decoration: BoxDecoration(
-        color: AppColor.blackTextColor(context).withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        onPressed: () {
-          if (HiveMethods.isInComparison(carMap)) {
-            HiveMethods.removeFromComparison(carMap);
+    return InkWell(
+      onTap: () {
+        if (HiveMethods.isInComparison(carMap)) {
+          HiveMethods.removeFromComparison(carMap);
+          CommonMethods.showToast(
+            message: AppLocaleKey.removeFromCompare.tr(),
+            type: ToastType.success,
+          );
+          (context as Element).markNeedsBuild();
+        } else {
+          bool added = HiveMethods.addToComparison(carMap);
+          if (added) {
+            CommonMethods.showToast(
+              message: AppLocaleKey.added_to_compare.tr(),
+              type: ToastType.success,
+            );
             (context as Element).markNeedsBuild();
           } else {
-            bool added = HiveMethods.addToComparison(carMap);
-            if (added) {
-              (context as Element).markNeedsBuild();
-            } else {
-              CommonMethods.showToast(
-                message: AppLocaleKey.compare_list_full.tr(),
-                type: ToastType.error,
-              );
-            }
+            CommonMethods.showToast(
+              message: AppLocaleKey.compare_list_full.tr(),
+              type: ToastType.error,
+            );
           }
-        },
-        icon: Icon(
-          isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
+        }
+      },
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        height: 30.h,
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        decoration: BoxDecoration(
           color: isInCompare
-              ? AppColor.primaryColor(context)
-              : AppColor.blackTextColor(context),
-          size: 18.sp,
+              ? AppColor.primaryColor(context).withValues(alpha: 0.15)
+              : AppColor.blackTextColor(context).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16.r),
+          border: isInCompare
+              ? Border.all(color: AppColor.primaryColor(context).withValues(alpha: 0.4), width: 1)
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
+              color: isInCompare ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
+              size: 16.sp,
+            ),
+            Gap(4.w),
+            Text(
+              'مقارنة',
+              style: AppTextStyle.bodySmall(context).copyWith(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.bold,
+                color: isInCompare ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
+              ),
+            ),
+          ],
         ),
       ),
     );

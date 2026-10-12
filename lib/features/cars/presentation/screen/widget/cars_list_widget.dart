@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -63,11 +64,12 @@ class CarsList extends StatelessWidget {
       separatorBuilder: (_, __) => Gap(16.h),
       itemBuilder: (context, index) {
         final car = localizeCarData != null ? localizeCarData!(cars[index]) : cars[index];
+        final carId = HiveMethods.getCarUniqueId(car.toMap());
         return PremiumCarCardWidget(
           car: car,
-          heroTag: 'premium_car_image_${car.itemCode}',
+          heroTag: 'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
           isOffer: isOffer,
-          offer: offersByItemCode[car.itemCode] ?? normalOffer,
+          offer: (car.itemCode.isNotEmpty ? offersByItemCode[car.itemCode] : null) ?? normalOffer,
           financingOffers: isOffer ? const [] : normalOffers,
         );
       },

@@ -138,7 +138,8 @@ class ServicesScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            if (service['label'] == AppLocaleKey.compareCars.tr() ||
+            if (service['label'] == AppLocaleKey.comparisonService.tr() ||
+                service['label'] == AppLocaleKey.compareCars.tr() ||
                 service['label'] == AppLocaleKey.aboutCompany.tr() ||
                 service['label'] == AppLocaleKey.support.tr()) {
               _navigateToService(context, service['label']);
@@ -206,7 +207,7 @@ class ServicesScreen extends StatelessWidget {
     return [
       {
         'icon': Icons.compare_arrows_rounded,
-        'label': AppLocaleKey.compareCars.tr(),
+        'label': AppLocaleKey.comparisonService.tr(),
         'color': const Color(0xFFF43F5E),
       },
       {
@@ -223,6 +224,9 @@ class ServicesScreen extends StatelessWidget {
   }
 
   String _getServiceDescription(String label) {
+    if (label == AppLocaleKey.comparisonService.tr() || label == AppLocaleKey.compareCars.tr()) {
+      return AppLocaleKey.comparisonServiceDesc.tr();
+    }
     if (label == AppLocaleKey.requestCar.tr()) {
       return AppLocaleKey.requestCarDesc.tr();
     }
@@ -255,7 +259,7 @@ class ServicesScreen extends StatelessWidget {
       Navigator.pushNamed(context, RoutesName.bespokeSelectionScreen);
     } else if (label == AppLocaleKey.carValuation.tr() || label == AppLocaleKey.valuation.tr()) {
       Navigator.pushNamed(context, RoutesName.carValuationScreen);
-    } else if (label == AppLocaleKey.compareCars.tr()) {
+    } else if (label == AppLocaleKey.comparisonService.tr() || label == AppLocaleKey.compareCars.tr()) {
       Navigator.pushNamed(context, RoutesName.carComparisonScreen);
     } else if (label == AppLocaleKey.aboutCompany.tr()) {
       Navigator.pushNamed(context, RoutesName.aboutScreen);

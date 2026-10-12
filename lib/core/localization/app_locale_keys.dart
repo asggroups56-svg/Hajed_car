@@ -964,6 +964,8 @@ class AppLocaleKey {
 
   // Car Comparison
   static const String compareCars = 'compare_cars';
+  static const String comparisonService = 'comparison_service';
+  static const String comparisonServiceDesc = 'comparison_service_desc';
   static const String addToCompare = 'add_to_compare';
   static const String removeFromCompare = 'remove_from_compare';
   static const String compareNow = 'compare_now';

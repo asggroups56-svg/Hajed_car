@@ -69,19 +69,19 @@ class HiveMethods {
     _box.put('favorites', favorites);
   }
 
-  static void removeFromFavorites(String carName, {String? itemCode, String? chassisNo}) {
+  static void removeFromFavorites(String carName, {String? itemCode, String? chassisNo, String? uniqueId}) {
     final List<dynamic> list = List.from(getFavorites());
     list.removeWhere((c) {
       if (c is! Map) return false;
+      if (uniqueId != null && uniqueId.isNotEmpty) {
+        if (getCarUniqueId(c) == uniqueId) return true;
+      }
       final nameMatch = c['name']?.toString().trim() == carName.trim();
-      final itemCodeMatch = itemCode != null &&
-          itemCode.isNotEmpty &&
-          c['itemCode']?.toString().trim() == itemCode.trim();
       final chassisMatch = chassisNo != null &&
           chassisNo.isNotEmpty &&
           (c['chassisNo']?.toString().trim() == chassisNo.trim() ||
               c['CHASSIS_NO']?.toString().trim() == chassisNo.trim());
-      return nameMatch || itemCodeMatch || chassisMatch;
+      return chassisMatch || nameMatch;
     });
     _box.put('favorites', list);
   }
@@ -130,17 +130,57 @@ class HiveMethods {
   }
 
   static String getCarUniqueId(dynamic car) {
-    if (car is Map) {
-      final key = car['unique_id']?.toString().trim();
-      if (key != null && key.isNotEmpty) return key;
-      final itemCode = (car['itemCode'] ?? car['ITEM_CODE'])?.toString().trim() ?? '';
-      final chassis = (car['chassisNo'] ?? car['CHASSIS_NO'])?.toString().trim() ?? '';
-      if (itemCode.isNotEmpty && chassis.isNotEmpty) return '${itemCode}_$chassis';
-      if (itemCode.isNotEmpty) return itemCode;
-      if (chassis.isNotEmpty) return chassis;
-      return (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'])?.toString().trim() ?? '';
+    if (car == null) return '';
+    if (car is! Map) return car.toString().trim();
+
+    // 1. If unique_id is already assigned and valid (not empty, not just "_" or "null")
+    final key = car['unique_id']?.toString().trim();
+    if (key != null &&
+        key.isNotEmpty &&
+        key != '_' &&
+        key != 'null' &&
+        key != 'null_null' &&
+        key != '0') {
+      return key;
     }
-    return car?.toString().trim() ?? '';
+
+    // 2. Chassis No (VIN) is globally unique to cars
+    final chassis = (car['chassisNo'] ?? car['CHASSIS_NO'])?.toString().trim() ?? '';
+    if (chassis.isNotEmpty && chassis != 'null' && chassis != '0') {
+      return 'chassis_$chassis';
+    }
+
+    // 3. Customs Card No
+    final customs = (car['customsCardNo'] ?? car['CUSTOMS_CARD_NO'])?.toString().trim() ?? '';
+    if (customs.isNotEmpty && customs != 'null' && customs != '0') {
+      return 'customs_$customs';
+    }
+
+    // 4. Motor No
+    final motor = (car['motorNo'] ?? car['MOTOR_NO'])?.toString().trim() ?? '';
+    if (motor.isNotEmpty && motor != 'null' && motor != '0') {
+      return 'motor_$motor';
+    }
+
+    // 5. Board No
+    final board = (car['boardNo'] ?? car['BOARD_NO'])?.toString().trim() ?? '';
+    if (board.isNotEmpty && board != 'null' && board != '0') {
+      return 'board_$board';
+    }
+
+    // 6. Composite fallback without itemCode: name, year, color, price, image
+    final name = (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'])?.toString().trim() ?? '';
+    final year = (car['year'] ?? car['makeYear'] ?? car['MAKE_YEAR'])?.toString().trim() ?? '';
+    final color = (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'])?.toString().trim() ?? '';
+    final price = (car['price'] ?? car['PRICE'])?.toString().trim() ?? '';
+    final image = (car['image'] ?? car['carImage'] ?? car['carimage'])?.toString().trim() ?? '';
+
+    final composite = '${name}_${year}_${color}_${price}_$image';
+    if (composite.replaceAll('_', '').isNotEmpty) {
+      return composite;
+    }
+
+    return 'car_${identityHashCode(car)}';
   }
 
   static bool _matchesCar(dynamic existingItem, dynamic target) {
@@ -160,7 +200,7 @@ class HiveMethods {
     final carToSave = Map<String, dynamic>.from(car);
     carToSave['unique_id'] = getCarUniqueId(car);
 
-    // If it's already in the list, remove it so it can be added to the top
+    // If it's already in the list, remove it so it can be re-added to the top
     list.removeWhere((c) => _matchesCar(c, carToSave));
 
     if (list.length >= 2) {

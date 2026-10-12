@@ -166,8 +166,12 @@ class GetBrandCarsDataModel extends Equatable {
   }
 
   Map<String, dynamic> toMap() {
+    final String uniqueId = chassisNo.isNotEmpty && chassisNo != 'null'
+        ? 'chassis_$chassisNo'
+        : '${groupCode}_${itemName}_${makeYear}_${bodyColor}_${colorCode}_${motorNo ?? ''}_${price ?? ''}';
+
     return {
-      'unique_id': '${itemCode}_$chassisNo',
+      'unique_id': uniqueId,
       'GROUP_CODE': groupCode,
       'GROUP_NAME': groupName,
       'GR_NAME': grName,
@@ -518,8 +522,18 @@ class GetBrandCarsDataModel extends Equatable {
 
     final Map<String, GetBrandCarsDataModel> uniqueCars = {};
 
-    for (final car in allCars) {
-      final key = '${car.itemCode}_${car.chassisNo}';
+    for (int i = 0; i < allCars.length; i++) {
+      final car = allCars[i];
+      // Build a meaningful dedup key. When itemCode & chassisNo are both
+      // empty (some endpoints don't return them), fall back to a composite
+      // of fields that distinguish different inventory rows.
+      final String key;
+      if (car.chassisNo.isNotEmpty && car.chassisNo != 'null') {
+        key = 'chassis_${car.chassisNo}';
+      } else {
+        key =
+            '${car.groupCode}_${car.itemName}_${car.bodyColor}_${car.makeYear}_${car.colorCode}_${car.motorNo ?? ''}_${car.carImage ?? ''}_$i';
+      }
 
       if (!uniqueCars.containsKey(key)) {
         uniqueCars[key] = car;

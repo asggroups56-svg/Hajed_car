@@ -47,7 +47,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> {
                 const AdsSliderWidget(),
                 Gap(15.h),
                 SectionTitleWidget(
-                  title: AppLocaleKey.categories.tr(),
+                  title: AppLocaleKey.brands.tr(),
                   onSeeAll: () {
                     Navigator.pushNamed(context, 'allBrandsScreen');
                   },

@@ -31,7 +31,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
       backgroundColor: AppColor.scaffoldColor(context),
       appBar: AppBar(
         title: Text(
-          AppLocaleKey.comparisonTitle.tr(),
+          AppLocaleKey.compareCars.tr(),
           style: AppTextStyle.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColor.appBarColor(context),
@@ -96,7 +96,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        AppLocaleKey.carComparisonReport.tr(),
+                        AppLocaleKey.compareCars.tr(),
                         style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
                       ),
                       pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now())),
@@ -105,7 +105,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 ),
                 pw.SizedBox(height: 20),
                 pw.TableHelper.fromTextArray(
-                  headers: [AppLocaleKey.spec.tr(), ...list.map((c) => c['name'])],
+                  headers: [AppLocaleKey.spec.tr(), ...list.map((c) => (c['name'] ?? '---').toString())],
                   data: specs
                       .map(
                         (spec) => [
@@ -160,7 +160,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 foregroundColor: AppColor.whiteColor(context),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
               ),
-              child: Text("تصفح السيارات", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(AppLocaleKey.compareCars.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -176,7 +176,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocaleKey.comparisonTitle.tr(),
+            AppLocaleKey.compareCars.tr(),
             style: AppTextStyle.titleMedium(context).copyWith(
               fontWeight: FontWeight.w900,
               fontSize: 20.sp,
@@ -187,16 +187,23 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
 
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: list
-                .map(
-                  (car) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w),
-                      child: _buildCarColumn(car),
-                    ),
+            children: [
+              ...list.map(
+                (car) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6.w),
+                    child: _buildCarColumn(car),
                   ),
-                )
-                .toList(),
+                ),
+              ),
+              if (list.length < 2)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6.w),
+                    child: _buildAddSecondCarSlot(),
+                  ),
+                ),
+            ],
           ),
           Gap(32.h),
           _buildSpecsTable(list),
@@ -257,15 +264,15 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
               ),
               child: Padding(
                 padding: EdgeInsets.all(8.w),
-                child: car['image'].toString().startsWith('http')
+                child: (car['image'] != null && car['image'].toString().startsWith('http'))
                     ? CustomNetworkImage(
-                        imageUrl: car['image'],
+                        imageUrl: car['image'].toString(),
                         fit: BoxFit.contain,
                         width: double.infinity,
                       )
                     : Image.asset(
                         (car['image'] != null && car['image'].toString().trim().isNotEmpty)
-                            ? car['image']
+                            ? car['image'].toString()
                             : AppImages.assetsImagesPlaceholder,
                         fit: BoxFit.contain,
                       ),
@@ -299,7 +306,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         ),
         Gap(12.h),
         Text(
-          car['name'],
+          car['name']?.toString() ?? '---',
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -315,7 +322,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
-            car['price'] ?? '---',
+            (car['price'] ?? '---').toString(),
             style: AppTextStyle.bodySmall(context).copyWith(
               color: AppColor.primaryColor(context),
               fontWeight: FontWeight.w900,
@@ -324,6 +331,68 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAddSecondCarSlot() {
+    return InkWell(
+      onTap: () {
+        MainLayout.tabIndex.value = 1; // Switch to Cars tab
+        NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
+      },
+      borderRadius: BorderRadius.circular(20.r),
+      child: Column(
+        children: [
+          Container(
+            height: 120.h,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColor.cardColor(context).withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(
+                color: AppColor.primaryColor(context).withValues(alpha: 0.4),
+                style: BorderStyle.solid,
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppColor.primaryColor(context).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.add_rounded,
+                    color: AppColor.primaryColor(context),
+                    size: 24.sp,
+                  ),
+                ),
+                Gap(8.h),
+                Text(
+                  'إضافة سيارة',
+                  style: AppTextStyle.bodySmall(context).copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.primaryColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Gap(12.h),
+          Text(
+            'اختر سيارة أخرى للمقارنة',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: AppTextStyle.bodySmall(context).copyWith(
+              color: AppColor.greyColor(context),
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

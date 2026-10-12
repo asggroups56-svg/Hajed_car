@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -113,10 +114,11 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
                     itemBuilder: (context, index) {
                       final imageUrl = displayedImages[index];
                       final isNetwork = imageUrl.startsWith('http');
+                      final carId = HiveMethods.getCarUniqueId(widget.car.toMap());
                       return Hero(
                         tag: index == 0
-                            ? (widget.heroTag ?? 'car_image_${widget.car.itemCode}')
-                            : 'car_image_full_${widget.car.itemCode}_$index',
+                            ? (widget.heroTag ?? 'car_image_$carId')
+                            : 'car_image_full_${carId}_$index',
                         child: Container(
                           height: 50.h,
                           width: 50.w,

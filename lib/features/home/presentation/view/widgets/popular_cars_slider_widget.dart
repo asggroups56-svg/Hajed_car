@@ -72,11 +72,11 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     );
   }
 
-  void _goToDetails(BuildContext context, Map<String, dynamic> car) {
+  void _goToDetails(BuildContext context, Map<String, dynamic> car, String heroTag) {
     NavigatorMethods.pushNamed(
       context,
       RoutesName.carDetailsScreen,
-      arguments: {'car': car, 'heroTag': 'popular_car_image_${car['itemCode'] ?? car['name']}'},
+      arguments: {'car': car, 'heroTag': heroTag},
     );
   }
 
@@ -99,8 +99,12 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     String imageUrl(String path) =>
         '${Constants.baseImage}${path.replaceAll('../../Img/Emp/', '')}';
 
+    final String uniqueId = car.chassisNo.isNotEmpty && car.chassisNo != 'null'
+        ? 'chassis_${car.chassisNo}'
+        : '${car.groupCode}_${car.itemName}_${car.makeYear}_${car.bodyColor}';
+
     return {
-      'unique_id': '${car.itemCode}_${car.chassisNo}',
+      'unique_id': uniqueId,
       'name': car.itemName,
       'groupCode': car.groupCode.toString(),
       'itemCode': car.itemCode.toString(),
@@ -157,11 +161,13 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
             itemCount: displayCount,
             onPageChanged: (page) => setState(() => _currentPage = page),
             itemBuilder: (context, index) {
+              final carId = HiveMethods.getCarUniqueId(cars[index]);
+              final heroTag = 'popular_car_image_${carId.isNotEmpty ? carId : index}_$index';
               return CarCard(
                 car: cars[index],
                 isSelected: index == _currentPage,
-                onTap: () => _goToDetails(context, cars[index]),
-                onImageTap: () => _goToDetails(context, cars[index]),
+                onTap: () => _goToDetails(context, cars[index], heroTag),
+                onImageTap: () => _goToDetails(context, cars[index], heroTag),
                 onOrderNow: () {
                   if (HiveMethods.getToken() == null) {
                     CommonMethods.showLoginRequiredDialog(context);
@@ -173,7 +179,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
                     );
                   }
                 },
-                heroTag: 'popular_car_image_${cars[index]['itemCode'] ?? cars[index]['name']}',
+                heroTag: heroTag,
               );
             },
           ),

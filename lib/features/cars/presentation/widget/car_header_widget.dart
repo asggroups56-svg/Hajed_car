@@ -2,6 +2,7 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
@@ -64,22 +65,23 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: AppColor.greenColor(context).withValues(alpha: (0.3)),
+                  if (widget.car.itemCode.isNotEmpty)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(
+                          color: AppColor.greenColor(context).withValues(alpha: (0.3)),
+                        ),
+                      ),
+                      child: Text(
+                        '${AppLocaleKey.adNumber.tr()}${widget.car.itemCode}',
+                        style: AppTextStyle.bodyMedium(context).copyWith(
+                          color: AppColor.blackTextColor(context),
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${AppLocaleKey.adNumber.tr()}${widget.car.itemCode}',
-                      style: AppTextStyle.bodyMedium(context).copyWith(
-                        color: AppColor.blackTextColor(context),
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
                   Gap(8.h),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
@@ -145,27 +147,71 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 final carMap = widget.car.toMap();
                 if (isInCompare) {
                   HiveMethods.removeFromComparison(carMap);
+                  CommonMethods.showToast(
+                    message: AppLocaleKey.removeFromCompare.tr(),
+                    type: ToastType.success,
+                  );
                   setState(() {});
                 } else {
+                  final int countBefore = HiveMethods.getComparisonList().length;
                   bool added = HiveMethods.addToComparison(carMap);
-                  if (!added) {
+                  if (added) {
                     CommonMethods.showToast(
-                      message: AppLocaleKey.compare_list_full.tr(),
-                      type: ToastType.error,
+                      message: AppLocaleKey.added_to_compare.tr(),
+                      type: ToastType.success,
                     );
+                    // If this was the 2nd car, navigate directly to the comparison screen
+                    if (countBefore >= 1) {
+                      Navigator.pushNamed(context, RoutesName.carComparisonScreen);
+                    }
+                  } else {
+                    // List is full → go directly to comparison screen
+                    Navigator.pushNamed(context, RoutesName.carComparisonScreen);
                   }
                   setState(() {});
                 }
               },
-              icon: Icon(
-                isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
-                color: isInCompare ? AppColor.primaryColor(context) : AppColor.greyColor(context),
-                size: 26.sp,
+              borderRadius: BorderRadius.circular(12.r),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: isInCompare
+                      ? AppColor.primaryColor(context).withValues(alpha: 0.15)
+                      : AppColor.blackTextColor(context).withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: isInCompare
+                        ? AppColor.primaryColor(context)
+                        : AppColor.dividerColor(context),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
+                      color: isInCompare
+                          ? AppColor.primaryColor(context)
+                          : AppColor.greyColor(context),
+                      size: 20.sp,
+                    ),
+                    Gap(4.w),
+                    Text(
+                      'مقارنة',
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isInCompare
+                            ? AppColor.primaryColor(context)
+                            : AppColor.blackTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

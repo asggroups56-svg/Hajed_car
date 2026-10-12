@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/network/contants.dart';
@@ -189,7 +190,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
                     padding: EdgeInsets.only(bottom: 16.h),
                     child: MagazineCardWidget(
                       car: car,
-                      heroTag: "popular_screen_car_image_${car["itemCode"] ?? car["name"]}",
+                      heroTag: 'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
                     ),
                   );
                 }, childCount: entry.value.length),

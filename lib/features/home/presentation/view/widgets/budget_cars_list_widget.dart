@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -115,7 +116,7 @@ class BudgetCarsListWidget extends StatelessWidget {
               final car = cars[index];
               return HorizontalCarCardWidget(
                 car: car,
-                heroTag: 'budget_car_image_${car['itemCode'] ?? car['name']}',
+                heroTag: 'budget_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
               );
             },
           ),

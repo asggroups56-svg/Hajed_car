@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class CardImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = car['image'].toString();
-    final actualHeroTag = heroTag ?? 'car_image_${car['itemCode'] ?? car['name']}';
+    final actualHeroTag = heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car)}';
 
     return SizedBox(
       height: 180.h,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
@@ -73,6 +74,8 @@ class _FeaturedCarsSliderWidgetState extends State<FeaturedCarsSliderWidget> {
             itemCount: widget.featuredCars.length,
             itemBuilder: (context, index) {
               final car = widget.featuredCars[index];
+              final carId = HiveMethods.getCarUniqueId(car);
+              final heroTag = 'featured_car_image_${carId.isNotEmpty ? carId : index}_$index';
               final isSelected = _currentSliderIndex == index;
 
               return AnimatedScale(
@@ -84,10 +87,7 @@ class _FeaturedCarsSliderWidgetState extends State<FeaturedCarsSliderWidget> {
                     NavigatorMethods.pushNamed(
                       context,
                       RoutesName.carDetailsScreen,
-                      arguments: {
-                        'car': car,
-                        'heroTag': 'featured_car_image_${car['itemCode'] ?? car['name']}',
-                      },
+                      arguments: {'car': car, 'heroTag': heroTag},
                     );
                   },
                   child: Container(
@@ -109,16 +109,19 @@ class _FeaturedCarsSliderWidgetState extends State<FeaturedCarsSliderWidget> {
                         // Background Image with Hero
                         Positioned.fill(
                           child: Hero(
-                            tag: 'featured_car_image_${car['itemCode'] ?? car['name']}',
+                            tag: heroTag,
                             child: (car['image'] != null && car['image']!.trim().isNotEmpty)
                                 ? (car['image'].toString().trim().startsWith('http')
-                                    ? CustomNetworkImage(imageUrl: car['image']!, fit: BoxFit.cover)
-                                    : Image.asset(
-                                        car['image']!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            _buildErrorImage(context),
-                                      ))
+                                      ? CustomNetworkImage(
+                                          imageUrl: car['image']!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.asset(
+                                          car['image']!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) =>
+                                              _buildErrorImage(context),
+                                        ))
                                 : _buildErrorImage(context),
                           ),
                         ),

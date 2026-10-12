@@ -9,6 +9,12 @@ class CustomLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(AppImages.assetsImagesLoge, width: size, height: size, fit: BoxFit.contain);
+    return Image.asset(
+      AppImages.assetsImagesLogeBlack,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      color: color,
+    );
   }
 }

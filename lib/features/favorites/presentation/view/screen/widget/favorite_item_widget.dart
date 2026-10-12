@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -75,13 +76,11 @@ class FavoriteItemWidget extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () {
+            final heroTag = 'fav_car_image_${HiveMethods.getCarUniqueId(car)}';
             NavigatorMethods.pushNamed(
               context,
               RoutesName.carDetailsScreen,
-              arguments: {
-                'car': car,
-                'heroTag': 'fav_car_image_${car['itemCode'] ?? car['name'] ?? 'unknown'}',
-              },
+              arguments: {'car': car, 'heroTag': heroTag},
             );
           },
           child: Padding(
@@ -96,7 +95,7 @@ class FavoriteItemWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Hero(
-                    tag: 'fav_car_image_${car['itemCode'] ?? car['name'] ?? 'unknown'}',
+                    tag: 'fav_car_image_${HiveMethods.getCarUniqueId(car)}',
                     child: car['image'] != null && car['image'].toString().trim().startsWith('http')
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(16.r),
