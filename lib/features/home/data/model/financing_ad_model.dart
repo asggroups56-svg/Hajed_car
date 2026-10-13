@@ -96,6 +96,16 @@ class FinancingAdModel extends Equatable {
     this.InsurancePct,
   });
 
+  static double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString().replaceAll(',', '') ?? '');
+  }
+
+  static int? _toInt(dynamic value) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
+  }
+
   factory FinancingAdModel.fromJson(Map<String, dynamic> json) {
     return FinancingAdModel(
       programId: (json['ProgramID'] as num?)?.toInt(),
@@ -109,16 +119,15 @@ class FinancingAdModel extends Equatable {
           ?.toString(),
       startDate: json['StartDate']?.toString(),
       endDate: json['EndDate']?.toString(),
-      firstInstallmentPct: (json['FirstInstallmentPct'] as num?)?.toDouble(),
-      lastInstallmentPct: (json['LastInstallmentPct'] as num?)?.toDouble(),
-      adminFeesPct: (json['AdminFeesPct'] as num?)?.toDouble(),
+      firstInstallmentPct: _toDouble(json['FirstInstallmentPct']),
+      lastInstallmentPct: _toDouble(json['LastInstallmentPct']),
+      adminFeesPct: _toDouble(json['AdminFeesPct']),
       programPic: json['programpic']?.toString(),
-      interestRate: (json['InterestRate'] as num?)?.toDouble(),
-      totalMonths: ((json['TotalMonths'] ?? json['Months'] ?? json['DurationMonths']) as num?)
-          ?.toInt(),
+      interestRate: _toDouble(json['InterestRate']),
+      totalMonths: _toInt(json['TotalMonths'] ?? json['Months'] ?? json['DurationMonths']),
       modelName: json['modelName']?.toString(),
-      modelYear: (json['ModelYear'] as num?)?.toInt(),
-      price: (json['Price'] as num?)?.toDouble(),
+      modelYear: _toInt(json['ModelYear']),
+      price: _toDouble(json['Price']),
       itemCode: json['ITEM_CODE']?.toString(),
       itemName: json['ITEM_NAME']?.toString(),
       storeCode: json['STORE_CODE']?.toString(),

@@ -243,39 +243,49 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
   }
 
   Widget _buildCarColumn(Map<dynamic, dynamic> car) {
+    final carId = HiveMethods.getCarUniqueId(Map<String, dynamic>.from(car));
+    final heroTag = 'comparison_car_image_${carId.isNotEmpty ? carId : car['name'] ?? 'car'}';
+
     return Column(
       children: [
         Stack(
           children: [
-            Container(
-              height: 120.h,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColor.cardColor(context),
-                borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: 0.5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.blackColor(context).withValues(alpha: 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+            GestureDetector(
+              onTap: () => NavigatorMethods.pushNamed(
+                context,
+                RoutesName.carDetailsScreen,
+                arguments: {'car': Map<String, dynamic>.from(car), 'heroTag': heroTag},
               ),
-              child: Padding(
-                padding: EdgeInsets.all(8.w),
-                child: (car['image'] != null && car['image'].toString().startsWith('http'))
-                    ? CustomNetworkImage(
-                        imageUrl: car['image'].toString(),
-                        fit: BoxFit.contain,
-                        width: double.infinity,
-                      )
-                    : Image.asset(
-                        (car['image'] != null && car['image'].toString().trim().isNotEmpty)
-                            ? car['image'].toString()
-                            : AppImages.assetsImagesPlaceholder,
-                        fit: BoxFit.contain,
-                      ),
+              child: Container(
+                height: 120.h,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColor.cardColor(context),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: 0.5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColor.blackColor(context).withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(8.w),
+                  child: (car['image'] != null && car['image'].toString().startsWith('http'))
+                      ? CustomNetworkImage(
+                          imageUrl: car['image'].toString(),
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                        )
+                      : Image.asset(
+                          (car['image'] != null && car['image'].toString().trim().isNotEmpty)
+                              ? car['image'].toString()
+                              : AppImages.assetsImagesPlaceholder,
+                          fit: BoxFit.contain,
+                        ),
+                ),
               ),
             ),
             Positioned(
