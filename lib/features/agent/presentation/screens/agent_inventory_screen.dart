@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -86,17 +87,21 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
       default:
         availability = CarAvailability.available;
     }
-
+    final double basePrice = car.salePrice ?? car.costPrice ?? 0.0;
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final double priceWithVat = basePrice * (1 + vatPercentage / 100);
     return AgentCar(
       id: car.itemCode ?? '',
       name: car.itemName ?? '',
-      brand: brandName.isNotEmpty ? brandName : '—',
+      brand: priceWithVat.toString(),
       price: car.salePrice ?? car.costPrice ?? 0.0,
       imageUrl: car.imageUrls.isNotEmpty ? car.imageUrls.first : '',
       availability: availability,
       year: car.makeYear?.toString() ?? '—',
       mileage: car.chassisNo ?? '—',
-      color: car.bodyColor ?? '—',
+      color: car.color ?? '—',
+      bodyColor: car.bodyColor ?? '—',
       itemCode: car.itemCode ?? '',
       itemName: car.itemName ?? '',
       chassisNo: car.chassisNo ?? '',

@@ -150,27 +150,30 @@ class AddBookingPermissionModel extends Equatable {
 }
 
 class SubLpoModel extends Equatable {
-  final String itemCode;
+  // final String itemCode;
   final String itemName;
   final String chassisNo;
   final double price;
   final double advancedAmount;
   final int storeCode;
   final num TAX_VAL;
+  final String GROUP_CODE;
 
   const SubLpoModel({
-    required this.itemCode,
+    // required this.itemCode,
     required this.itemName,
     required this.chassisNo,
     required this.price,
     required this.advancedAmount,
     required this.storeCode,
     required this.TAX_VAL,
+    required this.GROUP_CODE,
   });
 
   factory SubLpoModel.fromJson(Map<String, dynamic> json) {
     return SubLpoModel(
-      itemCode: json['ITEM_CODE']?.toString() ?? '',
+      GROUP_CODE: json['GROUP_CODE']?.toString() ?? '',
+      // itemCode: json['ITEM_CODE']?.toString() ?? '',
       itemName: json['ITEM_NAME']?.toString() ?? '',
       chassisNo: json['CHASSIS_NO']?.toString() ?? '',
       price: double.tryParse(json['PRICE']?.toString() ?? '') ?? 0.0,
@@ -182,13 +185,14 @@ class SubLpoModel extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
-      "ITEM_CODE": itemCode,
+      // "ITEM_CODE": itemCode,
       "ITEM_NAME": itemName,
       "CHASSIS_NO": chassisNo,
       "PRICE": price,
       "ADVANCED_AMOUNT": advancedAmount,
       "STORE_CODE": storeCode,
       "TAX_VAL": TAX_VAL,
+      "GROUP_CODE": GROUP_CODE,
     };
   }
 
@@ -200,26 +204,29 @@ class SubLpoModel extends Equatable {
     double? advancedAmount,
     int? storeCode,
     num? TAX_VAL,
+    String? GROUP_CODE,
   }) {
     return SubLpoModel(
-      itemCode: itemCode ?? this.itemCode,
+      // itemCode: itemCode ?? this.itemCode,
       itemName: itemName ?? this.itemName,
       chassisNo: chassisNo ?? this.chassisNo,
       price: price ?? this.price,
       advancedAmount: advancedAmount ?? this.advancedAmount,
       storeCode: storeCode ?? this.storeCode,
       TAX_VAL: TAX_VAL ?? this.TAX_VAL,
+      GROUP_CODE: GROUP_CODE ?? this.GROUP_CODE,
     );
   }
 
   @override
   List<Object?> get props => [
-    itemCode,
+    // itemCode,
     itemName,
     chassisNo,
     price,
     advancedAmount,
     storeCode,
     TAX_VAL,
+    GROUP_CODE,
   ];
 }

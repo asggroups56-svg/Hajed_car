@@ -23,6 +23,44 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30882313876:android:b338af95f6e9e6291f2681",
+        "android_client_info": {
+          "package_name": "com.Hajed.car.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUuU1-w5_l0qwpeFtyNokD7tj89-l-N6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30882313876:android:b338af95f6e9e6291f2681",
+        "android_client_info": {
+          "package_name": "com.Hajed.car.testing"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUuU1-w5_l0qwpeFtyNokD7tj89-l-N6c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

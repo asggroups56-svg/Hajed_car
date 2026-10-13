@@ -339,7 +339,8 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                     final typeLower = (c.customerTypeName ?? '').toLowerCase();
                                     if (typeLower.contains('عملاء نقدي') ||
                                         typeLower.contains('نقدي') ||
-                                        typeLower.contains('cash')||typeLower.contains('شركة ')) {
+                                        typeLower.contains('cash') ||
+                                        typeLower.contains('شركة ')) {
                                       isBankReservation = false;
                                     } else if (custNameLower.contains('بنك') ||
                                         custNameLower.contains('bank') ||
@@ -366,7 +367,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                   color: AppColor.scaffoldColor(dialogContext),
                                   borderRadius: BorderRadius.circular(14.r),
                                   border: Border.all(
-                                    color: AppColor.borderColor(dialogContext).withValues(alpha: 0.3),
+                                    color: AppColor.borderColor(
+                                      dialogContext,
+                                    ).withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: Row(
@@ -385,7 +388,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                             boxShadow: !isBankReservation
                                                 ? [
                                                     BoxShadow(
-                                                      color: AppColor.primaryColor(dialogContext).withValues(alpha: 0.25),
+                                                      color: AppColor.primaryColor(
+                                                        dialogContext,
+                                                      ).withValues(alpha: 0.25),
                                                       blurRadius: 6,
                                                       offset: const Offset(0, 2),
                                                     ),
@@ -394,11 +399,15 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                           ),
                                           child: Center(
                                             child: Text(
-                                              isArabic ? 'فرد / معرض (١٢ ساعة)' : 'Individual / Showroom (12h)',
+                                              isArabic
+                                                  ? 'فرد / معرض (١٢ ساعة)'
+                                                  : 'Individual / Showroom (12h)',
                                               style: AppTextStyle.bodySmall(dialogContext).copyWith(
                                                 color: !isBankReservation
                                                     ? AppColor.whiteColor(dialogContext)
-                                                    : AppColor.blackTextColor(dialogContext).withValues(alpha: 0.7),
+                                                    : AppColor.blackTextColor(
+                                                        dialogContext,
+                                                      ).withValues(alpha: 0.7),
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11.5.sp,
                                               ),
@@ -422,7 +431,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                             boxShadow: isBankReservation
                                                 ? [
                                                     BoxShadow(
-                                                      color: AppColor.primaryColor(dialogContext).withValues(alpha: 0.25),
+                                                      color: AppColor.primaryColor(
+                                                        dialogContext,
+                                                      ).withValues(alpha: 0.25),
                                                       blurRadius: 6,
                                                       offset: const Offset(0, 2),
                                                     ),
@@ -435,7 +446,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                               style: AppTextStyle.bodySmall(dialogContext).copyWith(
                                                 color: isBankReservation
                                                     ? AppColor.whiteColor(dialogContext)
-                                                    : AppColor.blackTextColor(dialogContext).withValues(alpha: 0.7),
+                                                    : AppColor.blackTextColor(
+                                                        dialogContext,
+                                                      ).withValues(alpha: 0.7),
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11.5.sp,
                                               ),
@@ -475,11 +488,11 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                       child: Text(
                                         isBankReservation
                                             ? (isArabic
-                                                ? 'مدة حجز عملاء البنوك: ٣ أيام'
-                                                : 'Bank Reservation Duration: 3 Days')
+                                                  ? 'مدة حجز عملاء البنوك: ٣ أيام'
+                                                  : 'Bank Reservation Duration: 3 Days')
                                             : (isArabic
-                                                ? 'مدة حجز الأفراد والمعارض: ١٢ ساعة'
-                                                : 'Individual / Showroom Duration: 12 Hours'),
+                                                  ? 'مدة حجز الأفراد والمعارض: ١٢ ساعة'
+                                                  : 'Individual / Showroom Duration: 12 Hours'),
                                         style: AppTextStyle.bodySmall(dialogContext).copyWith(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 11.5.sp,
@@ -691,8 +704,6 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     );
   }
 
-
-
   void _submitReservation({
     required String customerName,
     required String customerPhone,
@@ -712,6 +723,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     final itemCode = widget.car.itemCode;
     final itemName = widget.car.itemName;
     final chassisNo = widget.car.chassisNo;
+    final groupCode = widget.car.groupCode.toString();
     final storeCodeVal = int.tryParse(widget.car.storeCode) ?? 1;
     final code = HiveMethods.getcode() ?? '';
     final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
@@ -744,13 +756,14 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
       ),
       subLpo: [
         SubLpoModel(
-          itemCode: itemCode,
+          //itemCode: itemCode,
           itemName: itemName.substring(0, itemName.length.clamp(0, 100)),
           chassisNo: chassisNo.substring(0, chassisNo.length.clamp(0, 50)),
           price: basePrice,
           advancedAmount: depositAmount,
           storeCode: storeCodeVal,
           TAX_VAL: taxValue,
+          GROUP_CODE: groupCode,
         ),
       ],
     );

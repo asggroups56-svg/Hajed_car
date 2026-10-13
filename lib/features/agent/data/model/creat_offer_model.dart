@@ -148,10 +148,9 @@ class CreatOfferModel extends Equatable {
 }
 
 class OfferItemModel extends Equatable {
-  final String itemCode;
   final String itemName;
   final int colorCode;
-  final String chassisNo;
+  final String GROUP_CODE;
   final int makeYear;
   final int qnty;
   final num price;
@@ -160,10 +159,10 @@ class OfferItemModel extends Equatable {
   final num paintingsVal;
 
   const OfferItemModel({
-    required this.itemCode,
+    required this.GROUP_CODE,
     required this.itemName,
     required this.colorCode,
-    required this.chassisNo,
+
     required this.makeYear,
     required this.qnty,
     required this.price,
@@ -174,10 +173,10 @@ class OfferItemModel extends Equatable {
 
   factory OfferItemModel.fromJson(Map<String, dynamic> json) {
     return OfferItemModel(
-      itemCode: json['ITEM_CODE'] ?? '',
       itemName: json['ITEM_NAME'] ?? '',
+      GROUP_CODE: json['GROUP_CODE'] ?? '',
       colorCode: json['COLOR_CODE'] ?? 0,
-      chassisNo: json['CHASSIS_NO'] ?? '',
+
       makeYear: json['MAKE_YEAR'] ?? 0,
       qnty: json['QNTY'] ?? 0,
       price: json['PRICE'] ?? 0,
@@ -189,30 +188,29 @@ class OfferItemModel extends Equatable {
 
   Map<String, dynamic> toJson() {
     return {
-      'ITEM_CODE': itemCode,
       'ITEM_NAME': itemName,
       'COLOR_CODE': colorCode,
-      'CHASSIS_NO': chassisNo,
+
       'MAKE_YEAR': makeYear,
       'QNTY': qnty,
       'PRICE': price,
       'NOTE': note,
       'TAX_VAL': taxVal,
       'PAINTINGS_VAL': paintingsVal,
+      'GROUP_CODE': GROUP_CODE,
     };
   }
 
   @override
   List<Object?> get props => [
-    itemCode,
     itemName,
     colorCode,
-    chassisNo,
     makeYear,
     qnty,
     price,
     note,
     taxVal,
     paintingsVal,
+    GROUP_CODE,
   ];
 }

@@ -262,10 +262,11 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
 
     final subList = [
       OfferItemModel(
-        itemCode: _carCodeController.text.trim().isNotEmpty ? _carCodeController.text.trim() : '1',
+        GROUP_CODE: _carCodeController.text.trim().isNotEmpty
+            ? _carCodeController.text.trim()
+            : '1',
         itemName: _carNameController.text.trim(),
         colorCode: color.code,
-        chassisNo: _chassisController.text.trim(),
         makeYear: int.tryParse(_makeYearController.text.trim()) ?? DateTime.now().year,
         qnty: _qty,
         price: _price,

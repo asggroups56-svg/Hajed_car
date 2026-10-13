@@ -11,7 +11,6 @@ class AdminState extends Equatable {
   final StatusState<List<RepresentativeModel>> searchRepresentativesStatus;
   final StatusState<List<CustomerModel>> searchCustomersStatus;
   final StatusState<List<CustomerModel>> searchSuppliersStatus;
-
   const AdminState({
     this.getCarsCountStatus = const StatusState.initial(),
     this.getCarsStatus = const StatusState.initial(),
@@ -19,7 +18,6 @@ class AdminState extends Equatable {
     this.searchCustomersStatus = const StatusState.initial(),
     this.searchSuppliersStatus = const StatusState.initial(),
   });
-
   AdminState copyWith({
     StatusState<List<StockStatisticsModel>>? getCarsCountStatus,
     StatusState<CarsModel>? getCarsStatus,

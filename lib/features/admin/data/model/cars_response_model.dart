@@ -37,6 +37,7 @@ class CarModel extends Equatable {
   final String? customerName;
   final String? ADVANCED_AMOUNT;
   final String? carimage;
+  final String? color;
 
   /// LPO number returned by the reserved-cars endpoint (LPONO field).
   final String? lpoNo;
@@ -63,6 +64,7 @@ class CarModel extends Equatable {
     this.reservedName,
     this.customerName,
     this.carimage,
+    this.color,
   });
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
@@ -78,9 +80,11 @@ class CarModel extends Equatable {
       transmission: json['TRANSMISSION'],
       fuelType: json['FUEL_TYPE'],
       makeYear: json['MAKE_YEAR'],
-      costPrice: (json['COST_PRICE'] as num?)?.toDouble() ??
+      costPrice:
+          (json['COST_PRICE'] as num?)?.toDouble() ??
           double.tryParse(json['COST_PRICE']?.toString() ?? ''),
-      salePrice: (json['SALE_PRICE'] as num?)?.toDouble() ??
+      salePrice:
+          (json['SALE_PRICE'] as num?)?.toDouble() ??
           double.tryParse(json['SALE_PRICE']?.toString() ?? '') ??
           (json['Sale_Price'] as num?)?.toDouble() ??
           (json['salePrice'] as num?)?.toDouble() ??
@@ -96,6 +100,7 @@ class CarModel extends Equatable {
           json['carimage']?.toString() ??
           json['CAR_IMAGE']?.toString() ??
           json['carImage']?.toString(),
+      color: json['Color']?.toString(),
     );
   }
 

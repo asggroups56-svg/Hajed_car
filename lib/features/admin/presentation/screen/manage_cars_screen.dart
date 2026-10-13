@@ -6,7 +6,6 @@ import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/admin/data/model/cars_response_model.dart';
-
 import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:car/features/admin/presentation/cubit/admin_state.dart';
 import 'package:car/features/admin/presentation/screen/car_quotation_preview_screen.dart';
@@ -77,7 +76,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
       grName: brandName.isNotEmpty ? "$brandName - ${car.itemName ?? ''}" : (car.itemName ?? ''),
       groupParent: 0,
       groupLevel: 0,
-      price: car.costPrice?.toStringAsFixed(0),
+      price: car.salePrice?.toStringAsFixed(0),
       itemCode: car.itemCode ?? '',
       itemType: car.carType ?? 0,
       itemName: car.itemName ?? '',
@@ -152,7 +151,6 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
       body: BlocBuilder<AdminCubit, AdminState>(
         builder: (context, state) {
           final carsStatus = state.getCarsStatus;
-
 
           final List<GetBrandCarsDataModel> allCars =
               carsStatus.isSuccess && carsStatus.data != null

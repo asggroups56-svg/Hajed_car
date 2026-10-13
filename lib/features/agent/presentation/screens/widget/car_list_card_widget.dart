@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -18,7 +19,10 @@ class CarListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final availabilityColor = car.getAvailabilityColor(context);
-
+    final double basePrice = car.price;
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final double priceWithVat = basePrice * (1 + vatPercentage / 100);
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -108,7 +112,7 @@ class CarListCard extends StatelessWidget {
 
                   /// Price
                   ValueWithCurrencyIcon(
-                    text: '${NumberFormat('#,###').format(car.price)} ${AppLocaleKey.sar.tr()}',
+                    text: '${NumberFormat('#,###').format(priceWithVat)} ${AppLocaleKey.sar.tr()}',
                     textStyle: AppTextStyle.bodyLarge(context).copyWith(
                       color: AppColor.blueColor(context),
                       fontWeight: FontWeight.w900,

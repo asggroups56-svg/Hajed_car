@@ -52,6 +52,7 @@ class GetBrandCarsDataModel extends Equatable {
   final String color;
   final List<String> extraImages;
   final String? carImage;
+  final num? SALE_PRICE;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -120,6 +121,7 @@ class GetBrandCarsDataModel extends Equatable {
     this.videoId = 'D7O8J5vVf-M',
     this.customerName,
     this.reservedName,
+    this.SALE_PRICE,
   });
 
   final String? customerName;
@@ -232,6 +234,7 @@ class GetBrandCarsDataModel extends Equatable {
       'isFavorite': isFavorite,
       'isTamaraAvailable': isTamaraAvailable,
       'video_id': videoId,
+      "SALE_PRICE": SALE_PRICE,
     };
   }
 
@@ -317,6 +320,7 @@ class GetBrandCarsDataModel extends Equatable {
       videoId: videoId,
       customerName: customerName ?? other.customerName,
       reservedName: reservedName ?? other.reservedName,
+      SALE_PRICE: SALE_PRICE != 0 ? SALE_PRICE : other.SALE_PRICE,
     );
   }
 
@@ -387,6 +391,7 @@ class GetBrandCarsDataModel extends Equatable {
       videoId: videoId,
       customerName: customerName,
       reservedName: reservedName,
+      SALE_PRICE: SALE_PRICE,
     );
   }
 
@@ -493,6 +498,7 @@ class GetBrandCarsDataModel extends Equatable {
           json['REPRES_NAME']?.toString() ??
           json['reservedName']?.toString() ??
           json['REPRESNAME']?.toString(),
+      SALE_PRICE: getDouble('SALE_PRICE', 'salePrice', 'PRICE') ?? 0,
     );
   }
 

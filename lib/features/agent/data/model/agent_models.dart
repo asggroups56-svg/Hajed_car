@@ -107,12 +107,14 @@ class AgentCar {
   final String year;
   final String mileage;
   final String color;
+  final String bodyColor;
   final String itemCode;
   final String itemName;
   final String chassisNo;
   final String storeCode;
   final String customerName;
   final String reservedName;
+  final String groupCode;
 
   const AgentCar({
     required this.id,
@@ -124,6 +126,8 @@ class AgentCar {
     required this.year,
     required this.mileage,
     required this.color,
+    required this.bodyColor,
+    this.groupCode = '',
     this.itemCode = '',
     this.itemName = '',
     this.chassisNo = '',
@@ -134,7 +138,7 @@ class AgentCar {
 
   GetBrandCarsDataModel toBrandCar() {
     return GetBrandCarsDataModel(
-      groupCode: 0,
+      groupCode: groupCode.isNotEmpty ? int.tryParse(groupCode) ?? 0 : 0,
       groupName: brand,
       grName: name,
       groupParent: 0,
@@ -148,7 +152,7 @@ class AgentCar {
       carStatus: availability.index + 1,
       carType: 0,
       chassisNo: chassisNo,
-      bodyColor: color,
+      bodyColor: bodyColor,
       transmission: 0,
       cylinder: '',
       powerHourse: '',
@@ -179,7 +183,7 @@ class AgentCar {
       carStatus: availability.index + 1,
       carType: 0,
       chassisNo: chassisNo.isNotEmpty ? chassisNo : null,
-      bodyColor: color,
+      bodyColor: bodyColor,
       transmission: 0,
       fuelType: null,
       makeYear: int.tryParse(year) ?? 0,
@@ -317,63 +321,5 @@ List<AgentAppointment> getAgentAppointments() => [
     dateTime: DateTime.now().subtract(const Duration(hours: 3)),
     location: AppLocaleKey.agentSimLocationKhobar.tr(),
     status: AppointmentStatus.done,
-  ),
-];
-
-List<AgentCar> getAgentCars() => [
-  AgentCar(
-    id: '1',
-    name: AppLocaleKey.agentSimCarCamry.tr() + " 2024",
-    brand: 'تويوتا',
-    price: 95000,
-    imageUrl: '',
-    availability: CarAvailability.available,
-    year: '2024',
-    mileage: '0',
-    color: 'أبيض',
-  ),
-  AgentCar(
-    id: '2',
-    name: AppLocaleKey.agentSimCarPatrol.tr() + " 2024",
-    brand: 'نيسان',
-    price: 185000,
-    imageUrl: '',
-    availability: CarAvailability.reserved,
-    year: '2023',
-    mileage: '12,000',
-    color: 'فضي',
-  ),
-  AgentCar(
-    id: '3',
-    name: AppLocaleKey.agentSimCarX5.tr() + " 2024",
-    brand: 'BMW',
-    price: 285000,
-    imageUrl: '',
-    availability: CarAvailability.sold,
-    year: '2024',
-    mileage: '0',
-    color: 'أسود',
-  ),
-  AgentCar(
-    id: '4',
-    name: AppLocaleKey.agentSimCarTucson.tr() + " 2024",
-    brand: 'هيونداي',
-    price: 75000,
-    imageUrl: '',
-    availability: CarAvailability.available,
-    year: '2024',
-    mileage: '0',
-    color: 'أزرق',
-  ),
-  AgentCar(
-    id: '5',
-    name: AppLocaleKey.agentSimCarLX600.tr() + " 2023",
-    brand: 'لكزس',
-    price: 490000,
-    imageUrl: '',
-    availability: CarAvailability.available,
-    year: '2023',
-    mileage: '5,000',
-    color: 'أبيض',
   ),
 ];

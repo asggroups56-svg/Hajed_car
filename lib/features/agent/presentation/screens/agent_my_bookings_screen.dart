@@ -225,6 +225,7 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
       id: car.itemCode ?? '',
       name: car.itemName ?? '',
       brand: '—',
+      bodyColor: car.bodyColor ?? '',
       price: car.costPrice ?? 0.0,
       imageUrl: car.imageUrls.isNotEmpty ? car.imageUrls.first : '',
       availability: CarAvailability.reserved,

@@ -338,12 +338,13 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
           : '',
       subLpo: [
         SubLpoModel(
-          itemCode: widget.car.itemCode,
+          // itemCode: widget.car.itemCode,
           itemName: widget.car.itemName.substring(0, widget.car.itemName.length.clamp(0, 100)),
           chassisNo: widget.car.chassisNo.substring(0, widget.car.chassisNo.length.clamp(0, 50)),
           price: _parsePrice(widget.car.price, withTax: false),
           advancedAmount: _depositAmount,
           storeCode: storeCodeVal,
+          GROUP_CODE: widget.car.groupCode.toString(),
           TAX_VAL: _round2(
             _parsePrice(widget.car.price, withTax: true) -
                 _parsePrice(widget.car.price, withTax: false),
