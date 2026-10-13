@@ -764,6 +764,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
           storeCode: storeCodeVal,
           TAX_VAL: taxValue,
           GROUP_CODE: groupCode,
+          PAINTINGS_VAL: 600.0.toString(),
+          MAKEYEAR: widget.car.year,
+          colorcode: widget.car.colorCode.toString(),
         ),
       ],
     );

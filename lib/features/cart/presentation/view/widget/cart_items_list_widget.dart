@@ -11,9 +11,7 @@ import 'package:gap/gap.dart';
 class CartItemsListWidget extends StatelessWidget {
   final List<CarModel> cars;
   final String? selectedCarId;
-
   const CartItemsListWidget({super.key, required this.cars, this.selectedCarId});
-
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -27,9 +25,7 @@ class CartItemsListWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColor.primaryColor(context).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: AppColor.primaryColor(context).withValues(alpha: 0.15),
-              ),
+              border: Border.all(color: AppColor.primaryColor(context).withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
@@ -41,7 +37,7 @@ class CartItemsListWidget extends StatelessWidget {
                   ),
                   child: Icon(
                     Icons.directions_car_filled_rounded,
-                    color: Colors.white,
+                    color: AppColor.whiteColor(context),
                     size: 14.sp,
                   ),
                 ),

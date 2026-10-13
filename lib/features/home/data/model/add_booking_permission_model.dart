@@ -158,6 +158,9 @@ class SubLpoModel extends Equatable {
   final int storeCode;
   final num TAX_VAL;
   final String GROUP_CODE;
+  final String PAINTINGS_VAL;
+  final String? MAKEYEAR;
+  final String? colorcode;
 
   const SubLpoModel({
     // required this.itemCode,
@@ -168,6 +171,9 @@ class SubLpoModel extends Equatable {
     required this.storeCode,
     required this.TAX_VAL,
     required this.GROUP_CODE,
+    required this.PAINTINGS_VAL,
+    required this.MAKEYEAR,
+    required this.colorcode,
   });
 
   factory SubLpoModel.fromJson(Map<String, dynamic> json) {
@@ -180,6 +186,10 @@ class SubLpoModel extends Equatable {
       advancedAmount: double.tryParse(json['ADVANCED_AMOUNT']?.toString() ?? '') ?? 0.0,
       storeCode: int.tryParse(json['STORE_CODE']?.toString() ?? '') ?? 0,
       TAX_VAL: num.tryParse(json['TAX_VAL']?.toString() ?? '') ?? 0,
+
+      PAINTINGS_VAL: json['PAINTINGS_VAL']?.toString() ?? '',
+      MAKEYEAR: json['MAKEYEAR']?.toString() ?? '',
+      colorcode: json['colorcode']?.toString() ?? '',
     );
   }
 
@@ -193,6 +203,9 @@ class SubLpoModel extends Equatable {
       "STORE_CODE": storeCode,
       "TAX_VAL": TAX_VAL,
       "GROUP_CODE": GROUP_CODE,
+      "PAINTINGS_VAL": PAINTINGS_VAL,
+      "MAKEYEAR": MAKEYEAR,
+      "colorcode": colorcode,
     };
   }
 
@@ -205,6 +218,9 @@ class SubLpoModel extends Equatable {
     int? storeCode,
     num? TAX_VAL,
     String? GROUP_CODE,
+    String? PAINTINGS_VAL,
+    String? MAKEYEAR,
+    String? colorcode,
   }) {
     return SubLpoModel(
       // itemCode: itemCode ?? this.itemCode,
@@ -215,6 +231,9 @@ class SubLpoModel extends Equatable {
       storeCode: storeCode ?? this.storeCode,
       TAX_VAL: TAX_VAL ?? this.TAX_VAL,
       GROUP_CODE: GROUP_CODE ?? this.GROUP_CODE,
+      PAINTINGS_VAL: PAINTINGS_VAL ?? this.PAINTINGS_VAL,
+      MAKEYEAR: MAKEYEAR ?? this.MAKEYEAR,
+      colorcode: colorcode ?? this.colorcode,
     );
   }
 
@@ -228,5 +247,8 @@ class SubLpoModel extends Equatable {
     storeCode,
     TAX_VAL,
     GROUP_CODE,
+    PAINTINGS_VAL,
+    MAKEYEAR,
+    colorcode,
   ];
 }

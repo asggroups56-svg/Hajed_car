@@ -236,6 +236,8 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
       itemCode: car.itemCode ?? '',
       itemName: car.itemName ?? '',
       storeCode: car.storeCode ?? '',
+      groupCode: car.groupCode?.toString() ?? '',
+      colorCode: car.colorCode?.toString(),
       customerName: car.customerName ?? '',
       reservedName: car.reservedName ?? '',
     );

@@ -106,6 +106,8 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
       itemName: car.itemName ?? '',
       chassisNo: car.chassisNo ?? '',
       storeCode: car.storeCode ?? '',
+      groupCode: car.groupCode?.toString() ?? '',
+      colorCode: car.colorCode?.toString(),
       customerName: car.customerName ?? '',
       reservedName: car.reservedName ?? '',
     );

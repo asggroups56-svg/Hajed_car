@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BudgetCarsListWidget extends StatelessWidget {
+  static const double _financingFee = 3000;
   final int selectedBudgetIndex;
 
   const BudgetCarsListWidget({super.key, required this.selectedBudgetIndex});
@@ -29,34 +30,50 @@ class BudgetCarsListWidget extends StatelessWidget {
 
   double? _monthlyInstallment(String? value) {
     if (value == null || value.trim().isEmpty) return null;
-    final normalized = value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+    final normalized = value
+        .replaceAll(',', '')
+        .replaceAll(RegExp(r'[^0-9.]'), '');
     return double.tryParse(normalized);
   }
 
   double? _cashPrice(GetBrandCarsDataModel car) {
-    final value = car.price?.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+    final value = car.price
+        ?.replaceAll(',', '')
+        .replaceAll(RegExp(r'[^0-9.]'), '');
     final price = double.tryParse(value ?? '');
     return price != null && price > 0 ? price : null;
   }
 
-  double? _lowestInstallment(GetBrandCarsDataModel car, List<FinancingAdModel> financingOffers) {
+  double? _lowestInstallment(
+    GetBrandCarsDataModel car,
+    List<FinancingAdModel> financingOffers,
+  ) {
     final cashPrice = _cashPrice(car);
-    if (cashPrice == null) return car.monthlyInstallment ?? _monthlyInstallment(car.installments);
+    if (cashPrice == null) {
+      return car.monthlyInstallment ?? _monthlyInstallment(car.installments);
+    }
+    final financingPrice = cashPrice + _financingFee;
 
     final matchingOffers = financingOffers
-        .where((offer) => offer.itemCode == null || offer.itemCode == car.itemCode)
+        .where(
+          (offer) => offer.itemCode == null || offer.itemCode == car.itemCode,
+        )
         .toList();
     if (matchingOffers.isNotEmpty) {
       return matchingOffers
-          .map((offer) => offer.monthlyInstallmentForPrice(cashPrice))
+          .map((offer) => offer.monthlyInstallmentForPrice(financingPrice))
           .reduce((a, b) => a < b ? a : b);
     }
 
     return car.monthlyInstallment ?? _monthlyInstallment(car.installments);
   }
 
-  Map<String, dynamic> _toCarMap(GetBrandCarsDataModel car, double monthlyInstallment) {
-    final formattedMonthlyInstallment = '${monthlyInstallment.toStringAsFixed(0)} ر.س / شهر';
+  Map<String, dynamic> _toCarMap(
+    GetBrandCarsDataModel car,
+    double monthlyInstallment,
+  ) {
+    final formattedMonthlyInstallment =
+        '${monthlyInstallment.toStringAsFixed(0)} ر.س / شهر';
 
     return {
       ...car.toMap(),
@@ -75,12 +92,20 @@ class BudgetCarsListWidget extends StatelessWidget {
           previous.allCarsStatus != current.allCarsStatus ||
           previous.normalFinancingStatus != current.normalFinancingStatus,
       builder: (context, state) {
-        final financingOffers = state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
+        final financingOffers =
+            state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
         final cars = (state.allCarsStatus.data ?? [])
-            .map((car) => (car: car, installment: _lowestInstallment(car, financingOffers)))
+            .map(
+              (car) => (
+                car: car,
+                installment: _lowestInstallment(car, financingOffers),
+              ),
+            )
             .where((entry) {
               final installment = entry.installment;
-              return installment != null && installment > 0 && installment <= _maximumInstallment;
+              return installment != null &&
+                  installment > 0 &&
+                  installment <= _maximumInstallment;
             })
             .map((entry) => _toCarMap(entry.car, entry.installment!))
             .toList();
@@ -98,7 +123,11 @@ class BudgetCarsListWidget extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.directions_car_outlined, size: 42.sp, color: Colors.grey),
+                Icon(
+                  Icons.directions_car_outlined,
+                  size: 42.sp,
+                  color: Colors.grey,
+                ),
                 SizedBox(height: 8.h),
                 const Text('لا توجد سيارات متاحة'),
               ],
@@ -116,7 +145,8 @@ class BudgetCarsListWidget extends StatelessWidget {
               final car = cars[index];
               return HorizontalCarCardWidget(
                 car: car,
-                heroTag: 'budget_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
+                heroTag:
+                    'budget_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
               );
             },
           ),

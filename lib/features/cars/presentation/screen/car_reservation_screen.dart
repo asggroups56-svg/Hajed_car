@@ -349,6 +349,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
             _parsePrice(widget.car.price, withTax: true) -
                 _parsePrice(widget.car.price, withTax: false),
           ),
+          PAINTINGS_VAL: 600.0.toString(),
+          MAKEYEAR: widget.car.makeYear.toString(),
+          colorcode: widget.car.colorCode.toString(),
         ),
       ],
     );

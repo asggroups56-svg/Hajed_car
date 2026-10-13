@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -65,15 +66,12 @@ class _CartItemWidgetState extends State<CartItemWidget> with SingleTickerProvid
 
   Future<void> _onDeleteTapped() async {
     final cubit = context.read<CartCubit>();
-
     final bool? confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => CancelConfirmDialog(carName: widget.car.itemName ?? ''),
     );
-
     if (confirmed != true || !mounted) return;
-
     setState(() => _isCancelling = true);
     try {
       await cubit.cancelReservation(widget.car);
@@ -85,14 +83,16 @@ class _CartItemWidgetState extends State<CartItemWidget> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final String carName = widget.car.itemName ?? '';
-    final double price = widget.car.costPrice ?? 0;
+    final double priceWithVat = widget.car.costPrice ?? 0;
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final double price = priceWithVat * (1 + vatPercentage / 100);
     final String lpoNo = widget.car.lpoNo ?? '';
     final bool isAboutToExpire =
         _remainingTime > Duration.zero && _remainingTime <= const Duration(hours: 1);
     final String priceFormatted = price
         .toStringAsFixed(0)
         .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(

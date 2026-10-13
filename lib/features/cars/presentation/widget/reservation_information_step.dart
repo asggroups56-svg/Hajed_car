@@ -2,6 +2,7 @@ import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/features/admin/data/model/representative_model.dart';
 import 'package:car/features/cars/presentation/widget/financing_contact_form.dart';
 import 'package:car/features/cars/presentation/widget/financing_pricing_card_widget.dart';
 import 'package:car/features/cars/presentation/widget/reservation_pricing_card.dart';
@@ -9,12 +10,8 @@ import 'package:car/features/cars/presentation/widget/reservation_step_indicator
 import 'package:car/features/cars/presentation/widget/reservation_terms_checkbox_widget.dart';
 import 'package:car/features/cars/presentation/widget/reservation_whatsapp_checkbox_widget.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
-import 'package:car/features/admin/data/model/representative_model.dart';
-import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
-import 'package:car/features/admin/presentation/cubit/admin_state.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 
@@ -128,39 +125,39 @@ class ReservationInformationStep extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16),
-                BlocBuilder<AdminCubit, AdminState>(
-                  buildWhen: (previous, current) =>
-                      previous.searchRepresentativesStatus != current.searchRepresentativesStatus,
-                  builder: (context, state) {
-                    final status = state.searchRepresentativesStatus;
-                    final representatives = status.data ?? const <RepresentativeModel>[];
-                    return DropdownButtonFormField<RepresentativeModel>(
-                      initialValue: selectedRepresentative,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: 'المندوب (اختياري)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      hint: Text(status.isLoading ? 'جاري تحميل المناديب...' : 'اختر مندوبًا'),
-                      items: representatives
-                          .where((representative) => representative.represNo != null)
-                          .map(
-                            (representative) => DropdownMenuItem<RepresentativeModel>(
-                              value: representative,
-                              child: Text(
-                                representative.represName ??
-                                    representative.represNameEng ??
-                                    'مندوب ${representative.represNo}',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: status.isLoading ? null : onRepresentativeChanged,
-                      validator: (value) => null,
-                    );
-                  },
-                ),
+                // BlocBuilder<AdminCubit, AdminState>(
+                //   buildWhen: (previous, current) =>
+                //       previous.searchRepresentativesStatus != current.searchRepresentativesStatus,
+                //   builder: (context, state) {
+                //     final status = state.searchRepresentativesStatus;
+                //     final representatives = status.data ?? const <RepresentativeModel>[];
+                //     return DropdownButtonFormField<RepresentativeModel>(
+                //       initialValue: selectedRepresentative,
+                //       isExpanded: true,
+                //       decoration: InputDecoration(
+                //         labelText: 'المندوب (اختياري)',
+                //         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                //       ),
+                //       hint: Text(status.isLoading ? 'جاري تحميل المناديب...' : 'اختر مندوبًا'),
+                //       items: representatives
+                //           .where((representative) => representative.represNo != null)
+                //           .map(
+                //             (representative) => DropdownMenuItem<RepresentativeModel>(
+                //               value: representative,
+                //               child: Text(
+                //                 representative.represName ??
+                //                     representative.represNameEng ??
+                //                     'مندوب ${representative.represNo}',
+                //                 overflow: TextOverflow.ellipsis,
+                //               ),
+                //             ),
+                //           )
+                //           .toList(),
+                //       onChanged: status.isLoading ? null : onRepresentativeChanged,
+                //       validator: (value) => null,
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),
@@ -197,10 +194,7 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF262015) : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35), width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,11 +205,7 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
               color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Icon(
-              Icons.badge_outlined,
-              color: const Color(0xFFD97706),
-              size: 22.sp,
-            ),
+            child: Icon(Icons.badge_outlined, color: const Color(0xFFD97706), size: 22.sp),
           ),
           Gap(12.w),
           Expanded(
