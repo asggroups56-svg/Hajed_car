@@ -28,6 +28,7 @@ class HomeCubit extends Cubit<HomeState> {
   final HomeRepo homeRepo;
   String? lastEditLoanMessage;
   bool _isRefreshingHome = false;
+  final Set<String> _locallyReservedCarCodes = <String>{};
 
   HomeCubit(this.homeRepo) : super(const HomeState());
 
@@ -208,6 +209,44 @@ class HomeCubit extends Cubit<HomeState> {
         emit(state.copyWith(allCarsStatus: StatusState.success(response)));
       },
     );
+  }
+
+  /// Removes a newly reserved car from the currently displayed inventory
+  /// immediately. This keeps it hidden while the server refresh is in flight.
+  void hideReservedCar(String itemCode) {
+    if (itemCode.isEmpty) return;
+
+    _locallyReservedCarCodes.add(itemCode);
+    final cars = state.allCarsStatus.data;
+    if (cars == null) return;
+
+    emit(
+      state.copyWith(
+        allCarsStatus: StatusState.success(
+          cars.where((car) => car.itemCode != itemCode).toList(),
+        ),
+      ),
+    );
+  }
+
+  bool isCarLocallyReserved(String itemCode) =>
+      _locallyReservedCarCodes.contains(itemCode);
+
+  /// Refreshes the same inventory query after a successful reservation.
+  /// The local exclusion is applied again in case the inventory API has not
+  /// reflected the new status yet.
+  Future<void> refreshCarsAfterReservation(String itemCode) async {
+    final currentState = state;
+    hideReservedCar(itemCode);
+    await fetchAllCars(
+      brandId: currentState.brandId,
+      fromMakeYear: currentState.fromMakeYear,
+      toMakeYear: currentState.toMakeYear,
+      fromPrice: currentState.fromPrice,
+      toPrice: currentState.toPrice,
+      fuelType: currentState.fuelType,
+    );
+    hideReservedCar(itemCode);
   }
 
   void selectBrand(int index, String brandId) {
