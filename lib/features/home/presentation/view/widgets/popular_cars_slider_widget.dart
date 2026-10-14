@@ -138,6 +138,11 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'MAKE_YEAR': car.makeYear,
       'GR_NAME': car.grName,
       'GROUP_NAME': car.groupName,
+      // Keep the stock colour identifier when navigating from the home
+      // carousel. The booking API validates this value, and rebuilding a car
+      // from a map without it turns the colour code into 0.
+      'COLOR_CODE': car.colorCode,
+      'colorcode': car.colorCode,
     };
   }
 

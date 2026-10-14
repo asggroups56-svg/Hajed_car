@@ -24,7 +24,7 @@ class SliderNotifCard extends StatelessWidget {
     if (value.trim().isEmpty) return '';
     final dt = DateTime.tryParse(value);
     if (dt != null) {
-      return DateFormat('yyyy-MM-dd').format(dt);
+      return DateFormat('yyyy-MM-dd', 'en').format(dt);
     }
     if (value.contains('T')) return value.split('T').first;
     if (value.contains(' ')) return value.split(' ').first;

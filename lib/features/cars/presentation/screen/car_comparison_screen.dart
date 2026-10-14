@@ -99,13 +99,16 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                         AppLocaleKey.compareCars.tr(),
                         style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
                       ),
-                      pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now())),
+                      pw.Text(DateFormat('yyyy-MM-dd', 'en').format(DateTime.now())),
                     ],
                   ),
                 ),
                 pw.SizedBox(height: 20),
                 pw.TableHelper.fromTextArray(
-                  headers: [AppLocaleKey.spec.tr(), ...list.map((c) => (c['name'] ?? '---').toString())],
+                  headers: [
+                    AppLocaleKey.spec.tr(),
+                    ...list.map((c) => (c['name'] ?? '---').toString()),
+                  ],
                   data: specs
                       .map(
                         (spec) => [
@@ -160,7 +163,10 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 foregroundColor: AppColor.whiteColor(context),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
               ),
-              child: Text(AppLocaleKey.compareCars.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                AppLocaleKey.compareCars.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -383,10 +389,9 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 Gap(8.h),
                 Text(
                   'إضافة سيارة',
-                  style: AppTextStyle.bodySmall(context).copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.primaryColor(context),
-                  ),
+                  style: AppTextStyle.bodySmall(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold, color: AppColor.primaryColor(context)),
                 ),
               ],
             ),
@@ -396,10 +401,9 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             'اختر سيارة أخرى للمقارنة',
             textAlign: TextAlign.center,
             maxLines: 2,
-            style: AppTextStyle.bodySmall(context).copyWith(
-              color: AppColor.greyColor(context),
-              height: 1.2,
-            ),
+            style: AppTextStyle.bodySmall(
+              context,
+            ).copyWith(color: AppColor.greyColor(context), height: 1.2),
           ),
         ],
       ),

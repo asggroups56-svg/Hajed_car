@@ -432,8 +432,16 @@ class GetBrandCarsDataModel extends Equatable {
       return double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
     }
 
+    int getInt(String key1, [String? key2, String? key3]) {
+      final value = getString(key1, key2, key3).replaceAll(',', '');
+      // Some inventory responses serialize numeric database fields as `12.0`.
+      // int.tryParse rejects that representation and used to turn a valid
+      // colour code into 0.
+      return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
+    }
+
     return GetBrandCarsDataModel(
-      groupCode: int.tryParse(getString('GROUP_CODE', 'GROUP_CODE')) ?? 0,
+      groupCode: getInt('GROUP_CODE', 'GROUP_CODE'),
       groupName: getString('GROUP_NAME', 'brand', 'groupName'),
       grName: getString('GR_NAME', 'grName'),
       groupParent: int.tryParse(getString('GROUP_PARENT', 'groupParent')) ?? 0,
@@ -468,8 +476,9 @@ class GetBrandCarsDataModel extends Equatable {
       usedClient: json['USED_CLIENT']?.toString() ?? json['usedClient']?.toString(),
       addType: int.tryParse(getString('ADD_TYPE', 'addType')) ?? 0,
       // The service has returned this field using all of these spellings.
-      // Do not silently lose a supplied value by looking up only one form.
-      colorCode: int.tryParse(getString('COLOR_CODE', 'COLOR_CODE', 'COLOR_CODE')) ?? 0,
+      // It is required by the booking endpoint, so never discard it merely
+      // because the response uses a different casing or a decimal string.
+      colorCode: getInt('COLOR_CODE', 'COLOR_CODE', 'COLOR_CODE'),
       boardNo: json['BOARD_NO']?.toString() ?? json['boardNo']?.toString(),
       makeYear: int.tryParse(getString('MAKE_YEAR', 'makeYear', 'year')) ?? 0,
       notifyType: int.tryParse(getString('NOTIFY_TYPE', 'notifyType')) ?? 0,

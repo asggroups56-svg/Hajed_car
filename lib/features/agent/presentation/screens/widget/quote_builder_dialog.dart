@@ -200,7 +200,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
         GROUP_CODE: widget.car.groupCode.toString() ?? '',
         itemName: widget.car.itemName ?? '',
         colorCode: widget.car.colorCode ?? 0,
-        
+
         makeYear: widget.car.makeYear ?? 0,
         qnty: 1,
         price: _price,
