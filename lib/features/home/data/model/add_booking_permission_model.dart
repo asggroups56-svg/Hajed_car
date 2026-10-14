@@ -150,7 +150,9 @@ class AddBookingPermissionModel extends Equatable {
 }
 
 class SubLpoModel extends Equatable {
-  // final String itemCode;
+  /// The stock item identifier. The booking endpoint requires this value to
+  /// populate `ITEM_CAR_OPERATION.ITEM_CODE`.
+  final String itemCode;
   final String itemName;
   final String chassisNo;
   final double price;
@@ -160,10 +162,12 @@ class SubLpoModel extends Equatable {
   final String GROUP_CODE;
   final String PAINTINGS_VAL;
   final String? MAKEYEAR;
-  final String? colorcode;
+
+  /// Color identifier required by the booking endpoint.
+  final String colorcode;
 
   const SubLpoModel({
-    // required this.itemCode,
+    required this.itemCode,
     required this.itemName,
     required this.chassisNo,
     required this.price,
@@ -179,7 +183,7 @@ class SubLpoModel extends Equatable {
   factory SubLpoModel.fromJson(Map<String, dynamic> json) {
     return SubLpoModel(
       GROUP_CODE: json['GROUP_CODE']?.toString() ?? '',
-      // itemCode: json['ITEM_CODE']?.toString() ?? '',
+      itemCode: json['ITEM_CODE']?.toString() ?? json['itemCode']?.toString() ?? '',
       itemName: json['ITEM_NAME']?.toString() ?? '',
       chassisNo: json['CHASSIS_NO']?.toString() ?? '',
       price: double.tryParse(json['PRICE']?.toString() ?? '') ?? 0.0,
@@ -189,13 +193,13 @@ class SubLpoModel extends Equatable {
 
       PAINTINGS_VAL: json['PAINTINGS_VAL']?.toString() ?? '',
       MAKEYEAR: json['MAKEYEAR']?.toString() ?? '',
-      colorcode: json['colorcode']?.toString() ?? '',
+      colorcode: (json['colorcode'] ?? json['COLOR_CODE'] ?? json['colorCode'])?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      // "ITEM_CODE": itemCode,
+      "ITEM_CODE": itemCode,
       "ITEM_NAME": itemName,
       "CHASSIS_NO": chassisNo,
       "PRICE": price,
@@ -223,7 +227,7 @@ class SubLpoModel extends Equatable {
     String? colorcode,
   }) {
     return SubLpoModel(
-      // itemCode: itemCode ?? this.itemCode,
+      itemCode: itemCode ?? this.itemCode,
       itemName: itemName ?? this.itemName,
       chassisNo: chassisNo ?? this.chassisNo,
       price: price ?? this.price,
@@ -239,7 +243,7 @@ class SubLpoModel extends Equatable {
 
   @override
   List<Object?> get props => [
-    // itemCode,
+    itemCode,
     itemName,
     chassisNo,
     price,

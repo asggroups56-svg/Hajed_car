@@ -47,7 +47,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
         final status = state.addBookingPermissionResponseModel;
         if (status.isSuccess) {
           setState(() => _isLoading = false);
-          final msg = status.data?.msg ?? (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
+          final msg =
+              status.data?.msg ??
+              (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
           CommonMethods.showToast(message: msg, type: ToastType.success);
           Navigator.pop(context);
         } else if (status.isFailure) {
@@ -55,28 +57,35 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
           CommonMethods.showToast(
             message:
                 status.error ??
-                (isArabic ? 'حدث خطأ أثناء حفظ الحجز' : 'Error occurred while saving reservation'),
+                (isArabic
+                    ? 'حدث خطأ أثناء حفظ الحجز'
+                    : 'Error occurred while saving reservation'),
             type: ToastType.error,
           );
         }
       },
       child: Scaffold(
         backgroundColor: AppColor.scaffoldColor(context),
-        bottomNavigationBar: widget.car.availability == CarAvailability.available
+        bottomNavigationBar:
+            widget.car.availability == CarAvailability.available
             ? Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
                   color: AppColor.cardColor(context),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColor.blackColor(context).withValues(alpha: .04),
+                      color: AppColor.blackColor(
+                        context,
+                      ).withValues(alpha: .04),
                       blurRadius: 20,
                       offset: const Offset(0, -2),
                     ),
                   ],
                 ),
                 child: CustomButton(
-                  onPressed: (widget.car.availability == CarAvailability.available && !_isLoading)
+                  onPressed:
+                      (widget.car.availability == CarAvailability.available &&
+                          !_isLoading)
                       ? () {
                           _showReserveDialog();
                         }
@@ -124,9 +133,14 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                   if (widget.car.availability == CarAvailability.available)
                     TextButton(
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColor.primaryColor(context).withValues(alpha: .1),
+                          color: AppColor.primaryColor(
+                            context,
+                          ).withValues(alpha: .1),
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         child: Text(
@@ -143,9 +157,12 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                           car: widget.car.toCarModel(),
                           existingSpecs: {
                             AppLocaleKey.agentYearMade.tr(): widget.car.year,
-                            AppLocaleKey.agentSimNumber.tr(): widget.car.chassisNo,
+                            AppLocaleKey.agentSimNumber.tr():
+                                widget.car.chassisNo,
                             AppLocaleKey.agentColor.tr(): widget.car.color,
-                            AppLocaleKey.agentTransmission.tr(): AppLocaleKey.agentAutomatic.tr(),
+                            AppLocaleKey.agentTransmission.tr(): AppLocaleKey
+                                .agentAutomatic
+                                .tr(),
                           },
                         );
                       },
@@ -164,11 +181,15 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                               fit: BoxFit.cover,
                             )
                           : Container(
-                              color: AppColor.blueColor(context).withValues(alpha: .08),
+                              color: AppColor.blueColor(
+                                context,
+                              ).withValues(alpha: .08),
                               child: Icon(
                                 Icons.directions_car_filled_rounded,
                                 size: 150.sp,
-                                color: AppColor.blueColor(context).withValues(alpha: .25),
+                                color: AppColor.blueColor(
+                                  context,
+                                ).withValues(alpha: .25),
                               ),
                             ),
                       Container(
@@ -178,7 +199,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              AppColor.blackColor(context).withValues(alpha: .75),
+                              AppColor.blackColor(
+                                context,
+                              ).withValues(alpha: .75),
                             ],
                           ),
                         ),
@@ -191,7 +214,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 6.h,
+                              ),
                               decoration: BoxDecoration(
                                 color: availabilityColor,
                                 borderRadius: BorderRadius.circular(12.r),
@@ -209,9 +235,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
 
                             Text(
                               widget.car.brand,
-                              style: AppTextStyle.bodyMedium(
-                                context,
-                              ).copyWith(color: Colors.white70, fontWeight: FontWeight.w700),
+                              style: AppTextStyle.bodyMedium(context).copyWith(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
 
                             Gap(4.h),
@@ -229,10 +256,11 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                             ValueWithCurrencyIcon(
                               text:
                                   '${NumberFormat('#,##0', 'en_US').format(widget.car.price)} ${AppLocaleKey.sar.tr()}',
-                              textStyle: AppTextStyle.titleLarge(context).copyWith(
-                                color: AppColor.whiteColor(context),
-                                fontWeight: FontWeight.w900,
-                              ),
+                              textStyle: AppTextStyle.titleLarge(context)
+                                  .copyWith(
+                                    color: AppColor.whiteColor(context),
+                                    fontWeight: FontWeight.w900,
+                                  ),
                             ),
                           ],
                         ),
@@ -279,12 +307,17 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
             builder: (BuildContext context, StateSetter setModalState) {
               return SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
                   child: Container(
                     constraints: BoxConstraints(maxHeight: 0.85.sh),
                     child: SingleChildScrollView(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 24.h,
+                        ),
                         child: Form(
                           key: formKey,
                           child: Column(
@@ -303,18 +336,27 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                     ),
                                     child: Icon(
                                       Icons.bookmark_add_rounded,
-                                      color: AppColor.primaryColor(dialogContext),
+                                      color: AppColor.primaryColor(
+                                        dialogContext,
+                                      ),
                                       size: 24.sp,
                                     ),
                                   ),
                                   Gap(12.w),
                                   Expanded(
                                     child: Text(
-                                      isArabic ? 'حجز سيارة للعميل' : 'Reserve Car for Customer',
-                                      style: AppTextStyle.titleMedium(dialogContext).copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColor.blackTextColor(dialogContext),
-                                      ),
+                                      isArabic
+                                          ? 'حجز سيارة للعميل'
+                                          : 'Reserve Car for Customer',
+                                      style:
+                                          AppTextStyle.titleMedium(
+                                            dialogContext,
+                                          ).copyWith(
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColor.blackTextColor(
+                                              dialogContext,
+                                            ),
+                                          ),
                                     ),
                                   ),
                                 ],
@@ -327,7 +369,8 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 isOpen: isCustomerDropdownOpen,
                                 searchController: searchController,
                                 onToggle: () => setModalState(() {
-                                  isCustomerDropdownOpen = !isCustomerDropdownOpen;
+                                  isCustomerDropdownOpen =
+                                      !isCustomerDropdownOpen;
                                 }),
                                 onSelect: (CustomerModel c) {
                                   setModalState(() {
@@ -335,8 +378,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                     isCustomerDropdownOpen = false;
                                     nameController.text = c.customerName ?? '';
                                     phoneController.text = c.tel1 ?? '';
-                                    final custNameLower = (c.customerName ?? '').toLowerCase();
-                                    final typeLower = (c.customerTypeName ?? '').toLowerCase();
+                                    final custNameLower = (c.customerName ?? '')
+                                        .toLowerCase();
+                                    final typeLower = (c.customerTypeName ?? '')
+                                        .toLowerCase();
                                     if (typeLower.contains('عملاء نقدي') ||
                                         typeLower.contains('نقدي') ||
                                         typeLower.contains('cash') ||
@@ -353,11 +398,14 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                       isBankReservation = false;
                                     }
                                     searchController.clear();
-                                    context.read<AgentCubit>().getCustomer(null);
+                                    context.read<AgentCubit>().getCustomer(
+                                      null,
+                                    );
                                   });
                                 },
-                                onSearch: (v) =>
-                                    context.read<AgentCubit>().getCustomer(v.isEmpty ? null : v),
+                                onSearch: (v) => context
+                                    .read<AgentCubit>()
+                                    .getCustomer(v.isEmpty ? null : v),
                                 context: dialogContext,
                               ),
                               Gap(16.h),
@@ -376,23 +424,39 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                   children: [
                                     Expanded(
                                       child: GestureDetector(
-                                        onTap: () => setModalState(() => isBankReservation = false),
+                                        onTap: () => setModalState(
+                                          () => isBankReservation = false,
+                                        ),
                                         child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 10.h,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: !isBankReservation
-                                                ? AppColor.primaryColor(dialogContext)
+                                                ? AppColor.primaryColor(
+                                                    dialogContext,
+                                                  )
                                                 : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(10.r),
+                                            borderRadius: BorderRadius.circular(
+                                              10.r,
+                                            ),
                                             boxShadow: !isBankReservation
                                                 ? [
                                                     BoxShadow(
-                                                      color: AppColor.primaryColor(
-                                                        dialogContext,
-                                                      ).withValues(alpha: 0.25),
+                                                      color:
+                                                          AppColor.primaryColor(
+                                                            dialogContext,
+                                                          ).withValues(
+                                                            alpha: 0.25,
+                                                          ),
                                                       blurRadius: 6,
-                                                      offset: const Offset(0, 2),
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
                                                     ),
                                                   ]
                                                 : [],
@@ -402,15 +466,22 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                               isArabic
                                                   ? 'فرد / معرض (١٢ ساعة)'
                                                   : 'Individual / Showroom (12h)',
-                                              style: AppTextStyle.bodySmall(dialogContext).copyWith(
-                                                color: !isBankReservation
-                                                    ? AppColor.whiteColor(dialogContext)
-                                                    : AppColor.blackTextColor(
-                                                        dialogContext,
-                                                      ).withValues(alpha: 0.7),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11.5.sp,
-                                              ),
+                                              style:
+                                                  AppTextStyle.bodySmall(
+                                                    dialogContext,
+                                                  ).copyWith(
+                                                    color: !isBankReservation
+                                                        ? AppColor.whiteColor(
+                                                            dialogContext,
+                                                          )
+                                                        : AppColor.blackTextColor(
+                                                            dialogContext,
+                                                          ).withValues(
+                                                            alpha: 0.7,
+                                                          ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 11.5.sp,
+                                                  ),
                                             ),
                                           ),
                                         ),
@@ -419,39 +490,64 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                     Gap(4.w),
                                     Expanded(
                                       child: GestureDetector(
-                                        onTap: () => setModalState(() => isBankReservation = true),
+                                        onTap: () => setModalState(
+                                          () => isBankReservation = true,
+                                        ),
                                         child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 10.h,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: isBankReservation
-                                                ? AppColor.primaryColor(dialogContext)
+                                                ? AppColor.primaryColor(
+                                                    dialogContext,
+                                                  )
                                                 : Colors.transparent,
-                                            borderRadius: BorderRadius.circular(10.r),
+                                            borderRadius: BorderRadius.circular(
+                                              10.r,
+                                            ),
                                             boxShadow: isBankReservation
                                                 ? [
                                                     BoxShadow(
-                                                      color: AppColor.primaryColor(
-                                                        dialogContext,
-                                                      ).withValues(alpha: 0.25),
+                                                      color:
+                                                          AppColor.primaryColor(
+                                                            dialogContext,
+                                                          ).withValues(
+                                                            alpha: 0.25,
+                                                          ),
                                                       blurRadius: 6,
-                                                      offset: const Offset(0, 2),
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
                                                     ),
                                                   ]
                                                 : [],
                                           ),
                                           child: Center(
                                             child: Text(
-                                              isArabic ? 'بنك (٣ أيام)' : 'Bank (3 Days)',
-                                              style: AppTextStyle.bodySmall(dialogContext).copyWith(
-                                                color: isBankReservation
-                                                    ? AppColor.whiteColor(dialogContext)
-                                                    : AppColor.blackTextColor(
-                                                        dialogContext,
-                                                      ).withValues(alpha: 0.7),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11.5.sp,
-                                              ),
+                                              isArabic
+                                                  ? 'بنك (٣ أيام)'
+                                                  : 'Bank (3 Days)',
+                                              style:
+                                                  AppTextStyle.bodySmall(
+                                                    dialogContext,
+                                                  ).copyWith(
+                                                    color: isBankReservation
+                                                        ? AppColor.whiteColor(
+                                                            dialogContext,
+                                                          )
+                                                        : AppColor.blackTextColor(
+                                                            dialogContext,
+                                                          ).withValues(
+                                                            alpha: 0.7,
+                                                          ),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 11.5.sp,
+                                                  ),
                                             ),
                                           ),
                                         ),
@@ -462,16 +558,27 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                               ),
                               Gap(12.h),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 14.w,
+                                  vertical: 10.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isBankReservation
-                                      ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
-                                      : const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                                      ? const Color(
+                                          0xFF3B82F6,
+                                        ).withValues(alpha: 0.08)
+                                      : const Color(
+                                          0xFFF59E0B,
+                                        ).withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(12.r),
                                   border: Border.all(
                                     color: isBankReservation
-                                        ? const Color(0xFF3B82F6).withValues(alpha: 0.25)
-                                        : const Color(0xFFF59E0B).withValues(alpha: 0.25),
+                                        ? const Color(
+                                            0xFF3B82F6,
+                                          ).withValues(alpha: 0.25)
+                                        : const Color(
+                                            0xFFF59E0B,
+                                          ).withValues(alpha: 0.25),
                                   ),
                                 ),
                                 child: Row(
@@ -493,13 +600,16 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                             : (isArabic
                                                   ? 'مدة حجز الأفراد والمعارض: ١٢ ساعة'
                                                   : 'Individual / Showroom Duration: 12 Hours'),
-                                        style: AppTextStyle.bodySmall(dialogContext).copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 11.5.sp,
-                                          color: isBankReservation
-                                              ? const Color(0xFF1E40AF)
-                                              : const Color(0xFF92400E),
-                                        ),
+                                        style:
+                                            AppTextStyle.bodySmall(
+                                              dialogContext,
+                                            ).copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 11.5.sp,
+                                              color: isBankReservation
+                                                  ? const Color(0xFF1E40AF)
+                                                  : const Color(0xFF92400E),
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -511,7 +621,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 curve: Curves.easeInOut,
                                 child:
                                     (selectedCustomer != null &&
-                                        selectedCustomer!.customerName?.trim() == 'عميل عادي')
+                                        selectedCustomer!.customerName
+                                                ?.trim() ==
+                                            'عميل عادي')
                                     ? Column(
                                         children: [
                                           Gap(4.h),
@@ -524,12 +636,16 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                             keyboardType: TextInputType.name,
                                             prefixIcon: Icon(
                                               Icons.person_outline_rounded,
-                                              color: AppColor.hintColor(dialogContext),
+                                              color: AppColor.hintColor(
+                                                dialogContext,
+                                              ),
                                             ),
                                             validator: (value) {
-                                              if (selectedCustomer?.customerName?.trim() ==
+                                              if (selectedCustomer?.customerName
+                                                      ?.trim() ==
                                                   'عميل عادي') {
-                                                if (value == null || value.trim().isEmpty) {
+                                                if (value == null ||
+                                                    value.trim().isEmpty) {
                                                   return isArabic
                                                       ? 'برجاء إدخال اسم العميل'
                                                       : 'Please enter customer name';
@@ -545,7 +661,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                               ),
                               CustomFormField(
                                 controller: phoneController,
-                                hintText: isArabic ? 'رقم جوال العميل' : 'Customer Phone Number',
+                                hintText: isArabic
+                                    ? 'رقم جوال العميل'
+                                    : 'Customer Phone Number',
                                 radius: 12.r,
                                 keyboardType: TextInputType.phone,
                                 maxLength: 10,
@@ -594,8 +712,11 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                   ],
                                 ),
                                 validator: (value) {
-                                  if (value != null && value.trim().isNotEmpty) {
-                                    final amount = double.tryParse(value.trim());
+                                  if (value != null &&
+                                      value.trim().isNotEmpty) {
+                                    final amount = double.tryParse(
+                                      value.trim(),
+                                    );
                                     if (amount == null) {
                                       return isArabic
                                           ? 'الرجاء إدخال رقم صحيح'
@@ -627,23 +748,35 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 children: [
                                   Expanded(
                                     child: TextButton(
-                                      onPressed: () => Navigator.pop(dialogContext),
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
                                       style: TextButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 14.h,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.r),
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
                                           side: BorderSide(
-                                            color: AppColor.borderColor(dialogContext),
+                                            color: AppColor.borderColor(
+                                              dialogContext,
+                                            ),
                                           ),
                                         ),
                                       ),
                                       child: Text(
                                         isArabic ? 'إلغاء' : 'Cancel',
-                                        style: AppTextStyle.bodySmall(dialogContext).copyWith(
-                                          color: AppColor.greyColor(dialogContext),
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
-                                        ),
+                                        style:
+                                            AppTextStyle.bodySmall(
+                                              dialogContext,
+                                            ).copyWith(
+                                              color: AppColor.greyColor(
+                                                dialogContext,
+                                              ),
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -662,28 +795,46 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                           return;
                                         }
                                         if (formKey.currentState!.validate()) {
-                                          final name = nameController.text.trim();
-                                          final phone = phoneController.text.trim();
+                                          final name = nameController.text
+                                              .trim();
+                                          final phone = phoneController.text
+                                              .trim();
                                           final deposit =
-                                              double.tryParse(depositController.text.trim()) ?? 0.0;
+                                              double.tryParse(
+                                                depositController.text.trim(),
+                                              ) ??
+                                              0.0;
                                           Navigator.pop(dialogContext);
                                           _submitReservation(
                                             customerName: name,
                                             customerPhone: phone,
                                             depositAmount: deposit,
-                                            customerNo: selectedCustomer?.customerNo,
-                                            isBankReservation: isBankReservation,
+                                            customerNo:
+                                                selectedCustomer?.customerNo,
+                                            isBankReservation:
+                                                isBankReservation,
                                           );
                                         }
                                       },
                                       child: _isLoading
-                                          ? CustomLoading(color: AppColor.whiteColor(dialogContext))
-                                          : Text(
-                                              isArabic ? 'تأكيد الحجز' : 'Confirm Reservation',
-                                              style: AppTextStyle.bodySmall(dialogContext).copyWith(
-                                                color: AppColor.whiteColor(dialogContext),
-                                                fontWeight: FontWeight.w800,
+                                          ? CustomLoading(
+                                              color: AppColor.whiteColor(
+                                                dialogContext,
                                               ),
+                                            )
+                                          : Text(
+                                              isArabic
+                                                  ? 'تأكيد الحجز'
+                                                  : 'Confirm Reservation',
+                                              style:
+                                                  AppTextStyle.bodySmall(
+                                                    dialogContext,
+                                                  ).copyWith(
+                                                    color: AppColor.whiteColor(
+                                                      dialogContext,
+                                                    ),
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
                                             ),
                                     ),
                                   ),
@@ -726,11 +877,16 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     final groupCode = widget.car.groupCode.toString();
     final storeCodeVal = int.tryParse(widget.car.storeCode) ?? 1;
     final code = HiveMethods.getcode() ?? '';
-    final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
+    final double vatSerial =
+        double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
     final double basePrice = widget.car.price;
     final double totalWithTax = basePrice * ((100 + vatSerial) / 100);
-    final double taxValue = double.parse((totalWithTax - basePrice).toStringAsFixed(2));
-    final noteType = isBankReservation ? 'حجز بنك (3 أيام)' : 'حجز فرد/معرض (12 ساعة)';
+    final double taxValue = double.parse(
+      (totalWithTax - basePrice).toStringAsFixed(2),
+    );
+    final noteType = isBankReservation
+        ? 'حجز بنك (3 أيام)'
+        : 'حجز فرد/معرض (12 ساعة)';
     final model = AddBookingPermissionModel(
       lpoNos: '',
       lpono: '',
@@ -756,7 +912,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
       ),
       subLpo: [
         SubLpoModel(
-          //itemCode: itemCode,
+          itemCode: itemCode.trim(),
           itemName: itemName.substring(0, itemName.length.clamp(0, 100)),
           chassisNo: chassisNo.substring(0, chassisNo.length.clamp(0, 50)),
           price: basePrice,
@@ -766,7 +922,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
           GROUP_CODE: groupCode,
           PAINTINGS_VAL: 600.0.toString(),
           MAKEYEAR: widget.car.year,
-          colorcode: widget.car.colorCode.toString(),
+          colorcode: widget.car.colorCode?.trim() ?? '',
         ),
       ],
     );

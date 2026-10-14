@@ -2,6 +2,7 @@ import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/saudi_phone_number.dart';
 import 'package:car/features/admin/data/model/representative_model.dart';
 import 'package:car/features/cars/presentation/widget/financing_contact_form.dart';
 import 'package:car/features/cars/presentation/widget/financing_pricing_card_widget.dart';
@@ -60,12 +61,21 @@ class ReservationInformationStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ReservationStepIndicator(currentStep: 0, isFinancingFlow: isFinancingFlow),
+        ReservationStepIndicator(
+          currentStep: 0,
+          isFinancingFlow: isFinancingFlow,
+        ),
         Gap(8.h),
         if (isFinancingFlow)
-          FinancingPricingCard(totalPrice: totalPrice, onShowDetails: onShowPricingDetails)
+          FinancingPricingCard(
+            totalPrice: totalPrice,
+            onShowDetails: onShowPricingDetails,
+          )
         else
-          ReservationPricingCard(totalPrice: totalPrice, depositAmount: depositAmount),
+          ReservationPricingCard(
+            totalPrice: totalPrice,
+            depositAmount: depositAmount,
+          ),
         Gap(32.h),
         Text(
           isFinancingFlow
@@ -95,7 +105,9 @@ class ReservationInformationStep extends StatelessWidget {
                   controller: cashNameController,
                   hintText: AppLocaleKey.agentFullName.tr(),
                   radius: 12,
-                  validator: (v) => v == null || v.isEmpty ? AppLocaleKey.validateEmpty.tr() : null,
+                  validator: (v) => v == null || v.isEmpty
+                      ? AppLocaleKey.validateEmpty.tr()
+                      : null,
                 ),
                 Gap(16.h),
                 CustomFormField(
@@ -104,19 +116,21 @@ class ReservationInformationStep extends StatelessWidget {
                   radius: 12,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
+                  inputFormatters: const [SaudiPhoneInputFormatter()],
                   validator: (v) {
-                    if (v == null || v.isEmpty) {
+                    final phone = SaudiPhoneNumber.normalize(v ?? '');
+                    if (phone.isEmpty) {
                       return AppLocaleKey.validateEmpty.tr();
                     }
-                    if (!v.startsWith('05')) {
+                    if (!phone.startsWith('05')) {
                       return context.locale.languageCode == 'ar'
                           ? 'رقم الجوال يجب أن يبدأ بـ 05'
                           : 'Phone number must start with 05';
-                    } else if (!RegExp(r'^[0-9]+$').hasMatch(v)) {
+                    } else if (!RegExp(r'^[0-9]+$').hasMatch(phone)) {
                       return context.locale.languageCode == 'ar'
                           ? 'رقم الجوال يجب أن يحتوي على أرقام فقط'
                           : 'Phone number must contain only digits';
-                    } else if (v.length < 10) {
+                    } else if (!SaudiPhoneNumber.isValid(phone)) {
                       return context.locale.languageCode == 'ar'
                           ? 'رقم الجوال يجب أن يكون 10 أرقام'
                           : 'Phone number must be 10 digits';
@@ -174,7 +188,10 @@ class ReservationInformationStep extends StatelessWidget {
             },
           ),
           Gap(12.h),
-          ReservationTermsCheckboxWidget(value: isTermsAccepted, onChanged: onTermsAcceptedChanged),
+          ReservationTermsCheckboxWidget(
+            value: isTermsAccepted,
+            onChanged: onTermsAcceptedChanged,
+          ),
         ],
       ],
     );
@@ -194,7 +211,10 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF262015) : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35), width: 1),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+          width: 1,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,7 +225,11 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
               color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Icon(Icons.badge_outlined, color: const Color(0xFFD97706), size: 22.sp),
+            child: Icon(
+              Icons.badge_outlined,
+              color: const Color(0xFFD97706),
+              size: 22.sp,
+            ),
           ),
           Gap(12.w),
           Expanded(
@@ -213,11 +237,15 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isArabic ? 'تنبيه لإتمام عملية الشراء' : 'Purchase Requirement Notice',
+                  isArabic
+                      ? 'تنبيه لإتمام عملية الشراء'
+                      : 'Purchase Requirement Notice',
                   style: AppTextStyle.bodyMedium(context).copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 13.sp,
-                    color: isDark ? const Color(0xFFFCD34D) : const Color(0xFFB45309),
+                    color: isDark
+                        ? const Color(0xFFFCD34D)
+                        : const Color(0xFFB45309),
                   ),
                 ),
                 Gap(4.h),
@@ -228,7 +256,9 @@ class _PurchaseRequirementsNoticeWidget extends StatelessWidget {
                   style: AppTextStyle.bodySmall(context).copyWith(
                     fontSize: 11.5.sp,
                     height: 1.55,
-                    color: AppColor.blackTextColor(context).withValues(alpha: 0.8),
+                    color: AppColor.blackTextColor(
+                      context,
+                    ).withValues(alpha: 0.8),
                   ),
                 ),
               ],

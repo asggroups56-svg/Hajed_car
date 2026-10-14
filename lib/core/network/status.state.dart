@@ -7,12 +7,14 @@ class StatusState<T> {
   final T? data;
   final String? message;
   final String? error;
+  final int? statusCode;
 
   const StatusState._({
     required this.status,
     this.data,
     this.message,
     this.error,
+    this.statusCode,
   });
 
   const StatusState.initial() : this._(status: Status.initial);
@@ -22,8 +24,8 @@ class StatusState<T> {
   const StatusState.success(T data, {String? message})
     : this._(status: Status.success, data: data, message: message);
 
-  const StatusState.failure(String error)
-    : this._(status: Status.failure, error: error);
+  const StatusState.failure(String error, {int? statusCode})
+    : this._(status: Status.failure, error: error, statusCode: statusCode);
 
   bool get isInitial => status == Status.initial;
   bool get isLoading => status == Status.loading;

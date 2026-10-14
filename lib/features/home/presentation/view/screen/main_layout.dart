@@ -78,7 +78,9 @@ class _MainLayoutState extends State<MainLayout> {
     final List<Widget> screens = [
       HomeGuestScreen(key: ValueKey('home_${context.locale.languageCode}')),
       CarsScreen(key: ValueKey('cars_${context.locale.languageCode}')),
-      FavoritesScreen(key: ValueKey('favorites_${context.locale.languageCode}')),
+      FavoritesScreen(
+        key: ValueKey('favorites_${context.locale.languageCode}'),
+      ),
       ServicesScreen(key: ValueKey('services_${context.locale.languageCode}')),
     ];
     return Scaffold(
@@ -90,12 +92,16 @@ class _MainLayoutState extends State<MainLayout> {
               automaticallyImplyLeading: false,
               leading: const ProfileIconWidget(),
               title: ValueListenableBuilder(
-                valueListenable: Hive.box('app').listenable(keys: ['userName', 'isGuest']),
+                valueListenable: Hive.box(
+                  'app',
+                ).listenable(keys: ['userName', 'isGuest']),
                 builder: (context, box, _) {
                   final isGuest = box.get('isGuest', defaultValue: false);
                   final userName = HiveMethods.getUserName() ?? '';
                   final welcomeText = AppLocaleKey.welcomeToCarGroup.tr();
-                  final separator = context.locale.languageCode == 'ar' ? '،' : ',';
+                  final separator = context.locale.languageCode == 'ar'
+                      ? '،'
+                      : ',';
 
                   return FittedBox(
                     fit: BoxFit.scaleDown,
@@ -119,11 +125,14 @@ class _MainLayoutState extends State<MainLayout> {
               ],
             ),
       body: BlocListener<HomeCubit, HomeState>(
-        listenWhen: (prev, curr) => prev.notificationsStatus != curr.notificationsStatus,
+        listenWhen: (prev, curr) =>
+            prev.notificationsStatus != curr.notificationsStatus,
         listener: (context, state) {
           if (state.notificationsStatus.isSuccess) {
             final list = state.notificationsStatus.data ?? [];
-            context.read<NotificationsCubit>().loadFromApi(list.map((n) => n.toMap()).toList());
+            context.read<NotificationsCubit>().loadFromApi(
+              list.map((n) => n.toMap()).toList(),
+            );
           } else if (state.notificationsStatus.isFailure) {
             context.read<NotificationsCubit>().loadFromApi([]);
           }
@@ -131,7 +140,11 @@ class _MainLayoutState extends State<MainLayout> {
         child: Stack(
           children: [
             screens[_currentIndex.clamp(0, screens.length - 1)],
-            Positioned(bottom: 20.h, left: 20.w, child: const SupportIconWidget()),
+            Positioned(
+              bottom: 20.h,
+              left: 20.w,
+              child: const SupportIconWidget(),
+            ),
           ],
         ),
       ),

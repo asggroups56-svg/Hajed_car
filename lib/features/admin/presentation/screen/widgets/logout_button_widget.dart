@@ -13,13 +13,18 @@ class LogoutButtonWidget extends StatelessWidget {
   const LogoutButtonWidget({super.key});
 
   void _showLogoutDialog(BuildContext context) {
+    final authCubit = context.read<AuthCubit>();
+    final navigator = Navigator.of(context);
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        final isArabic = context.locale.languageCode == 'ar';
+      builder: (BuildContext dialogContext) {
+        final isArabic = dialogContext.locale.languageCode == 'ar';
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
-          backgroundColor: AppColor.scaffoldColor(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.r),
+          ),
+          backgroundColor: AppColor.scaffoldColor(dialogContext),
           child: Padding(
             padding: EdgeInsets.all(24.w),
             child: Column(
@@ -28,10 +33,16 @@ class LogoutButtonWidget extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
-                    color: AppColor.redColor(context).withValues(alpha: 0.1),
+                    color: AppColor.redColor(
+                      dialogContext,
+                    ).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.logout_rounded, color: AppColor.redColor(context), size: 32.sp),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: AppColor.redColor(dialogContext),
+                    size: 32.sp,
+                  ),
                 ),
                 Gap(16.h),
                 Text(
@@ -39,7 +50,7 @@ class LogoutButtonWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20.sp,
                     fontWeight: FontWeight.w900,
-                    color: AppColor.blackTextColor(context),
+                    color: AppColor.blackTextColor(dialogContext),
                   ),
                 ),
                 Gap(10.h),
@@ -50,7 +61,9 @@ class LogoutButtonWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14.sp,
-                    color: AppColor.blackTextColor(context).withValues(alpha: 0.6),
+                    color: AppColor.blackTextColor(
+                      dialogContext,
+                    ).withValues(alpha: 0.6),
                   ),
                 ),
                 Gap(24.h),
@@ -60,16 +73,22 @@ class LogoutButtonWidget extends StatelessWidget {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-                          side: BorderSide(color: AppColor.borderColor(context)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
+                          side: BorderSide(
+                            color: AppColor.borderColor(dialogContext),
+                          ),
                         ),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(dialogContext),
                         child: Text(
                           isArabic ? 'إلغاء' : 'Cancel',
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppColor.blackTextColor(context).withValues(alpha: 0.7),
+                            color: AppColor.blackTextColor(
+                              dialogContext,
+                            ).withValues(alpha: 0.7),
                           ),
                         ),
                       ),
@@ -78,28 +97,29 @@ class LogoutButtonWidget extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColor.redColor(context),
+                          backgroundColor: AppColor.redColor(dialogContext),
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
                           elevation: 0,
                         ),
                         onPressed: () async {
-                          final authCubit = context.read<AuthCubit>();
-                          final navigator = Navigator.of(context);
-                          Navigator.pop(context); // Close dialog
-                          context.read<AuthCubit>().logout();
+                          Navigator.pop(dialogContext);
                           await authCubit.logout();
                           if (!navigator.mounted) return;
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
+                          navigator.pushNamedAndRemoveUntil(
                             RoutesName.loginScreen,
                             (route) => false,
                           );
                         },
                         child: Text(
                           isArabic ? 'خروج' : 'Logout',
-                          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -122,16 +142,27 @@ class LogoutButtonWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColor.redColor(context).withValues(alpha: (0.1)),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColor.redColor(context).withValues(alpha: (0.1))),
+          border: Border.all(
+            color: AppColor.redColor(context).withValues(alpha: (0.1)),
+          ),
         ),
         child: ListTile(
           onTap: () => _showLogoutDialog(context),
-          leading: Icon(Icons.logout_rounded, color: AppColor.redColor(context)),
+          leading: Icon(
+            Icons.logout_rounded,
+            color: AppColor.redColor(context),
+          ),
           title: Text(
             AppLocaleKey.logout.tr(),
-            style: TextStyle(color: AppColor.redColor(context), fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppColor.redColor(context),
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          trailing: Icon(Icons.chevron_left_rounded, color: AppColor.redColor(context)),
+          trailing: Icon(
+            Icons.chevron_left_rounded,
+            color: AppColor.redColor(context),
+          ),
         ),
       ),
     );

@@ -467,7 +467,9 @@ class GetBrandCarsDataModel extends Equatable {
       doorNo: int.tryParse(getString('DOOR_NO', 'doorNo')) ?? 0,
       usedClient: json['USED_CLIENT']?.toString() ?? json['usedClient']?.toString(),
       addType: int.tryParse(getString('ADD_TYPE', 'addType')) ?? 0,
-      colorCode: int.tryParse(getString('COLOR_CODE', 'COLOR_CODE')) ?? 0,
+      // The service has returned this field using all of these spellings.
+      // Do not silently lose a supplied value by looking up only one form.
+      colorCode: int.tryParse(getString('COLOR_CODE', 'COLOR_CODE', 'COLOR_CODE')) ?? 0,
       boardNo: json['BOARD_NO']?.toString() ?? json['boardNo']?.toString(),
       makeYear: int.tryParse(getString('MAKE_YEAR', 'makeYear', 'year')) ?? 0,
       notifyType: int.tryParse(getString('NOTIFY_TYPE', 'notifyType')) ?? 0,

@@ -46,7 +46,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'hajed-cars.firebasestorage.app',
     measurementId: 'G-VGETKVR6R7',
   );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBUuU1-w5_l0qwpeFtyNokD7tj89-l-N6c',
     appId: '1:30882313876:android:b338af95f6e9e6291f2681',
@@ -54,7 +53,6 @@ class DefaultFirebaseOptions {
     projectId: 'hajed-cars',
     storageBucket: 'hajed-cars.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBEQjtWGgJ3ffrbY5mKQDGteYDFDY8v4dM',
     appId: '1:30882313876:ios:1fe7b912db473cd61f2681',
@@ -63,7 +61,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'hajed-cars.firebasestorage.app',
     iosBundleId: 'com.Hajed.car',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBEQjtWGgJ3ffrbY5mKQDGteYDFDY8v4dM',
     appId: '1:30882313876:ios:c001f8e7a7d0c9d41f2681',
@@ -72,7 +69,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'hajed-cars.firebasestorage.app',
     iosBundleId: 'com.example.car',
   );
-
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyB70NBvrpKh6o7KZHq7jKVdbwWb-skcrxQ',
     appId: '1:30882313876:web:69f0030a3acf26981f2681',

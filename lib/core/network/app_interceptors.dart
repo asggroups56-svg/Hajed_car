@@ -10,8 +10,15 @@ class AppInterceptors extends Interceptor {
   // Prevents infinite loop if the refresh request itself returns 401
   bool _isRefreshing = false;
   @override
-  Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     isInternet = true;
+    if (options.extra['allowUnauthorized'] == true) {
+      options.validateStatus = (status) =>
+          status != null && (status < 400 || status == 401);
+    }
     if (options.data is FormData) {
       options.contentType = Headers.multipartFormDataContentType;
       options.headers.remove(Headers.contentTypeHeader);
@@ -30,7 +37,10 @@ class AppInterceptors extends Interceptor {
   }
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final statusCode = err.response?.statusCode;
 
     // Only handle 401 (Unauthorized / token expired)
@@ -40,13 +50,17 @@ class AppInterceptors extends Interceptor {
       final refreshToken = HiveMethods.getRefreshToken();
 
       if (refreshToken == null || refreshToken.isEmpty) {
-        debugPrint('⚠️ [TokenRefresh] 401 received but NO refresh_token is saved in Hive. User needs to login again.');
+        debugPrint(
+          '⚠️ [TokenRefresh] 401 received but NO refresh_token is saved in Hive. User needs to login again.',
+        );
         HiveMethods.deleteToken();
         return super.onError(err, handler);
       }
 
       _isRefreshing = true;
-      debugPrint('🔄 [TokenRefresh] 401 received. Attempting to refresh token using stored refresh_token...');
+      debugPrint(
+        '🔄 [TokenRefresh] 401 received. Attempting to refresh token using stored refresh_token...',
+      );
 
       try {
         final refreshDio = Dio(
@@ -54,9 +68,7 @@ class AppInterceptors extends Interceptor {
             baseUrl: err.requestOptions.baseUrl.isNotEmpty
                 ? err.requestOptions.baseUrl
                 : Constants.baseUrl,
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
           ),
         );
 
@@ -67,15 +79,17 @@ class AppInterceptors extends Interceptor {
             'refresh_token': refreshToken,
             'client_type': 'mobile',
           },
-          options: Options(
-            contentType: 'application/x-www-form-urlencoded',
-          ),
+          options: Options(contentType: 'application/x-www-form-urlencoded'),
         );
 
-        debugPrint('✅ [TokenRefresh] Refresh API response: ${refreshResponse.statusCode} - ${refreshResponse.data}');
+        debugPrint(
+          '✅ [TokenRefresh] Refresh API response: ${refreshResponse.statusCode} - ${refreshResponse.data}',
+        );
 
-        final newAccessToken = refreshResponse.data['access_token']?.toString() ?? '';
-        final newRefreshToken = refreshResponse.data['refresh_token']?.toString() ?? '';
+        final newAccessToken =
+            refreshResponse.data['access_token']?.toString() ?? '';
+        final newRefreshToken =
+            refreshResponse.data['refresh_token']?.toString() ?? '';
 
         if (newAccessToken.isNotEmpty) {
           // Update tokens in Hive
@@ -91,13 +105,19 @@ class AppInterceptors extends Interceptor {
 
           final retryResponse = await refreshDio.fetch(retryOptions);
           _isRefreshing = false;
-          debugPrint('🚀 [TokenRefresh] Original request retried and resolved successfully.');
+          debugPrint(
+            '🚀 [TokenRefresh] Original request retried and resolved successfully.',
+          );
           return handler.resolve(retryResponse);
         } else {
-          debugPrint('❌ [TokenRefresh] Failed: access_token was empty in refresh response.');
+          debugPrint(
+            '❌ [TokenRefresh] Failed: access_token was empty in refresh response.',
+          );
         }
       } catch (refreshError) {
-        debugPrint('❌ [TokenRefresh] Exception during refresh token: $refreshError');
+        debugPrint(
+          '❌ [TokenRefresh] Exception during refresh token: $refreshError',
+        );
         HiveMethods.deleteToken();
         HiveMethods.deleteRefreshToken();
       } finally {

@@ -9,6 +9,7 @@ import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/auth/presentation/view/cubit/auth_cubit.dart';
 import 'package:car/features/auth/presentation/view/screen/widget/custom_FormL_login_widget.dart';
+import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,11 +18,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
   final _formKey = GlobalKey<FormState>();
-
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<AuthCubit>();
-
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
       body: Container(
@@ -46,7 +45,8 @@ class LoginScreen extends StatelessWidget {
                 type: ToastType.success,
               );
               if (HiveMethods.isUserRole()) {
-                NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
+                MainLayout.tabIndex.value = 0;
+                NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
               } else if (HiveMethods.isAgentRole()) {
                 NavigatorMethods.pushReplacementNamed(context, RoutesName.agentDashboard);
               } else {

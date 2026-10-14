@@ -26,10 +26,11 @@ import 'package:flutter/foundation.dart';
 
 abstract interface class HomeRepo {
   Future<Either<Failure, CarsModelsResponse>> getCarsModels();
-  Future<Either<Failure, List<GetBrandCarsDataModel>>> getBrandCars(String brandId);
-  Future<Either<Failure, AddBookingPermissionResponseModel>> addBookingPermission(
-    AddBookingPermissionModel model,
+  Future<Either<Failure, List<GetBrandCarsDataModel>>> getBrandCars(
+    String brandId,
   );
+  Future<Either<Failure, AddBookingPermissionResponseModel>>
+  addBookingPermission(AddBookingPermissionModel model);
   Future<Either<Failure, List<GetBrandCarsDataModel>>> fetchAllCars(
     int? brandId,
     String? frommakeyear,
@@ -43,13 +44,19 @@ abstract interface class HomeRepo {
   );
   Future<Either<Failure, SendOtpResponseModel>> sendOtp(SendOtpModel model);
   Future<Either<Failure, List<BANKSDATAModel>>> getBanks(String? Searchval);
-  Future<Either<Failure, List<FinancingAdModel>>> getFinancingAds({String? code});
-  Future<Either<Failure, List<FinancingAdModel>>> getNormalFinancing({String? code});
-  Future<Either<Failure, AddLoanApplicationResponseModel>> addLoanApplicationWithFiles({
+  Future<Either<Failure, List<FinancingAdModel>>> getFinancingAds({
+    String? code,
+  });
+  Future<Either<Failure, List<FinancingAdModel>>> getNormalFinancing({
+    String? code,
+  });
+  Future<Either<Failure, AddLoanApplicationResponseModel>>
+  addLoanApplicationWithFiles({
     required AddLoanApplicationModel model,
     required List<File> files,
   });
-  Future<Either<Failure, List<CustomerLoanApplicationModel>>> getCustLoanApplications(String code);
+  Future<Either<Failure, List<CustomerLoanApplicationModel>>>
+  getCustLoanApplications(String code);
   Future<Either<Failure, List<NotificationModel>>> getNotificationsData({
     required String currentUserId,
     required int userType,
@@ -67,7 +74,9 @@ abstract interface class HomeRepo {
     required int isApproved,
     required int? customerNo,
   });
-  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(SendWhatsAppModel model);
+  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(
+    SendWhatsAppModel model,
+  );
 }
 
 class HomeRepoImpl implements HomeRepo {
@@ -85,15 +94,17 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, AddBookingPermissionResponseModel>> addBookingPermission(
-    AddBookingPermissionModel model,
-  ) async {
+  Future<Either<Failure, AddBookingPermissionResponseModel>>
+  addBookingPermission(AddBookingPermissionModel model) async {
     return handleDioRequest(
       request: () async {
+        final userName = HiveMethods.getUserName()?.trim() ?? '';
         final response = await apiConsumer.post(
           EndPoints.addbooking,
           body: model.toJson(),
-          headers: {'username': Uri.encodeComponent(HiveMethods.getUserName().toString())},
+          headers: userName.isNotEmpty
+              ? {'username': Uri.encodeComponent(userName)}
+              : null,
         );
         final result = AddBookingPermissionResponseModel.fromJson(response);
 
@@ -181,7 +192,9 @@ class HomeRepoImpl implements HomeRepo {
   // }
 
   @override
-  Future<Either<Failure, List<GetBrandCarsDataModel>>> getBrandCars(String brandId) async {
+  Future<Either<Failure, List<GetBrandCarsDataModel>>> getBrandCars(
+    String brandId,
+  ) async {
     if (brandId.isEmpty || brandId == 'null') {
       return const Right([]);
     }
@@ -227,7 +240,10 @@ class HomeRepoImpl implements HomeRepo {
             final data = e.response?.data;
             final carsData = data is Map ? data['Data'] : null;
             if (carsData != null && carsData != 'null' && carsData != '[]') {
-              if (kDebugMode) print('[fetchAllCars] Got 500 but found valid Data, parsing...');
+              if (kDebugMode)
+                print(
+                  '[fetchAllCars] Got 500 but found valid Data, parsing...',
+                );
               return GetBrandCarsDataModel.listFromResponse(carsData);
             }
           }
@@ -246,7 +262,11 @@ class HomeRepoImpl implements HomeRepo {
         final response = await apiConsumer.post(
           EndPoints.cancelreservedcar,
           body: model.toJson(),
-          headers: {'username': Uri.encodeComponent(HiveMethods.getUserName().toString())},
+          headers: {
+            'username': Uri.encodeComponent(
+              HiveMethods.getUserName().toString(),
+            ),
+          },
         );
         final result = CancelReservedCarResponseModel.fromJson(response);
 
@@ -284,22 +304,32 @@ class HomeRepoImpl implements HomeRepo {
   // }
 
   @override
-  Future<Either<Failure, SendOtpResponseModel>> sendOtp(SendOtpModel model) async {
+  Future<Either<Failure, SendOtpResponseModel>> sendOtp(
+    SendOtpModel model,
+  ) async {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(EndPoints.sendotp, body: model.toJson());
+        final response = await apiConsumer.post(
+          EndPoints.sendotp,
+          body: model.toJson(),
+        );
         return SendOtpResponseModel.fromJson(response);
       },
     );
   }
 
   @override
-  Future<Either<Failure, List<BANKSDATAModel>>> getBanks(String? Searchval) async {
+  Future<Either<Failure, List<BANKSDATAModel>>> getBanks(
+    String? Searchval,
+  ) async {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.get(
           EndPoints.customer,
-          queryParameters: {'Searchval': Searchval, 'TableName': 'sp_BANKS_DATA_search_sel'},
+          queryParameters: {
+            'Searchval': Searchval,
+            'TableName': 'sp_BANKS_DATA_search_sel',
+          },
         );
         return BANKSDATAModel.listFromResponse(response['Data']);
       },
@@ -307,7 +337,9 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, List<FinancingAdModel>>> getFinancingAds({String? code}) async {
+  Future<Either<Failure, List<FinancingAdModel>>> getFinancingAds({
+    String? code,
+  }) async {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.get(
@@ -320,7 +352,9 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, List<FinancingAdModel>>> getNormalFinancing({String? code}) async {
+  Future<Either<Failure, List<FinancingAdModel>>> getNormalFinancing({
+    String? code,
+  }) async {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.get(
@@ -333,7 +367,8 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, AddLoanApplicationResponseModel>> addLoanApplicationWithFiles({
+  Future<Either<Failure, AddLoanApplicationResponseModel>>
+  addLoanApplicationWithFiles({
     required AddLoanApplicationModel model,
     required List<File> files,
   }) async {
@@ -343,7 +378,9 @@ class HomeRepoImpl implements HomeRepo {
 
         final modelJson = model.toJson();
         if (kDebugMode) {
-          print('[addLoanApplicationWithFiles] modelData: ${jsonEncode(modelJson)}');
+          print(
+            '[addLoanApplicationWithFiles] modelData: ${jsonEncode(modelJson)}',
+          );
         }
         formData.fields.add(MapEntry('modelData', jsonEncode(modelJson)));
 
@@ -356,7 +393,9 @@ class HomeRepoImpl implements HomeRepo {
             final ext = fileName.split('.').last.toLowerCase();
             final contentType = ext == 'pdf'
                 ? DioMediaType('application', 'pdf')
-                : (ext == 'png' ? DioMediaType('image', 'png') : DioMediaType('image', 'jpeg'));
+                : (ext == 'png'
+                      ? DioMediaType('image', 'png')
+                      : DioMediaType('image', 'jpeg'));
 
             formData.files.add(
               MapEntry(
@@ -373,14 +412,20 @@ class HomeRepoImpl implements HomeRepo {
         }
 
         if (kDebugMode) {
-          print('[addLoanApplicationWithFiles] Total files attached: $fileIndex');
+          print(
+            '[addLoanApplicationWithFiles] Total files attached: $fileIndex',
+          );
         }
 
         final response = await apiConsumer.post(
           EndPoints.addLoanApplicationsWithFiles,
           body: formData,
           isFormData: true,
-          headers: {'username': Uri.encodeComponent(HiveMethods.getUserName().toString())},
+          headers: {
+            'username': Uri.encodeComponent(
+              HiveMethods.getUserName().toString(),
+            ),
+          },
         );
 
         final result = AddLoanApplicationResponseModel.fromJson(response);
@@ -433,13 +478,16 @@ class HomeRepoImpl implements HomeRepo {
     if (tokens.isEmpty) return;
 
     final String userName = HiveMethods.getname() ?? '';
-    final String userPhone = HiveMethods.getphone() ?? HiveMethods.getSavedMobile();
+    final String userPhone =
+        HiveMethods.getphone() ?? HiveMethods.getSavedMobile();
     final String userInfo = [
       if (userName.isNotEmpty) 'اسم العميل: $userName',
       if (userPhone.isNotEmpty) 'الجوال: $userPhone',
     ].join(' | ');
 
-    final String appText = applicationId.isNotEmpty ? ' | رقم الطلب: $applicationId' : '';
+    final String appText = applicationId.isNotEmpty
+        ? ' | رقم الطلب: $applicationId'
+        : '';
     final String bodyForOthers = userInfo.isNotEmpty
         ? '$userInfo$appText'
         : 'تم تقديم طلب تمويل جديد لسيارة ($carDetails)$appText';
@@ -450,7 +498,8 @@ class HomeRepoImpl implements HomeRepo {
       body: {
         'deviceToken': [tokens[0]],
         'title': 'طلب تمويل سيارة',
-        'body': 'تم تقديم طلب التمويل لسيارة ($carDetails) بنجاح وسيتم التواصل معكم قريباً.',
+        'body':
+            'تم تقديم طلب التمويل لسيارة ($carDetails) بنجاح وسيتم التواصل معكم قريباً.',
       },
     );
 
@@ -468,9 +517,8 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, List<CustomerLoanApplicationModel>>> getCustLoanApplications(
-    String code,
-  ) async {
+  Future<Either<Failure, List<CustomerLoanApplicationModel>>>
+  getCustLoanApplications(String code) async {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.get(
@@ -493,7 +541,11 @@ class HomeRepoImpl implements HomeRepo {
 
         if (rawData is List) {
           return rawData
-              .map((e) => CustomerLoanApplicationModel.fromJson(Map<String, dynamic>.from(e)))
+              .map(
+                (e) => CustomerLoanApplicationModel.fromJson(
+                  Map<String, dynamic>.from(e),
+                ),
+              )
               .toList();
         }
 
@@ -511,7 +563,10 @@ class HomeRepoImpl implements HomeRepo {
       request: () async {
         final response = await apiConsumer.get(
           EndPoints.getNotificationsData,
-          queryParameters: {'CurrentUserId': currentUserId, 'UserType': userType},
+          queryParameters: {
+            'CurrentUserId': currentUserId,
+            'UserType': userType,
+          },
         );
 
         dynamic rawData = response;
@@ -529,7 +584,9 @@ class HomeRepoImpl implements HomeRepo {
 
         if (rawData is List) {
           return rawData
-              .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)))
+              .map(
+                (e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)),
+              )
               .toList();
         }
 
@@ -605,10 +662,15 @@ class HomeRepoImpl implements HomeRepo {
   }
 
   @override
-  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(SendWhatsAppModel model) async {
+  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(
+    SendWhatsAppModel model,
+  ) async {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(EndPoints.sendWhatsApp, body: model.toJson());
+        final response = await apiConsumer.post(
+          EndPoints.sendWhatsApp,
+          body: model.toJson(),
+        );
         return SendWhatsAppResponseModel.fromJson(response);
       },
     );

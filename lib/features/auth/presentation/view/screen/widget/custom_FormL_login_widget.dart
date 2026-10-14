@@ -34,7 +34,7 @@ class CustomFormLoginWidget extends StatelessWidget {
         children: [
           Gap(10.h),
           Center(
-            child: Image.asset(AppImages.assetsImagesLoge, width: 100.w, height: 200.h),
+            child: Image.asset(AppImages.assetsImagesLogeBlack, width: 100.w, height: 200.h),
           ),
           FadeInLeft(
             duration: const Duration(milliseconds: 1000),

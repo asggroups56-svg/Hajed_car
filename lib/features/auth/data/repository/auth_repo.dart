@@ -9,15 +9,25 @@ import 'package:car/features/auth/data/model/register_request_model.dart';
 import 'package:car/features/auth/data/model/register_response_model.dart';
 import 'package:car/features/auth/data/model/change_password_request_model.dart';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../core/error/failures.dart' hide handleDioRequest;
 
 abstract interface class AuthRepo {
   Future<Either<Failure, LoginResponse>> login({required LoginRequest request});
-  Future<Either<Failure, LoginResponse>> refreshToken({required RefreshTokenRequest request});
-  Future<Either<Failure, RegisterResponseModel>> register({required RegisterRequestModel request});
-  Future<Either<Failure, bool>> editFCM({required String userId, required String fcmToken});
-  Future<Either<Failure, bool>> changePassword({required ChangePasswordRequestModel request});
+  Future<Either<Failure, LoginResponse>> refreshToken({
+    required RefreshTokenRequest request,
+  });
+  Future<Either<Failure, RegisterResponseModel>> register({
+    required RegisterRequestModel request,
+  });
+  Future<Either<Failure, bool>> editFCM({
+    required String userId,
+    required String fcmToken,
+  });
+  Future<Either<Failure, bool>> changePassword({
+    required ChangePasswordRequestModel request,
+  });
   Future<Either<Failure, bool>> deleteAccount();
   Future<void> logout();
 }
@@ -39,7 +49,16 @@ class AuthRepoImpl implements AuthRepo {
   @override
   Future<void> logout() async {
     try {
-      await apiConsumer.post(EndPoints.logout);
+      // A 401 here means the server session is already invalid.  Local logout
+      // must still succeed, so avoid surfacing it as an unhandled Dio error.
+      await apiConsumer.post(
+        EndPoints.logout,
+        extra: const {'allowUnauthorized': true},
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode != 401) {
+        print('Logout API error: $e');
+      }
     } catch (e) {
       // Log the error but continue to clear local token so user is always logged out locally
       print('Logout API error: $e');
@@ -48,45 +67,60 @@ class AuthRepoImpl implements AuthRepo {
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> login({required LoginRequest request}) {
+  Future<Either<Failure, LoginResponse>> login({
+    required LoginRequest request,
+  }) {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(EndPoints.login, body: request.toJson());
+        final response = await apiConsumer.post(
+          EndPoints.login,
+          body: request.toJson(),
+        );
         return LoginResponse.fromJson(response);
       },
     );
   }
 
   @override
-  Future<Either<Failure, LoginResponse>> refreshToken({required RefreshTokenRequest request}) {
+  Future<Either<Failure, LoginResponse>> refreshToken({
+    required RefreshTokenRequest request,
+  }) {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(EndPoints.refreshToken, body: request.toJson());
+        final response = await apiConsumer.post(
+          EndPoints.refreshToken,
+          body: request.toJson(),
+        );
         return LoginResponse.fromJson(response);
       },
     );
   }
 
   @override
-  Future<Either<Failure, RegisterResponseModel>> register({required RegisterRequestModel request}) {
+  Future<Either<Failure, RegisterResponseModel>> register({
+    required RegisterRequestModel request,
+  }) {
     return handleDioRequest(
       request: () async {
-        final response = await apiConsumer.post(EndPoints.register, body: request.toJson());
+        final response = await apiConsumer.post(
+          EndPoints.register,
+          body: request.toJson(),
+        );
         return RegisterResponseModel.fromJson(response);
       },
     );
   }
 
   @override
-  Future<Either<Failure, bool>> editFCM({required String userId, required String fcmToken}) {
+  Future<Either<Failure, bool>> editFCM({
+    required String userId,
+    required String fcmToken,
+  }) {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.put(
           EndPoints.editFCM,
-          body: {
-            "userid": userId,
-            "FCM": fcmToken,
-          },
+          body: {'userid': userId, 'FCM': fcmToken},
         );
         return response['success'] ?? false;
       },
@@ -94,7 +128,9 @@ class AuthRepoImpl implements AuthRepo {
   }
 
   @override
-  Future<Either<Failure, bool>> changePassword({required ChangePasswordRequestModel request}) {
+  Future<Either<Failure, bool>> changePassword({
+    required ChangePasswordRequestModel request,
+  }) {
     return handleDioRequest(
       request: () async {
         final response = await apiConsumer.post(

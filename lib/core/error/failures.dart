@@ -11,7 +11,9 @@ import '../network/status_code.dart';
 /// Base class for all failures, holds an error message.
 abstract class Failure {
   final String errMessage;
-  const Failure(this.errMessage);
+  final int? statusCode;
+
+  const Failure(this.errMessage, {this.statusCode});
 }
 
 String? _extractMsgFromMap(dynamic data) {
@@ -59,38 +61,39 @@ String? _extractMsgFromMap(dynamic data) {
 
 /// Represents a failure coming from Dio / the server.
 class ServerFailure extends Failure {
-  ServerFailure(super.errMessage);
+  ServerFailure(super.errMessage, {super.statusCode});
 
   /// Map Dio exceptions to our ServerFailure, extracting server‑side messages when present.
   factory ServerFailure.fromDioError(DioException dioError) {
     try {
       final raw = dioError.response?.data;
+      final statusCode = dioError.response?.statusCode;
       final serverMsg = _extractMsgFromMap(raw);
       if (serverMsg != null && serverMsg.isNotEmpty) {
-        return ServerFailure(serverMsg);
+        return ServerFailure(serverMsg, statusCode: statusCode);
       }
 
       // Otherwise fall back based on DioException type
       switch (dioError.type) {
         case DioExceptionType.connectionTimeout:
-          return ServerFailure('Connection timeout with API server');
+          return ServerFailure('Connection timeout with API server', statusCode: statusCode);
         case DioExceptionType.sendTimeout:
-          return ServerFailure('Send timeout with API server');
+          return ServerFailure('Send timeout with API server', statusCode: statusCode);
         case DioExceptionType.receiveTimeout:
-          return ServerFailure('Receive timeout with API server');
+          return ServerFailure('Receive timeout with API server', statusCode: statusCode);
         case DioExceptionType.cancel:
-          return ServerFailure('Request to API server was cancelled');
+          return ServerFailure('Request to API server was cancelled', statusCode: statusCode);
         case DioExceptionType.connectionError:
-          return ServerFailure('No internet connection');
+          return ServerFailure('No internet connection', statusCode: statusCode);
         case DioExceptionType.unknown:
-          return ServerFailure('Unexpected error, please try again!');
+          return ServerFailure('Unexpected error, please try again!', statusCode: statusCode);
         case DioExceptionType.badResponse:
-          return ServerFailure.fromResponse(
-            dioError.response?.statusCode,
-            raw,
-          );
+          return ServerFailure.fromResponse(dioError.response?.statusCode, raw);
         default:
-          return ServerFailure('Oops! There was an error, please try again.');
+          return ServerFailure(
+            'Oops! There was an error, please try again.',
+            statusCode: statusCode,
+          );
       }
     } catch (e, stack) {
       log('ServerFailure.fromDioError error: $e\n$stack');
@@ -103,20 +106,20 @@ class ServerFailure extends Failure {
     try {
       final serverMsg = _extractMsgFromMap(response);
       if (serverMsg != null && serverMsg.isNotEmpty) {
-        return ServerFailure(serverMsg);
+        return ServerFailure(serverMsg, statusCode: statusCode);
       }
 
       switch (statusCode) {
         case StatusCode.badRequest:
         case StatusCode.unauthorized:
         case StatusCode.forbidden:
-          return ServerFailure('Invalid request, please check your input');
+          return ServerFailure('Invalid request, please check your input', statusCode: statusCode);
         case StatusCode.notFound:
-          return ServerFailure('Requested resource not found');
+          return ServerFailure('Requested resource not found', statusCode: statusCode);
         case StatusCode.internalServerError:
-          return ServerFailure('Internal server error, please try later');
+          return ServerFailure('Internal server error, please try later', statusCode: statusCode);
         default:
-          return ServerFailure('Request failed with status $statusCode');
+          return ServerFailure('Request failed with status $statusCode', statusCode: statusCode);
       }
     } catch (e) {
       return ServerFailure('Failed to parse server response');
@@ -125,9 +128,7 @@ class ServerFailure extends Failure {
 }
 
 /// Executes any Dio request and returns either the parsed data or a Failure.
-Future<Either<Failure, T>> handleDioRequest<T>({
-  required Future<T> Function() request,
-}) async {
+Future<Either<Failure, T>> handleDioRequest<T>({required Future<T> Function() request}) async {
   try {
     final response = await request();
     return Right(response);
@@ -161,4 +162,3 @@ String? _extractServerMessage(dynamic rawData) {
   } catch (_) {}
   return null;
 }
-
