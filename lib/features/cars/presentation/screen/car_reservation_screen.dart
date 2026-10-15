@@ -69,6 +69,7 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
   String? _expectedOtp;
   bool _isOtpSheetOpen = false;
   RepresentativeModel? _selectedRepresentative;
+  String? _completedPaymentMethod;
   @override
   void initState() {
     super.initState();
@@ -201,6 +202,7 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
         builder: (_) => ReservationSuccessScreen(
           car: widget.car,
           paymentMethod: _selectedMethod!,
+          completedPaymentMethod: _completedPaymentMethod,
         ),
       ),
     );
@@ -260,7 +262,11 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     });
   }
 
-  void _handlePaymentResult(dynamic result, {required bool isApplePay}) {
+  void _handlePaymentResult(
+    dynamic result, {
+    required bool isApplePay,
+    required String paymentMethod,
+  }) {
     if (result is PaymentResponse) {
       if (result.status == PaymentStatus.paid ||
           result.status == PaymentStatus.captured ||
@@ -279,6 +285,7 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
         //     ? '$translated\nالحالة: $statusName | الرسالة: ${rawMsg ?? "—"}| رقم الطلب: ${result.id}'
         //     : '$translated\nStatus: $statusName | Msg: ${rawMsg ?? "—"}';
         // CommonMethods.showToast(message: displayMsg, type: ToastType.success, seconds: 5);
+        _completedPaymentMethod = paymentMethod;
         _submitPayment(paymentId: result.id);
       } else {
         final isArabic = context.locale.languageCode == 'ar';

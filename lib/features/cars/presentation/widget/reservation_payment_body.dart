@@ -19,7 +19,12 @@ class ReservationPaymentBody extends StatelessWidget {
   final double totalPrice;
   final double depositAmount;
   final bool isLoading;
-  final void Function(dynamic result, {required bool isApplePay}) onPaymentResult;
+  final void Function(
+    dynamic result, {
+    required bool isApplePay,
+    required String paymentMethod,
+  })
+  onPaymentResult;
 
   const ReservationPaymentBody({
     super.key,
@@ -82,7 +87,12 @@ enum _PaymentTab { creditCard, stcPay }
 class _PaymentMethodSelector extends StatefulWidget {
   final PaymentConfig config;
   final bool isArabic;
-  final void Function(dynamic result, {required bool isApplePay}) onPaymentResult;
+  final void Function(
+    dynamic result, {
+    required bool isApplePay,
+    required String paymentMethod,
+  })
+  onPaymentResult;
 
   const _PaymentMethodSelector({
     required this.config,
@@ -126,7 +136,9 @@ class _PaymentMethodSelectorState extends State<_PaymentMethodSelector> {
           decoration: BoxDecoration(
             color: AppColor.cardColor(context),
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.5)),
+            border: Border.all(
+              color: AppColor.borderColor(context).withValues(alpha: 0.5),
+            ),
           ),
           padding: EdgeInsets.all(6.w),
           child: Row(
@@ -138,7 +150,10 @@ class _PaymentMethodSelectorState extends State<_PaymentMethodSelector> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeInOut,
-                    padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 4.w),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 10.h,
+                      horizontal: 4.w,
+                    ),
                     decoration: BoxDecoration(
                       color: isActive ? item.color : Colors.transparent,
                       borderRadius: BorderRadius.circular(12.r),
@@ -183,7 +198,9 @@ class _PaymentMethodSelectorState extends State<_PaymentMethodSelector> {
                           item.label,
                           style: TextStyle(
                             fontSize: 9.sp,
-                            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                            fontWeight: isActive
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                             color: isActive
                                 ? AppColor.whiteColor(context)
                                 : AppColor.greyColor(context),
@@ -248,7 +265,12 @@ class _TabItem {
   final String label;
   final IconData icon;
   final Color color;
-  const _TabItem({required this.tab, required this.label, required this.icon, required this.color});
+  const _TabItem({
+    required this.tab,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
 }
 
 /// Custom STC Pay form that works inline (no Scaffold).
@@ -256,9 +278,18 @@ class _TabItem {
 class _STCPayForm extends StatefulWidget {
   final PaymentConfig config;
   final bool isArabic;
-  final void Function(dynamic result, {required bool isApplePay}) onPaymentResult;
+  final void Function(
+    dynamic result, {
+    required bool isApplePay,
+    required String paymentMethod,
+  })
+  onPaymentResult;
 
-  const _STCPayForm({required this.config, required this.isArabic, required this.onPaymentResult});
+  const _STCPayForm({
+    required this.config,
+    required this.isArabic,
+    required this.onPaymentResult,
+  });
 
   @override
   State<_STCPayForm> createState() => _STCPayFormState();
@@ -304,7 +335,10 @@ class _STCPayFormState extends State<_STCPayForm> {
       digits = '966' + digits;
     }
 
-    final request = PaymentRequest(widget.config, StcRequestSource(mobile: digits));
+    final request = PaymentRequest(
+      widget.config,
+      StcRequestSource(mobile: digits),
+    );
 
     try {
       final result = await Moyasar.pay(
@@ -315,8 +349,13 @@ class _STCPayFormState extends State<_STCPayForm> {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
-      if (result is! PaymentResponse || result.status != PaymentStatus.initiated) {
-        widget.onPaymentResult(result, isApplePay: false);
+      if (result is! PaymentResponse ||
+          result.status != PaymentStatus.initiated) {
+        widget.onPaymentResult(
+          result,
+          isApplePay: false,
+          paymentMethod: 'stc_pay',
+        );
         return;
       }
 
@@ -327,11 +366,17 @@ class _STCPayFormState extends State<_STCPayForm> {
           MaterialPageRoute(
             builder: (_) => Scaffold(
               appBar: AppBar(
-                title: Text(widget.isArabic ? 'رمز التحقق المرسل اليك' : 'STC Pay - OTP'),
+                title: Text(
+                  widget.isArabic ? 'رمز التحقق المرسل اليك' : 'STC Pay - OTP',
+                ),
               ),
               body: OtpComponent(
                 transactionUrl: txUrl,
-                onPaymentResult: (r) => widget.onPaymentResult(r, isApplePay: false),
+                onPaymentResult: (r) => widget.onPaymentResult(
+                  r,
+                  isApplePay: false,
+                  paymentMethod: 'stc_pay',
+                ),
               ),
             ),
           ),
@@ -340,7 +385,11 @@ class _STCPayFormState extends State<_STCPayForm> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        widget.onPaymentResult(ApiError(e.toString()), isApplePay: false);
+        widget.onPaymentResult(
+          ApiError(e.toString()),
+          isApplePay: false,
+          paymentMethod: 'stc_pay',
+        );
       }
     }
   }
@@ -353,7 +402,9 @@ class _STCPayFormState extends State<_STCPayForm> {
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.5)),
+        border: Border.all(
+          color: AppColor.borderColor(context).withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -368,8 +419,11 @@ class _STCPayFormState extends State<_STCPayForm> {
                   'assets/images/stc_pay.jpeg',
                   width: 38.w,
                   height: 24.h,
-                  errorBuilder: (c, e, s) =>
-                      Icon(Icons.account_balance_wallet_rounded, color: _purple, size: 22.sp),
+                  errorBuilder: (c, e, s) => Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: _purple,
+                    size: 22.sp,
+                  ),
                 ),
               ),
               Gap(10.w),
@@ -378,17 +432,20 @@ class _STCPayFormState extends State<_STCPayForm> {
                 children: [
                   Text(
                     'STC Pay',
-                    style: AppTextStyle.titleMedium(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w900, color: _purple, fontSize: 15.sp),
+                    style: AppTextStyle.titleMedium(context).copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: _purple,
+                      fontSize: 15.sp,
+                    ),
                   ),
                   Text(
                     isAr
                         ? 'أدخل رقم الجوال المسجّل في STC Pay'
                         : 'Enter your STC Pay mobile number',
-                    style: AppTextStyle.bodySmall(
-                      context,
-                    ).copyWith(color: AppColor.greyColor(context), fontSize: 10.sp),
+                    style: AppTextStyle.bodySmall(context).copyWith(
+                      color: AppColor.greyColor(context),
+                      fontSize: 10.sp,
+                    ),
                   ),
                 ],
               ),
@@ -401,21 +458,35 @@ class _STCPayFormState extends State<_STCPayForm> {
             radius: 12.r,
             controller: _phoneController,
             keyboardType: TextInputType.phone,
-            textStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+            textStyle: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+            ),
             hintText: '05X XXX XXXX',
             title: isAr ? 'رقم الجوال' : 'Mobile Number',
             maxLength: 10,
             validator: (_) {
               if (_phoneController.text.isEmpty) {
-                return isAr ? 'يرجى ادخال رقم الجوال' : 'Please enter your mobile number';
+                return isAr
+                    ? 'يرجى ادخال رقم الجوال'
+                    : 'Please enter your mobile number';
               } else if (!_isValid) {
-                return isAr ? 'يرجى ادخال رقم جوال صحيح' : 'Please enter a valid mobile number';
+                return isAr
+                    ? 'يرجى ادخال رقم جوال صحيح'
+                    : 'Please enter a valid mobile number';
               } else if (_phoneController.text.length < 10) {
-                return isAr ? 'رقم الجوال يجب أن يكون 10 أرقام' : 'Phone number must be 10 digits';
+                return isAr
+                    ? 'رقم الجوال يجب أن يكون 10 أرقام'
+                    : 'Phone number must be 10 digits';
               } else if (!_phoneController.text.startsWith('05')) {
-                return isAr ? 'رقم الجوال يجب أن يبدأ بـ 05' : 'Phone number must start with 05';
+                return isAr
+                    ? 'رقم الجوال يجب أن يبدأ بـ 05'
+                    : 'Phone number must start with 05';
               } else if (!RegExp(r'^[0-9]+$').hasMatch(_phoneController.text)) {
-                return isAr ? 'يرجى ادخال رقم جوال صحيح' : 'Please enter a valid mobile number';
+                return isAr
+                    ? 'يرجى ادخال رقم جوال صحيح'
+                    : 'Please enter a valid mobile number';
               }
               return null;
             },
@@ -452,7 +523,9 @@ class _STCPayFormState extends State<_STCPayForm> {
                         Text(
                           isAr ? 'ادفع  ' : 'Pay  ',
                           style: AppTextStyle.bodyMedium(context).copyWith(
-                            color: _isValid ? AppColor.whiteColor(context) : _purple,
+                            color: _isValid
+                                ? AppColor.whiteColor(context)
+                                : _purple,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -460,7 +533,9 @@ class _STCPayFormState extends State<_STCPayForm> {
                           text:
                               '${(widget.config.amount / 100).toStringAsFixed(2)} ${isAr ? 'ر.س' : 'SAR'}',
                           textStyle: AppTextStyle.bodyMedium(context).copyWith(
-                            color: _isValid ? AppColor.whiteColor(context) : _purple,
+                            color: _isValid
+                                ? AppColor.whiteColor(context)
+                                : _purple,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -479,8 +554,14 @@ class _PaymentStepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _StepTab(label: AppLocaleKey.payment.tr(), color: const Color(0xFF0D47A1)),
-        _StepTab(label: AppLocaleKey.addInfo.tr(), color: const Color(0xFF2E7D32)),
+        _StepTab(
+          label: AppLocaleKey.payment.tr(),
+          color: const Color(0xFF0D47A1),
+        ),
+        _StepTab(
+          label: AppLocaleKey.addInfo.tr(),
+          color: const Color(0xFF2E7D32),
+        ),
       ],
     );
   }
@@ -498,12 +579,19 @@ class _StepTab extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16.sp),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16.sp,
+            ),
           ),
           Gap(8.h),
           Container(
             height: 3.h,
-            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2.r)),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
           ),
         ],
       ),
@@ -523,7 +611,9 @@ class _CarSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.8)),
+        border: Border.all(
+          color: AppColor.borderColor(context).withValues(alpha: 0.8),
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColor.blackColor(context).withValues(alpha: 0.03),
@@ -537,13 +627,19 @@ class _CarSummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.keyboard_arrow_down_rounded, color: const Color(0xFF0D47A1), size: 24.sp),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: const Color(0xFF0D47A1),
+                size: 24.sp,
+              ),
               Gap(8.w),
               ValueWithCurrencyIcon(
-                text: '${totalPrice.toStringAsFixed(2)} ${AppLocaleKey.sar.tr()}',
-                textStyle: AppTextStyle.bodyMedium(
-                  context,
-                ).copyWith(color: const Color(0xFF0D47A1), fontWeight: FontWeight.w900),
+                text:
+                    '${totalPrice.toStringAsFixed(2)} ${AppLocaleKey.sar.tr()}',
+                textStyle: AppTextStyle.bodyMedium(context).copyWith(
+                  color: const Color(0xFF0D47A1),
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ],
           ),
@@ -581,7 +677,11 @@ class _CarSummaryCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColor.scaffoldColor(context),
-                    border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: AppColor.borderColor(
+                        context,
+                      ).withValues(alpha: 0.5),
+                    ),
                   ),
                   padding: EdgeInsets.all(4.w),
                   child: ClipRRect(
@@ -654,15 +754,20 @@ class _DepositBanner extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock_outline_rounded, color: AppColor.whiteColor(context), size: 20.sp),
+          Icon(
+            Icons.lock_outline_rounded,
+            color: AppColor.whiteColor(context),
+            size: 20.sp,
+          ),
           Gap(10.w),
           ValueWithCurrencyIcon(
             text: isArabic
                 ? 'مبلغ العربون: ${depositAmount.toInt()} ${AppLocaleKey.sar.tr()}'
                 : 'Deposit Amount: ${depositAmount.toInt()} SAR',
-            textStyle: AppTextStyle.bodyMedium(
-              context,
-            ).copyWith(color: AppColor.whiteColor(context), fontWeight: FontWeight.bold),
+            textStyle: AppTextStyle.bodyMedium(context).copyWith(
+              color: AppColor.whiteColor(context),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -706,14 +811,20 @@ class _GuaranteeBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.verified_user_rounded, color: const Color(0xFF2E7D32), size: 24.sp),
+          Icon(
+            Icons.verified_user_rounded,
+            color: const Color(0xFF2E7D32),
+            size: 24.sp,
+          ),
           Gap(12.w),
           Expanded(
             child: Text(
               AppLocaleKey.about.tr(),
-              style: AppTextStyle.bodySmall(
-                context,
-              ).copyWith(color: const Color(0xFF2E7D32), fontWeight: FontWeight.w600, height: 1.4),
+              style: AppTextStyle.bodySmall(context).copyWith(
+                color: const Color(0xFF2E7D32),
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -721,4 +832,3 @@ class _GuaranteeBanner extends StatelessWidget {
     );
   }
 }
-

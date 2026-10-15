@@ -15,8 +15,14 @@ import 'package:gap/gap.dart';
 class ReservationSuccessScreen extends StatelessWidget {
   final GetBrandCarsDataModel car;
   final String paymentMethod;
+  final String? completedPaymentMethod;
 
-  const ReservationSuccessScreen({super.key, required this.car, required this.paymentMethod});
+  const ReservationSuccessScreen({
+    super.key,
+    required this.car,
+    required this.paymentMethod,
+    this.completedPaymentMethod,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,17 +42,10 @@ class ReservationSuccessScreen extends StatelessWidget {
       }
     });
 
-    final bool isFinancingFlow = paymentMethod == 'tamara' || paymentMethod == 'bank';
+    final bool isFinancingFlow =
+        paymentMethod == 'tamara' || paymentMethod == 'bank';
 
-    final String methodLabel = paymentMethod == 'tamara'
-        ? (context.locale.languageCode == 'ar' ? 'تمارا' : 'Tamara')
-        : paymentMethod == 'bank'
-        ? (context.locale.languageCode == 'ar'
-              ? 'بطاقة الراجحي / الأهلي'
-              : 'Al Rajhi / Al Ahli Card')
-        : paymentMethod == 'moyasar'
-        ? AppLocaleKey.payment_types.tr()
-        : (context.locale.languageCode == 'ar' ? 'الكاش' : 'Cash');
+    final String methodLabel = _paymentMethodLabel(context);
 
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
@@ -61,7 +60,11 @@ class ReservationSuccessScreen extends StatelessWidget {
             },
             child: Text(
               AppLocaleKey.cancel.tr(),
-              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 13.sp),
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+                fontSize: 13.sp,
+              ),
             ),
           ),
         ],
@@ -79,7 +82,11 @@ class ReservationSuccessScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: const Color(0xff00c853).withValues(alpha: 0.1),
               ),
-              child: Icon(Icons.check_circle_rounded, color: const Color(0xff00c853), size: 64.sp),
+              child: Icon(
+                Icons.check_circle_rounded,
+                color: const Color(0xff00c853),
+                size: 64.sp,
+              ),
             ),
             Gap(32.h),
             Text(
@@ -140,7 +147,11 @@ class ReservationSuccessScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.phone, color: const Color(0xff25D366), size: 28.sp),
+                  Icon(
+                    Icons.phone,
+                    color: const Color(0xff25D366),
+                    size: 28.sp,
+                  ),
                   Gap(16.w),
                   Expanded(
                     child: Text(
@@ -175,9 +186,10 @@ class ReservationSuccessScreen extends StatelessWidget {
               onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
               child: Text(
                 AppLocaleKey.browse_other_cars.tr(),
-                style: AppTextStyle.bodySmall(
-                  context,
-                ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.bold),
+                style: AppTextStyle.bodySmall(context).copyWith(
+                  color: AppColor.primaryColor(context),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             Gap(40.h),
@@ -185,5 +197,32 @@ class ReservationSuccessScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _paymentMethodLabel(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    switch (completedPaymentMethod) {
+      case 'mada':
+        return isArabic ? 'مدى' : 'Mada';
+      case 'visa':
+        return 'Visa';
+      case 'mastercard':
+        return 'Mastercard';
+      case 'amex':
+        return 'American Express';
+      case 'stc_pay':
+        return 'STC Pay';
+    }
+
+    if (paymentMethod == 'tamara') {
+      return isArabic ? 'تمارا' : 'Tamara';
+    }
+    if (paymentMethod == 'bank') {
+      return isArabic ? 'بطاقة الراجحي / الأهلي' : 'Al Rajhi / Al Ahli Card';
+    }
+    if (paymentMethod == 'moyasar') {
+      return isArabic ? 'بطاقة بنكية' : 'Bank Card';
+    }
+    return isArabic ? 'الكاش' : 'Cash';
   }
 }

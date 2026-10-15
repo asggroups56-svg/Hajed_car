@@ -148,8 +148,10 @@ class CreatOfferModel extends Equatable {
 }
 
 class OfferItemModel extends Equatable {
+  final String itemCode;
   final String itemName;
   final int colorCode;
+  final String chassisNo;
   final String GROUP_CODE;
   final int makeYear;
   final int qnty;
@@ -159,10 +161,11 @@ class OfferItemModel extends Equatable {
   final num paintingsVal;
 
   const OfferItemModel({
-    required this.GROUP_CODE,
+    required this.itemCode,
     required this.itemName,
     required this.colorCode,
-
+    required this.chassisNo,
+    required this.GROUP_CODE,
     required this.makeYear,
     required this.qnty,
     required this.price,
@@ -173,24 +176,26 @@ class OfferItemModel extends Equatable {
 
   factory OfferItemModel.fromJson(Map<String, dynamic> json) {
     return OfferItemModel(
-      itemName: json['ITEM_NAME'] ?? '',
-      GROUP_CODE: json['GROUP_CODE'] ?? '',
-      colorCode: json['COLOR_CODE'] ?? 0,
-
-      makeYear: json['MAKE_YEAR'] ?? 0,
-      qnty: json['QNTY'] ?? 0,
-      price: json['PRICE'] ?? 0,
-      note: json['NOTE'] ?? '',
-      taxVal: json['TAX_VAL'] ?? 0,
-      paintingsVal: json['PAINTINGS_VAL'] ?? 0,
+      itemCode: json['ITEM_CODE']?.toString() ?? '',
+      itemName: json['ITEM_NAME']?.toString() ?? '',
+      colorCode: int.tryParse(json['COLOR_CODE']?.toString() ?? '') ?? 0,
+      chassisNo: json['CHASSIS_NO']?.toString() ?? '',
+      GROUP_CODE: json['GROUP_CODE']?.toString() ?? '',
+      makeYear: int.tryParse(json['MAKE_YEAR']?.toString() ?? '') ?? 0,
+      qnty: int.tryParse(json['QNTY']?.toString() ?? '') ?? 0,
+      price: num.tryParse(json['PRICE']?.toString() ?? '') ?? 0,
+      note: json['NOTE']?.toString() ?? '',
+      taxVal: num.tryParse(json['TAX_VAL']?.toString() ?? '') ?? 0,
+      paintingsVal: num.tryParse(json['PAINTINGS_VAL']?.toString() ?? '') ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'ITEM_CODE': itemCode,
       'ITEM_NAME': itemName,
       'COLOR_CODE': colorCode,
-
+      'CHASSIS_NO': chassisNo,
       'MAKE_YEAR': makeYear,
       'QNTY': qnty,
       'PRICE': price,
@@ -203,14 +208,16 @@ class OfferItemModel extends Equatable {
 
   @override
   List<Object?> get props => [
+    itemCode,
     itemName,
     colorCode,
+    chassisNo,
+    GROUP_CODE,
     makeYear,
     qnty,
     price,
     note,
     taxVal,
     paintingsVal,
-    GROUP_CODE,
   ];
 }

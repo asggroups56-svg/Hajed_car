@@ -45,11 +45,17 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     return BlocListener<HomeCubit, HomeState>(
       listener: (context, state) {
         final status = state.addBookingPermissionResponseModel;
-        if (status.isSuccess) {
+        if (status.isSuccess && status.data?.success == true) {
           setState(() => _isLoading = false);
           final msg = status.data?.msg ?? (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
           CommonMethods.showToast(message: msg, type: ToastType.success);
           Navigator.pop(context);
+        } else if (status.isSuccess && (status.data == null || status.data?.success == false)) {
+          setState(() => _isLoading = false);
+          CommonMethods.showToast(
+            message: status.data?.msg ?? (isArabic ? 'فشل الحجز، يرجى المحاولة مجدداً' : 'Reservation failed. Please try again.'),
+            type: ToastType.error,
+          );
         } else if (status.isFailure) {
           setState(() => _isLoading = false);
           CommonMethods.showToast(

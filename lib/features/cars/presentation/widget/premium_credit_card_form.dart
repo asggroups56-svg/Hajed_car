@@ -16,7 +16,12 @@ import 'package:moyasar/src/widgets/three_d_s_webview.dart';
 
 class PremiumCreditCardForm extends StatefulWidget {
   final PaymentConfig config;
-  final Function(dynamic result, {required bool isApplePay}) onPaymentResult;
+  final Function(
+    dynamic result, {
+    required bool isApplePay,
+    required String paymentMethod,
+  })
+  onPaymentResult;
   final bool isArabic;
 
   const PremiumCreditCardForm({
@@ -46,10 +51,27 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
 
   late Localization _locale;
 
+  String get _paymentMethod {
+    switch (_detectedNetwork.name.toLowerCase()) {
+      case 'mada':
+        return 'mada';
+      case 'visa':
+        return 'visa';
+      case 'mastercard':
+        return 'mastercard';
+      case 'amex':
+        return 'amex';
+      default:
+        return 'card';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _locale = widget.isArabic ? const Localization.ar() : const Localization.en();
+    _locale = widget.isArabic
+        ? const Localization.ar()
+        : const Localization.en();
     _cvcFocusNode.addListener(() {
       setState(() {
         _showBack = _cvcFocusNode.hasFocus;
@@ -63,7 +85,9 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
         setState(() {
           _detectedNetwork = detected;
           if (detected != CardNetwork.unknown) {
-            final supported = widget.config.supportedNetworks.map((e) => e.name).toSet();
+            final supported = widget.config.supportedNetworks
+                .map((e) => e.name)
+                .toSet();
             if (!supported.contains(detected.name)) {
               _unsupportedNetwork = true;
             } else {
@@ -134,7 +158,11 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        widget.onPaymentResult(ApiError(e.toString()), isApplePay: false);
+        widget.onPaymentResult(
+          ApiError(e.toString()),
+          isApplePay: false,
+          paymentMethod: _paymentMethod,
+        );
       }
       return;
     }
@@ -142,12 +170,18 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    if (result is! PaymentResponse || result.status != PaymentStatus.initiated) {
-      widget.onPaymentResult(result, isApplePay: false);
+    if (result is! PaymentResponse ||
+        result.status != PaymentStatus.initiated) {
+      widget.onPaymentResult(
+        result,
+        isApplePay: false,
+        paymentMethod: _paymentMethod,
+      );
       return;
     }
 
-    final String transactionUrl = (result.source as CardPaymentResponseSource).transactionUrl ?? '';
+    final String transactionUrl =
+        (result.source as CardPaymentResponseSource).transactionUrl ?? '';
 
     if (transactionUrl.isNotEmpty && mounted) {
       Navigator.push(
@@ -169,7 +203,11 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
                 (result.source as CardPaymentResponseSource).message = message;
               }
               Navigator.pop(context);
-              widget.onPaymentResult(result, isApplePay: false);
+              widget.onPaymentResult(
+                result,
+                isApplePay: false,
+                paymentMethod: _paymentMethod,
+              );
             },
           ),
         ),
@@ -229,7 +267,8 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
             ],
             validator: (v) {
               if (v == null || v.isEmpty) return _locale.cardNumberRequired;
-              if (CardUtils.validateCardNum(v, _locale) != null) return _locale.invalidCardNumber;
+              if (CardUtils.validateCardNum(v, _locale) != null)
+                return _locale.invalidCardNumber;
               if (_unsupportedNetwork) return _locale.unsupportedNetwork;
               return null;
             },
@@ -242,7 +281,9 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
             controller: _nameController,
             hintText: _locale.nameOnCard,
             keyboardType: TextInputType.text,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z. ]'))],
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp('[a-zA-Z. ]')),
+            ],
             validator: (v) {
               if (v == null || v.trim().isEmpty) return _locale.nameRequired;
               return CardUtils.validateName(v, _locale);
@@ -267,7 +308,10 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
                   ],
                   validator: (v) {
                     if (v == null || v.isEmpty) return _locale.expiryRequired;
-                    return CardUtils.validateDate(v.replaceAll('\u200E', ''), _locale);
+                    return CardUtils.validateDate(
+                      v.replaceAll('\u200E', ''),
+                      _locale,
+                    );
                   },
                   onSaved: (v) {
                     final clean = v!.replaceAll('\u200E', '');
@@ -304,11 +348,17 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
             onPressed: _isSubmitting ? null : _submitForm,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColor.primaryColor(context),
-              disabledBackgroundColor: AppColor.primaryColor(context).withValues(alpha: 0.5),
+              disabledBackgroundColor: AppColor.primaryColor(
+                context,
+              ).withValues(alpha: 0.5),
               padding: EdgeInsets.symmetric(vertical: 16.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14.r),
+              ),
               elevation: 4,
-              shadowColor: AppColor.primaryColor(context).withValues(alpha: 0.3),
+              shadowColor: AppColor.primaryColor(
+                context,
+              ).withValues(alpha: 0.3),
             ),
             child: _isSubmitting
                 ? SizedBox(
@@ -324,22 +374,25 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
                     children: [
                       Text(
                         '${_locale.pay} ',
-                        style: AppTextStyle.buttonStyle(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp),
+                        style: AppTextStyle.buttonStyle(context).copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                        ),
                       ),
                       Text(
                         (widget.config.amount / 100).toStringAsFixed(2),
-                        style: AppTextStyle.buttonStyle(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold, fontSize: 16.sp),
+                        style: AppTextStyle.buttonStyle(context).copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                        ),
                       ),
                       Gap(4.w),
                       Text(
                         widget.isArabic ? 'ر.س' : 'SAR',
-                        style: AppTextStyle.buttonStyle(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                        style: AppTextStyle.buttonStyle(context).copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     ],
                   ),
@@ -350,7 +403,11 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.lock_outline_rounded, color: AppColor.greenColor(context), size: 14.sp),
+              Icon(
+                Icons.lock_outline_rounded,
+                color: AppColor.greenColor(context),
+                size: 14.sp,
+              ),
               Gap(6.w),
               Text(
                 widget.isArabic
@@ -421,9 +478,15 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
         ),
         decoration: InputDecoration(
           labelText: hintText,
-          labelStyle: TextStyle(fontSize: 12.sp, color: AppColor.greyColor(context)),
+          labelStyle: TextStyle(
+            fontSize: 12.sp,
+            color: AppColor.greyColor(context),
+          ),
           alignLabelWithHint: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 16.h,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14.r),
             borderSide: BorderSide(color: AppColor.borderColor(context)),
@@ -434,7 +497,10 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14.r),
-            borderSide: BorderSide(color: AppColor.primaryColor(context), width: 1.5),
+            borderSide: BorderSide(
+              color: AppColor.primaryColor(context),
+              width: 1.5,
+            ),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14.r),
@@ -489,7 +555,9 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
     final name = _nameController.text.isEmpty
         ? (widget.isArabic ? 'الاسم على البطاقة' : 'CARDHOLDER NAME')
         : _nameController.text.toUpperCase();
-    final expiry = _expiryController.text.isEmpty ? 'MM/YY' : _expiryController.text;
+    final expiry = _expiryController.text.isEmpty
+        ? 'MM/YY'
+        : _expiryController.text;
 
     return Container(
       width: double.infinity,
@@ -529,7 +597,10 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(6.r),
-                  border: Border.all(color: const Color(0xFFD4AF37), width: 0.5),
+                  border: Border.all(
+                    color: const Color(0xFFD4AF37),
+                    width: 0.5,
+                  ),
                 ),
                 child: Stack(
                   children: [
@@ -578,7 +649,11 @@ class _PremiumCreditCardFormState extends State<PremiumCreditCardForm> {
                   errorBuilder: (c, e, s) => const SizedBox.shrink(),
                 ),
               ] else ...[
-                Icon(Icons.credit_card_rounded, color: Colors.white70, size: 28.sp),
+                Icon(
+                  Icons.credit_card_rounded,
+                  color: Colors.white70,
+                  size: 28.sp,
+                ),
               ],
             ],
           ),
