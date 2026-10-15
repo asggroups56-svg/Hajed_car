@@ -11,19 +11,23 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class AgentDashboardScreen extends StatefulWidget {
   const AgentDashboardScreen({super.key});
   @override
-  State<AgentDashboardScreen> createState() => _AgentDashboardScreenState();
+  State<AgentDashboardScreen> createState() => AgentDashboardScreenState();
 }
 
-class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
+class AgentDashboardScreenState extends State<AgentDashboardScreen> {
+  void refresh() {
+    final userCode = HiveMethods.getUserCode() ?? '1';
+    final represNo = int.tryParse(userCode) ?? 1;
+    context.read<AgentCubit>().getOffers(null, represNo, null);
+    context.read<AgentCubit>().getExternalOffers(null, represNo, null);
+    context.read<CartCubit>().loadReservedCars(isAgent: true);
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userCode = HiveMethods.getUserCode() ?? '1';
-      final represNo = int.tryParse(userCode) ?? 1;
-      context.read<AgentCubit>().getOffers(null, represNo, null);
-      context.read<AgentCubit>().getExternalOffers(null, represNo, null);
-      context.read<CartCubit>().loadReservedCars(isAgent: true);
+      refresh();
     });
   }
 
@@ -31,36 +35,41 @@ class _AgentDashboardScreenState extends State<AgentDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.appBarColor(context),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 80.h,
-            pinned: true,
-            backgroundColor: AppColor.appBarColor(context),
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.appBarColor(context),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30.r),
-                    bottomRight: Radius.circular(30.r),
+      body: RefreshIndicator(
+        onRefresh: () async => refresh(),
+        color: AppColor.primaryColor(context),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 80.h,
+              pinned: true,
+              backgroundColor: AppColor.appBarColor(context),
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    color: AppColor.appBarColor(context),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30.r),
+                      bottomRight: Radius.circular(30.r),
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 16.h),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [CustomHeaderInfoWidget()],
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 16.h),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [CustomHeaderInfoWidget()],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          const CustomGridviewWithDashoardWidget(),
-        ],
+            const CustomGridviewWithDashoardWidget(),
+          ],
+        ),
       ),
     );
   }

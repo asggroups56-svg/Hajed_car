@@ -12,7 +12,6 @@ class AgentKpi {
   final IconData icon;
   final Color color;
   final double? change;
-
   const AgentKpi({
     required this.label,
     required this.value,
@@ -180,7 +179,7 @@ class AgentCar {
     return CarModel(
       itemCode: itemCode.isNotEmpty ? itemCode : null,
       itemName: itemName.isNotEmpty ? itemName : name,
-      groupCode: 0,
+      groupCode: int.tryParse(groupCode) ?? 0,
       storeCode: storeCode.isNotEmpty ? storeCode : null,
       carStatus: availability.index + 1,
       carType: 0,

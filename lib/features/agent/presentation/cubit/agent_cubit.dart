@@ -76,14 +76,14 @@ class AgentCubit extends Cubit<AgentState> {
   }
 
   Future<void> addbookingpermission(CreatOfferModel offer) async {
-    emit(state.copyWith(createOfferStatus: const StatusState.loading()));
+    emit(state.copyWith(bookingPermissionStatus: const StatusState.loading()));
     final result = await agentRepo.addbookingpermission(offer);
     result.fold(
       (failure) {
-        emit(state.copyWith(createOfferStatus: StatusState.failure(failure.errMessage)));
+        emit(state.copyWith(bookingPermissionStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
-        emit(state.copyWith(createOfferStatus: StatusState.success(response)));
+        emit(state.copyWith(bookingPermissionStatus: StatusState.success(response, message: response.message)));
       },
     );
   }
@@ -96,7 +96,7 @@ class AgentCubit extends Cubit<AgentState> {
         emit(state.copyWith(createOfferStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
-        emit(state.copyWith(createOfferStatus: StatusState.success(response)));
+        emit(state.copyWith(createOfferStatus: StatusState.success(response, message: response.message)));
       },
     );
   }
@@ -116,6 +116,10 @@ class AgentCubit extends Cubit<AgentState> {
 
   void resetCreateOfferStatus() {
     emit(state.copyWith(createOfferStatus: const StatusState.initial()));
+  }
+
+  void resetBookingPermissionStatus() {
+    emit(state.copyWith(bookingPermissionStatus: const StatusState.initial()));
   }
 
   void resetCustomerProfileStatus() {

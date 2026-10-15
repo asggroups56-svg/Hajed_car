@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/features/agent/data/model/agent_models.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
@@ -55,13 +56,24 @@ class CustomGridviewWithDashoardWidget extends StatelessWidget {
                     ),
                     itemBuilder: (_, i) {
                       final kpiCard = PremiumKpiCard(kpi: kpis[i]);
+                      void refreshHome() {
+                        final userCode = HiveMethods.getUserCode() ?? '1';
+                        final represNo = int.tryParse(userCode) ?? 1;
+                        context.read<AgentCubit>().getOffers(null, represNo, null);
+                        context.read<AgentCubit>().getExternalOffers(null, represNo, null);
+                        context.read<CartCubit>().loadReservedCars(isAgent: true);
+                      }
+
                       if (i == 0) {
                         return InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const AgentMyBookingsScreen()),
                             );
+                            if (context.mounted) {
+                              refreshHome();
+                            }
                           },
                           borderRadius: BorderRadius.circular(24.r),
                           child: kpiCard,
@@ -69,11 +81,14 @@ class CustomGridviewWithDashoardWidget extends StatelessWidget {
                       }
                       if (i == 1) {
                         return InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const AgentOffersScreen()),
                             );
+                            if (context.mounted) {
+                              refreshHome();
+                            }
                           },
                           borderRadius: BorderRadius.circular(24.r),
                           child: kpiCard,
@@ -81,11 +96,14 @@ class CustomGridviewWithDashoardWidget extends StatelessWidget {
                       }
                       if (i == 2) {
                         return InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => const AgentExternalOffersScreen()),
                             );
+                            if (context.mounted) {
+                              refreshHome();
+                            }
                           },
                           borderRadius: BorderRadius.circular(24.r),
                           child: kpiCard,

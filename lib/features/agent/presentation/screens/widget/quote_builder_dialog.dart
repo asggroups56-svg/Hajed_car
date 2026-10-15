@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:animate_do/animate_do.dart';
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/network/status.state.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
@@ -30,21 +33,49 @@ import 'package:gap/gap.dart';
 class QuoteBuilderDialog extends StatefulWidget {
   final CarModel car;
   final Map<String, String> existingSpecs;
-  const QuoteBuilderDialog({super.key, required this.car, required this.existingSpecs});
-  static void show(
+
+  /// Callback يُستدعى عند النجاح — يُستخدم لإغلاق الـ sheet من الخارج
+  final void Function(String successMsg) onSuccess;
+
+  const QuoteBuilderDialog({
+    super.key,
+    required this.car,
+    required this.existingSpecs,
+    required this.onSuccess,
+  });
+
+  /// الطريقة الوحيدة لعرض الـ dialog
+  static Future<bool> show(
     BuildContext context, {
     required CarModel car,
     required Map<String, String> existingSpecs,
-  }) {
-    showModalBottomSheet(
+  }) async {
+    String? result;
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
+      // sheetCtx هو context الـ modal نفسه — مضمون للـ pop
+      builder: (sheetCtx) => BlocProvider.value(
         value: context.read<AgentCubit>(),
-        child: QuoteBuilderDialog(car: car, existingSpecs: existingSpecs),
+        child: QuoteBuilderDialog(
+          car: car,
+          existingSpecs: existingSpecs,
+          onSuccess: (msg) {
+            result = msg;
+            // نستخدم sheetCtx المُقدَّم من showModalBottomSheet مباشرة
+            Navigator.of(sheetCtx).pop();
+          },
+        ),
       ),
     );
+
+    if (result != null && result!.isNotEmpty) {
+      CommonMethods.showToast(message: result!, type: ToastType.success);
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -62,6 +93,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
   CustomerModel? _selectedCustomer;
   String _paymentType = 'CSH'; // CSH = نقد, CRD = آجل
   bool _isCustomerDropdownOpen = false;
+
   int get _represNo {
     final code = HiveMethods.getUserCode() ?? '1';
     return int.tryParse(code) ?? 1;
@@ -69,6 +101,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
 
   DateTime? _begDate;
   DateTime? _endDate;
+
   Future<void> _pickDate(BuildContext context, bool isBeg) async {
     if (isBeg) {
       final now = DateTime.now();
@@ -83,7 +116,6 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
         setState(() {
           _begDate = picked;
           _begDateController.text = formatted;
-          // Capped strictly at 3 days
           _endDate = picked.add(const Duration(days: 2));
           _endDateController.text = DateFormat('yyyy-MM-dd', 'en').format(_endDate!);
         });
@@ -131,6 +163,9 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
   }
 
   late TextEditingController _existingSpecsController;
+  StreamSubscription<AgentState>? _stateSubscription;
+  bool _handled = false; // منع التكرار
+
   @override
   void initState() {
     super.initState();
@@ -140,15 +175,49 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
     _endDate = DateTime.now().add(const Duration(days: 2));
     _endDateController.text = DateFormat('yyyy-MM-dd', 'en').format(_endDate!);
     context.read<AgentCubit>().getCustomer(null);
+
     final initialText = widget.existingSpecs.entries
         .where((e) => e.value.trim().isNotEmpty && e.value.trim() != '—' && e.value.trim() != '-')
         .map((e) => '${e.key}: ${e.value}')
         .join('\n');
     _existingSpecsController = TextEditingController(text: initialText);
+
+    // نتابع الـ stream مباشرة — الـ pop يتم عبر widget.onSuccess
+    Status lastStatus = context.read<AgentCubit>().state.bookingPermissionStatus.status;
+
+    _stateSubscription = context.read<AgentCubit>().stream.listen((state) {
+      if (!mounted || _handled) return;
+      final currentStatus = state.bookingPermissionStatus.status;
+      if (currentStatus == lastStatus) return;
+      lastStatus = currentStatus;
+
+      if (state.bookingPermissionStatus.isSuccess) {
+        _handled = true;
+        final resMsg =
+            state.bookingPermissionStatus.data?.message ?? state.bookingPermissionStatus.message;
+        final isArabic = context.locale.languageCode == 'ar';
+        final successMsg = (resMsg != null && resMsg.trim().isNotEmpty)
+            ? resMsg
+            : (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
+
+        // نستدعي reset أولاً ثم نُغلق عبر الـ callback الخارجي
+        context.read<AgentCubit>().resetBookingPermissionStatus();
+        widget.onSuccess(successMsg);
+      } else if (state.bookingPermissionStatus.isFailure) {
+        final errMsg =
+            state.bookingPermissionStatus.error ??
+            (context.locale.languageCode == 'ar'
+                ? 'حدث خطأ أثناء حفظ عرض السعر'
+                : 'Error occurred while saving quote');
+        context.read<AgentCubit>().resetBookingPermissionStatus();
+        CommonMethods.showToast(message: errMsg, type: ToastType.error);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _stateSubscription?.cancel();
     _priceController.dispose();
     _begDateController.dispose();
     _endDateController.dispose();
@@ -197,11 +266,11 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
 
     final subList = [
       OfferItemModel(
-        GROUP_CODE: widget.car.groupCode.toString() ?? '',
+        GROUP_CODE: '',
         itemName: widget.car.itemName ?? '',
         colorCode: widget.car.colorCode ?? 0,
-        itemCode: '',
-        chassisNo: '',
+        itemCode: widget.car.itemCode ?? '',
+        chassisNo: widget.car.chassisNo ?? '',
         makeYear: widget.car.makeYear ?? 0,
         qnty: 1,
         price: _price,
@@ -236,319 +305,292 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AgentCubit, AgentState>(
-      listenWhen: (p, c) => p.createOfferStatus != c.createOfferStatus,
-      listener: (context, state) {
-        if (state.createOfferStatus.isSuccess) {
-          Navigator.pop(context);
-          CommonMethods.showToast(
-            message: state.createOfferStatus.message ?? "",
-            type: ToastType.success,
-          );
-          context.read<AgentCubit>().resetCreateOfferStatus();
-        } else if (state.createOfferStatus.isFailure) {
-          CommonMethods.showToast(
-            message: state.createOfferStatus.message ?? "",
-            type: ToastType.error,
-          );
-          context.read<AgentCubit>().resetCreateOfferStatus();
-        }
-      },
-      child: SingleChildScrollView(
-        child: FadeInUp(
-          duration: const Duration(milliseconds: 300),
-          child: Container(
-            height: 0.92.sh,
-            decoration: BoxDecoration(
-              color: AppColor.cardColor(context),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColor.blackColor(context).withValues(alpha: 0.1),
-                  blurRadius: 40,
-                  offset: const Offset(0, -10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                CustomQuoteHeaderWidget(widget: widget),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SectionTitle(
-                          title: AppLocaleKey.date.tr(),
-                          icon: Icons.calendar_today_rounded,
-                        ),
-                        Gap(10.h),
-                        InfoChip(
-                          icon: Icons.event_rounded,
-                          label: _today,
-                          color: AppColor.primaryColor(context),
-                          context: context,
-                        ),
-                        Gap(20.h),
-                        Row(
-                          children: [
-                            SectionTitle(
-                              title: AppLocaleKey.period.tr(),
-                              icon: Icons.date_range_rounded,
+    return SingleChildScrollView(
+      child: FadeInUp(
+        duration: const Duration(milliseconds: 300),
+        child: Container(
+          height: 0.92.sh,
+          decoration: BoxDecoration(
+            color: AppColor.cardColor(context),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.blackColor(context).withValues(alpha: 0.1),
+                blurRadius: 40,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              CustomQuoteHeaderWidget(widget: widget),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 20.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SectionTitle(
+                        title: AppLocaleKey.date.tr(),
+                        icon: Icons.calendar_today_rounded,
+                      ),
+                      Gap(10.h),
+                      InfoChip(
+                        icon: Icons.event_rounded,
+                        label: _today,
+                        color: AppColor.primaryColor(context),
+                        context: context,
+                      ),
+                      Gap(20.h),
+                      Row(
+                        children: [
+                          SectionTitle(
+                            title: AppLocaleKey.period.tr(),
+                            icon: Icons.date_range_rounded,
+                          ),
+                          Gap(8.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                            decoration: BoxDecoration(
+                              color: AppColor.primaryColor(context).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6.r),
                             ),
-                            Gap(8.w),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                              decoration: BoxDecoration(
-                                color: AppColor.primaryColor(context).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6.r),
+                            child: Text(
+                              context.locale.languageCode == 'ar'
+                                  ? 'صلاحية ٣ أيام فقط بحد اقصي'
+                                  : '3 Days Validity Only Max',
+                              style: AppTextStyle.bodySmall(context).copyWith(
+                                color: AppColor.primaryColor(context),
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.bold,
                               ),
-                              child: Text(
-                                context.locale.languageCode == 'ar'
-                                    ? 'صلاحية ٣ أيام فقط بحد اقصي'
-                                    : '3 Days Validity Only Max',
-                                style: AppTextStyle.bodySmall(context).copyWith(
-                                  color: AppColor.primaryColor(context),
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(10.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DatePickerTile(
+                              label: AppLocaleKey.form.tr(),
+                              date: _begDate,
+                              onTap: () => _pickDate(context, true),
+                              context: context,
+                              controller: _begDateController,
+                              validator: (_) => null,
+                            ),
+                          ),
+                          Gap(12.w),
+                          Expanded(
+                            child: DatePickerTile(
+                              label: AppLocaleKey.to.tr(),
+                              date: _endDate,
+                              onTap: () => _pickDate(context, false),
+                              context: context,
+                              controller: _endDateController,
+                              validator: (_) => null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gap(20.h),
+                      SectionTitle(
+                        title: AppLocaleKey.customer.tr(),
+                        icon: Icons.person_search_rounded,
+                      ),
+                      Gap(10.h),
+                      CustomerDropdown(
+                        selected: _selectedCustomer,
+                        isOpen: _isCustomerDropdownOpen,
+                        searchController: _customerSearchController,
+                        onToggle: () =>
+                            setState(() => _isCustomerDropdownOpen = !_isCustomerDropdownOpen),
+                        onSelect: (c) => setState(() {
+                          _selectedCustomer = c;
+                          _isCustomerDropdownOpen = false;
+                          _customerSearchController.clear();
+                          context.read<AgentCubit>().getCustomer(null);
+                        }),
+                        onSearch: (v) =>
+                            context.read<AgentCubit>().getCustomer(v.isEmpty ? null : v),
+                        context: context,
+                      ),
+                      Gap(20.h),
+                      SectionTitle(
+                        title: AppLocaleKey.payment_type.tr(),
+                        icon: Icons.payments_rounded,
+                      ),
+                      Gap(10.h),
+                      PaymentToggle(
+                        value: _paymentType,
+                        onChanged: (v) => setState(() => _paymentType = v),
+                        context: context,
+                      ),
+                      Gap(20.h),
+                      SectionTitle(
+                        title: AppLocaleKey.agentSellingPrice.tr(),
+                        icon: Icons.sell_rounded,
+                      ),
+                      Gap(10.h),
+                      SarField(
+                        controller: _priceController,
+                        context: context,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      Gap(16.h),
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: AppColor.orangeColor(context).withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: AppColor.orangeColor(context).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calculate_outlined,
+                                  size: 16.sp,
+                                  color: AppColor.orangeColor(context),
                                 ),
+                                Gap(8.w),
+                                Text(
+                                  AppLocaleKey.tax.tr(),
+                                  style: AppTextStyle.bodySmall(context).copyWith(
+                                    color: AppColor.orangeColor(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${NumberFormat('#,##0.##').format(_taxAmount)} ${AppLocaleKey.sar.tr()}',
+                              style: AppTextStyle.bodyMedium(context).copyWith(
+                                color: AppColor.orangeColor(context),
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
                         ),
-                        Gap(10.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DatePickerTile(
-                                label: AppLocaleKey.form.tr(),
-                                date: _begDate,
-                                onTap: () => _pickDate(context, true),
-                                context: context,
-                                controller: _begDateController,
-                                validator: (_) => null,
-                              ),
+                      ),
+                      Gap(16.h),
+                      SectionTitle(
+                        title: AppLocaleKey.agentPlatePrice.tr(),
+                        icon: Icons.credit_card_rounded,
+                      ),
+                      Gap(10.h),
+                      SarField(
+                        controller: _platePriceController,
+                        context: context,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      Gap(16.h),
+                      TotalBanner(
+                        price: _price,
+                        taxAmount: _taxAmount,
+                        platePrice: _platePrice,
+                        total: _total,
+                        context: context,
+                      ),
+                      Gap(20.h),
+                      SectionTitleWidget(
+                        title: AppLocaleKey.specs.tr(),
+                        icon: Icons.add_task_rounded,
+                      ),
+                      Gap(10.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomFormField(
+                              controller: _specController,
+                              hintText: AppLocaleKey.enterSpecTitle.tr(),
+                              onSubmitted: (_) => _addSpec(),
+                              validator: (v) => null,
                             ),
-                            Gap(12.w),
-                            Expanded(
-                              child: DatePickerTile(
-                                label: AppLocaleKey.to.tr(),
-                                date: _endDate,
-                                onTap: () => _pickDate(context, false),
-                                context: context,
-                                controller: _endDateController,
-                                validator: (_) => null,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        Gap(20.h),
-                        SectionTitle(
-                          title: AppLocaleKey.customer.tr(),
-                          icon: Icons.person_search_rounded,
-                        ),
-                        Gap(10.h),
-                        CustomerDropdown(
-                          selected: _selectedCustomer,
-                          isOpen: _isCustomerDropdownOpen,
-                          searchController: _customerSearchController,
-                          onToggle: () =>
-                              setState(() => _isCustomerDropdownOpen = !_isCustomerDropdownOpen),
-                          onSelect: (c) => setState(() {
-                            _selectedCustomer = c;
-                            _isCustomerDropdownOpen = false;
-                            _customerSearchController.clear();
-                            context.read<AgentCubit>().getCustomer(null);
-                          }),
-                          onSearch: (v) =>
-                              context.read<AgentCubit>().getCustomer(v.isEmpty ? null : v),
-                          context: context,
-                        ),
-                        Gap(20.h),
-                        SectionTitle(
-                          title: AppLocaleKey.payment_type.tr(),
-                          icon: Icons.payments_rounded,
-                        ),
-                        Gap(10.h),
-                        PaymentToggle(
-                          value: _paymentType,
-
-                          onChanged: (v) => setState(() => _paymentType = v),
-                          context: context,
-                        ),
-                        Gap(20.h),
-                        SectionTitle(
-                          title: AppLocaleKey.agentSellingPrice.tr(),
-                          icon: Icons.sell_rounded,
-                        ),
-                        Gap(10.h),
-                        SarField(
-                          controller: _priceController,
-                          context: context,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                        Gap(16.h),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Gap(8.h),
-                            Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                          ),
+                          Gap(12.w),
+                          GestureDetector(
+                            onTap: _addSpec,
+                            child: Container(
+                              height: 40.h,
+                              width: 40.h,
                               decoration: BoxDecoration(
-                                color: AppColor.orangeColor(context).withValues(alpha: 0.07),
+                                color: AppColor.primaryColor(context),
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: Icon(
+                                Icons.add_rounded,
+                                color: AppColor.whiteColor(context),
+                                size: 28.sp,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_instantSpecs.isNotEmpty) ...[
+                        Gap(14.h),
+                        Wrap(
+                          spacing: 8.w,
+                          runSpacing: 8.h,
+                          children: _instantSpecs.asMap().entries.map((entry) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                              decoration: BoxDecoration(
+                                color: AppColor.primaryColor(context).withValues(alpha: 0.07),
                                 borderRadius: BorderRadius.circular(12.r),
                                 border: Border.all(
-                                  color: AppColor.orangeColor(context).withValues(alpha: 0.2),
+                                  color: AppColor.primaryColor(context).withValues(alpha: 0.15),
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.calculate_outlined,
-                                        size: 16.sp,
-                                        color: AppColor.orangeColor(context),
-                                      ),
-                                      Gap(8.w),
-                                      Text(
-                                        AppLocaleKey.tax.tr(),
-                                        style: AppTextStyle.bodySmall(context).copyWith(
-                                          color: AppColor.orangeColor(context),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                   Text(
-                                    '${NumberFormat('#,##0.##').format(_taxAmount)} ${AppLocaleKey.sar.tr()}',
-                                    style: AppTextStyle.bodyMedium(context).copyWith(
-                                      color: AppColor.orangeColor(context),
-                                      fontWeight: FontWeight.w800,
+                                    entry.value,
+                                    style: AppTextStyle.bodySmall(context).copyWith(
+                                      color: AppColor.primaryColor(context),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Gap(8.w),
+                                  GestureDetector(
+                                    onTap: () => _removeSpec(entry.key),
+                                    child: Icon(
+                                      Icons.cancel_rounded,
+                                      size: 16.sp,
+                                      color: AppColor.primaryColor(context),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                        Gap(16.h),
-                        SectionTitle(
-                          title: AppLocaleKey.agentPlatePrice.tr(),
-                          icon: Icons.credit_card_rounded,
-                        ),
-                        Gap(10.h),
-                        SarField(
-                          controller: _platePriceController,
-                          context: context,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                        Gap(16.h),
-                        TotalBanner(
-                          price: _price,
-                          taxAmount: _taxAmount,
-                          platePrice: _platePrice,
-                          total: _total,
-                          context: context,
-                        ),
-                        Gap(20.h),
-                        SectionTitleWidget(
-                          title: AppLocaleKey.specs.tr(),
-                          icon: Icons.add_task_rounded,
-                        ),
-                        Gap(10.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomFormField(
-                                controller: _specController,
-                                hintText: AppLocaleKey.enterSpecTitle.tr(),
-                                onSubmitted: (_) => _addSpec(),
-                                validator: (v) => null,
-                              ),
-                            ),
-                            Gap(12.w),
-                            GestureDetector(
-                              onTap: _addSpec,
-                              child: Container(
-                                height: 40.h,
-                                width: 40.h,
-                                decoration: BoxDecoration(
-                                  color: AppColor.primaryColor(context),
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Icon(
-                                  Icons.add_rounded,
-                                  color: AppColor.whiteColor(context),
-                                  size: 28.sp,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (_instantSpecs.isNotEmpty) ...[
-                          Gap(14.h),
-                          Wrap(
-                            spacing: 8.w,
-                            runSpacing: 8.h,
-                            children: _instantSpecs.asMap().entries.map((entry) {
-                              return Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                                decoration: BoxDecoration(
-                                  color: AppColor.primaryColor(context).withValues(alpha: 0.07),
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(
-                                    color: AppColor.primaryColor(context).withValues(alpha: 0.15),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      entry.value,
-                                      style: AppTextStyle.bodySmall(context).copyWith(
-                                        color: AppColor.primaryColor(context),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Gap(8.w),
-                                    GestureDetector(
-                                      onTap: () => _removeSpec(entry.key),
-                                      child: Icon(
-                                        Icons.cancel_rounded,
-                                        size: 16.sp,
-                                        color: AppColor.primaryColor(context),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                        Gap(20.h),
-                        SectionTitleWidget(
-                          title: AppLocaleKey.existingSpecs.tr(),
-                          icon: Icons.list_alt_rounded,
-                        ),
-                        Gap(10.h),
-                        CustomFormField(
-                          controller: _existingSpecsController,
-                          hintText: AppLocaleKey.enter_spec_title_hint.tr(),
-                          maxLines: 6,
-                          validator: (_) => null,
+                            );
+                          }).toList(),
                         ),
                       ],
-                    ),
+                      Gap(20.h),
+                      SectionTitleWidget(
+                        title: AppLocaleKey.existingSpecs.tr(),
+                        icon: Icons.list_alt_rounded,
+                      ),
+                      Gap(10.h),
+                      CustomFormField(
+                        controller: _existingSpecsController,
+                        hintText: AppLocaleKey.enter_spec_title_hint.tr(),
+                        maxLines: 6,
+                        validator: (_) => null,
+                      ),
+                    ],
                   ),
                 ),
-                SubmitFooter(onSubmit: () => _submit(context), context: context),
-              ],
-            ),
+              ),
+              SubmitFooter(onSubmit: () => _submit(context), context: context),
+            ],
           ),
         ),
       ),

@@ -12,6 +12,7 @@ class AgentState extends Equatable {
   final StatusState<List<OfferModel>> offersStatus;
   final StatusState<List<OfferModel>> externalOffersStatus;
   final StatusState<CreatOfferResponseModel> createOfferStatus;
+  final StatusState<CreatOfferResponseModel> bookingPermissionStatus;
   final StatusState<CustomerProfileModel?> customerProfileStatus;
   final StatusState<OfferModel?> singleOfferStatus;
 
@@ -21,6 +22,7 @@ class AgentState extends Equatable {
     this.offersStatus = const StatusState.initial(),
     this.externalOffersStatus = const StatusState.initial(),
     this.createOfferStatus = const StatusState.initial(),
+    this.bookingPermissionStatus = const StatusState.initial(),
     this.customerProfileStatus = const StatusState.initial(),
     this.singleOfferStatus = const StatusState.initial(),
   });
@@ -31,6 +33,7 @@ class AgentState extends Equatable {
     StatusState<List<OfferModel>>? offersStatus,
     StatusState<List<OfferModel>>? externalOffersStatus,
     StatusState<CreatOfferResponseModel>? createOfferStatus,
+    StatusState<CreatOfferResponseModel>? bookingPermissionStatus,
     StatusState<CustomerProfileModel?>? customerProfileStatus,
     StatusState<OfferModel?>? singleOfferStatus,
   }) {
@@ -40,6 +43,8 @@ class AgentState extends Equatable {
       offersStatus: offersStatus ?? this.offersStatus,
       externalOffersStatus: externalOffersStatus ?? this.externalOffersStatus,
       createOfferStatus: createOfferStatus ?? this.createOfferStatus,
+      bookingPermissionStatus:
+          bookingPermissionStatus ?? this.bookingPermissionStatus,
       customerProfileStatus: customerProfileStatus ?? this.customerProfileStatus,
       singleOfferStatus: singleOfferStatus ?? this.singleOfferStatus,
     );
@@ -52,6 +57,7 @@ class AgentState extends Equatable {
     offersStatus,
     externalOffersStatus,
     createOfferStatus,
+    bookingPermissionStatus,
     customerProfileStatus,
     singleOfferStatus,
   ];

@@ -207,95 +207,101 @@ class ReservedCarCard extends StatelessWidget {
                 ],
               ),
             ),
-            Gap(14.h),
-            if (price > 0)
+            if (price > 0 || advancedAmount > 0) ...[
+              Gap(14.h),
               Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocaleKey.agentCarValue.tr(),
-                        style: AppTextStyle.bodySmall(
-                          context,
-                        ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
-                      ),
-                      Gap(2.h),
-                      ValueWithCurrencyIcon(
-                        text: '${price.toStringAsFixed(0)} ${AppLocaleKey.agentCurrencySar.tr()}',
-                        textStyle: AppTextStyle.titleMedium(context).copyWith(
-                          color: AppColor.primaryColor(context),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 17.sp,
+                  if (price > 0)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocaleKey.agentCarValue.tr(),
+                          style: AppTextStyle.bodySmall(
+                            context,
+                          ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocaleKey.ADVANCED_AMOUNT.tr(),
-                        style: AppTextStyle.bodySmall(
-                          context,
-                        ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
-                      ),
-                      Gap(2.h),
-                      ValueWithCurrencyIcon(
-                        text:
-                            '${advancedAmount.toStringAsFixed(0)} ${AppLocaleKey.agentCurrencySar.tr()}',
-                        textStyle: AppTextStyle.titleMedium(context).copyWith(
-                          color: AppColor.primaryColor(context),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 17.sp,
+                        Gap(2.h),
+                        ValueWithCurrencyIcon(
+                          text: '${price.toStringAsFixed(0)} ${AppLocaleKey.agentCurrencySar.tr()}',
+                          textStyle: AppTextStyle.titleMedium(context).copyWith(
+                            color: AppColor.primaryColor(context),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 17.sp,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  if (price > 0 && advancedAmount > 0) const Spacer(),
+                  if (advancedAmount > 0)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocaleKey.ADVANCED_AMOUNT.tr(),
+                          style: AppTextStyle.bodySmall(
+                            context,
+                          ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
+                        ),
+                        Gap(2.h),
+                        ValueWithCurrencyIcon(
+                          text:
+                              '${advancedAmount.toStringAsFixed(0)} ${AppLocaleKey.agentCurrencySar.tr()}',
+                          textStyle: AppTextStyle.titleMedium(context).copyWith(
+                            color: AppColor.primaryColor(context),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 17.sp,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
-              )
-            else
-              const Spacer(),
-            Gap(12.h),
+              ),
+            ],
+            Gap(14.h),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Buttons
-                OutlinedButton.icon(
-                  onPressed: onCancelTap,
-                  icon: Icon(Icons.cancel_outlined, size: 16.sp, color: AppColor.redColor(context)),
-                  label: Text(
-                    AppLocaleKey.cancelReservation.tr(),
-                    style: AppTextStyle.bodySmall(
-                      context,
-                    ).copyWith(color: AppColor.redColor(context), fontWeight: FontWeight.w700),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColor.redColor(context).withValues(alpha: 0.3)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onCancelTap,
+                    icon: Icon(Icons.cancel_outlined, size: 16.sp, color: AppColor.redColor(context)),
+                    label: Text(
+                      AppLocaleKey.cancelReservation.tr(),
+                      style: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.redColor(context), fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColor.redColor(context).withValues(alpha: 0.3)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+                    ),
                   ),
                 ),
                 Gap(8.w),
-                ElevatedButton.icon(
-                  onPressed: onDetailsTap,
-                  icon: Icon(
-                    Icons.visibility_outlined,
-                    size: 16.sp,
-                    color: AppColor.whiteColor(context),
-                  ),
-                  label: Text(
-                    AppLocaleKey.agentDetails.tr(),
-                    style: AppTextStyle.bodySmall(
-                      context,
-                    ).copyWith(color: AppColor.whiteColor(context), fontWeight: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor(context),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onDetailsTap,
+                    icon: Icon(
+                      Icons.visibility_outlined,
+                      size: 16.sp,
+                      color: AppColor.whiteColor(context),
+                    ),
+                    label: Text(
+                      AppLocaleKey.agentDetails.tr(),
+                      style: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.whiteColor(context), fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.primaryColor(context),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                    ),
                   ),
                 ),
               ],

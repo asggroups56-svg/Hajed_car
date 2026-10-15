@@ -336,15 +336,30 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       listenWhen: (p, c) => p.createOfferStatus != c.createOfferStatus,
       listener: (context, state) {
         if (state.createOfferStatus.isSuccess) {
+          final resMsg = state.createOfferStatus.data?.message ??
+              state.createOfferStatus.message;
+          final isArabic = context.locale.languageCode == 'ar';
+          final msg = (resMsg != null && resMsg.trim().isNotEmpty)
+              ? resMsg
+              : (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
+
           CommonMethods.showToast(
-            message: state.createOfferStatus.message ?? AppLocaleKey.externalQuoteSuccess.tr(),
+            message: msg,
             type: ToastType.success,
           );
-          _showSuccessDialog(state.createOfferStatus.message);
           context.read<AgentCubit>().resetCreateOfferStatus();
+          _resetForm();
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
         } else if (state.createOfferStatus.isFailure) {
+          final errMsg = state.createOfferStatus.error ??
+              state.createOfferStatus.message ??
+              (context.locale.languageCode == 'ar'
+                  ? 'حدث خطأ أثناء الحفظ'
+                  : 'Error occurred while saving');
           CommonMethods.showToast(
-            message: state.createOfferStatus.message ?? AppLocaleKey.externalQuoteSaveError.tr(),
+            message: errMsg,
             type: ToastType.error,
           );
         }
@@ -1157,115 +1172,5 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
     );
   }
 
-  void _showSuccessDialog(String? message) {
-    final color = _selectedColor.value;
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
-        backgroundColor: AppColor.scaffoldColor(context),
-        titlePadding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
-        contentPadding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 0),
-        title: Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: AppColor.greenColor(context), size: 26.sp),
-            Gap(10.w),
-            Expanded(
-              child: Text(
-                AppLocaleKey.externalQuoteCreatedTitle.tr(),
-                style: _t(15, weight: FontWeight.w900),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (message != null && message.isNotEmpty) ...[
-              Text(message, style: _t(12.5, weight: FontWeight.w500)),
-              Gap(10.h),
-            ],
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: AppColor.secondAppColor(context),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: _border),
-              ),
-              child: Column(
-                children: [
-                  _dialogRow(AppLocaleKey.car.tr(), _carNameController.text),
-                  Gap(6.h),
-                  _dialogRow(
-                    AppLocaleKey.customer.tr(),
-                    _selectedCustomer.value?.customerName ?? '—',
-                  ),
-                  Gap(6.h),
-                  _dialogRow(
-                    AppLocaleKey.color.tr(),
-                    color != null ? '${color.name} (${color.code})' : '—',
-                  ),
-                  Divider(height: 14.h, color: _border),
-                  _dialogRow(
-                    AppLocaleKey.total.tr(),
-                    '${_fmt.format(_total)} ${AppLocaleKey.sar.tr()}',
-                    highlight: true,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogCtx);
-              _resetForm();
-            },
-            child: Text(
-              AppLocaleKey.externalQuoteNewAction.tr(),
-              style: TextStyle(color: _primary, fontWeight: FontWeight.bold, fontSize: 12.sp),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primary,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-            ),
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(
-              AppLocaleKey.externalQuoteDoneAction.tr(),
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.sp),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _dialogRow(String label, String value, {bool highlight = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: _t(11.5, color: _grey, weight: FontWeight.w500),
-        ),
-        Gap(12.w),
-        Flexible(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: _t(
-              highlight ? 14 : 12,
-              color: highlight ? _primary : null,
-              weight: highlight ? FontWeight.w900 : FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

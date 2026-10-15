@@ -187,11 +187,13 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
                           subtitle: AppLocaleKey.agentNoBookingsFound.tr(),
                         )
                       : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 24.h),
                           itemCount: filteredCars.length,
                           itemBuilder: (context, index) {
                             final car = filteredCars[index];
                             return ReservedCarCard(
+                              key: ValueKey(car.itemCode ?? index.toString()),
                               car: car,
                               onCancelTap: () => _handleCancelCar(context, car),
                               onDetailsTap: () => _navigateToDetails(context, car),

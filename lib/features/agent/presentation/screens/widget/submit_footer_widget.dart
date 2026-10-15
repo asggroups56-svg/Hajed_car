@@ -17,9 +17,9 @@ class SubmitFooter extends StatelessWidget {
   @override
   Widget build(BuildContext ctx) {
     return BlocBuilder<AgentCubit, AgentState>(
-      buildWhen: (p, c) => p.createOfferStatus != c.createOfferStatus,
+      buildWhen: (p, c) => p.bookingPermissionStatus != c.bookingPermissionStatus,
       builder: (context, state) {
-        final isLoading = state.createOfferStatus.isLoading;
+        final isLoading = state.bookingPermissionStatus.isLoading;
         final primary = AppColor.primaryColor(context);
 
         return Container(

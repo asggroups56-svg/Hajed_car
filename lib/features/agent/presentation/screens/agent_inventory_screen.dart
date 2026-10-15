@@ -21,14 +21,19 @@ class AgentInventoryScreen extends StatefulWidget {
   const AgentInventoryScreen({super.key});
 
   @override
-  State<AgentInventoryScreen> createState() => _AgentInventoryScreenState();
+  State<AgentInventoryScreen> createState() => AgentInventoryScreenState();
 }
 
-class _AgentInventoryScreenState extends State<AgentInventoryScreen>
+class AgentInventoryScreenState extends State<AgentInventoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  void refresh() {
+    final status = _tabController.index + 1;
+    context.read<AdminCubit>().getCarsStatus(status, null);
+  }
 
   @override
   void initState() {
@@ -36,7 +41,7 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminCubit>().getCarsStatus(1, null);
+      refresh();
     });
     final homeCubit = context.read<HomeCubit>();
     if (homeCubit.state.brands.isEmpty) {
@@ -54,8 +59,7 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
 
   void _handleTabChange() {
     if (!_tabController.indexIsChanging) {
-      final status = _tabController.index + 1;
-      context.read<AdminCubit>().getCarsStatus(status, null);
+      refresh();
     }
   }
 
@@ -94,7 +98,7 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
     return AgentCar(
       id: car.itemCode ?? '',
       name: car.itemName ?? '',
-      brand: priceWithVat.toString(),
+      brand: brandName.isNotEmpty ? brandName : priceWithVat.toString(),
       price: car.salePrice ?? car.costPrice ?? 0.0,
       imageUrl: car.imageUrls.isNotEmpty ? car.imageUrls.first : '',
       availability: availability,
@@ -119,118 +123,117 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
       value: sl<AdminCubit>(),
       child: Scaffold(
         backgroundColor: AppColor.scaffoldColor(context),
-        body: NestedScrollView(
-          headerSliverBuilder: (_, _) => [
+        body: Column(
+          children: [
             CustomHeaderAgentInventoryWidget(tabController: _tabController),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColor.cardColor(context),
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.5)),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: context.locale.languageCode == 'ar'
-                          ? 'البحث عن سيارة (الاسم، الماركة...)'
-                          : 'Search car (name, brand...)',
-                      hintStyle: AppTextStyle.hintStyle(
-                        context,
-                      ).copyWith(color: AppColor.hintColor(context)),
-                      prefixIcon: Icon(Icons.search_rounded, color: AppColor.hintColor(context)),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear_rounded, color: AppColor.hintColor(context)),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                    ),
+            // Fixed Search Bar
+            Container(
+              color: AppColor.scaffoldColor(context),
+              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 6.h),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.cardColor(context),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: AppColor.borderColor(context).withValues(alpha: 0.5)),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: context.locale.languageCode == 'ar'
+                        ? 'البحث عن سيارة (الاسم، الماركة...)'
+                        : 'Search car (name, brand...)',
+                    hintStyle: AppTextStyle.hintStyle(
+                      context,
+                    ).copyWith(color: AppColor.hintColor(context)),
+                    prefixIcon: Icon(Icons.search_rounded, color: AppColor.hintColor(context)),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear_rounded, color: AppColor.hintColor(context)),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                   ),
                 ),
               ),
             ),
-          ],
-          body: BlocBuilder<AdminCubit, AdminState>(
-            builder: (context, state) {
-              final status = state.getCarsStatus;
+            Expanded(
+              child: BlocBuilder<AdminCubit, AdminState>(
+                builder: (context, state) {
+                  final status = state.getCarsStatus;
 
-              if (status.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
+                  if (status.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              if (status.isFailure) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 48.sp,
-                        color: AppColor.redColor(context),
+                  if (status.isFailure) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 48.sp,
+                            color: AppColor.redColor(context),
+                          ),
+                          Gap(12.h),
+                          Text(status.error ?? 'حدث خطأ ما', style: AppTextStyle.bodyMedium(context)),
+                          Gap(16.h),
+                          TextButton(
+                            onPressed: refresh,
+                            child: const Text('إعادة المحاولة'),
+                          ),
+                        ],
                       ),
-                      Gap(12.h),
-                      Text(status.error ?? 'حدث خطأ ما', style: AppTextStyle.bodyMedium(context)),
-                      Gap(16.h),
-                      TextButton(
-                        onPressed: () {
-                          final currentStatus = _tabController.index + 1;
-                          context.read<AdminCubit>().getCarsStatus(currentStatus, null);
-                        },
-                        child: const Text('إعادة المحاولة'),
+                    );
+                  }
+
+                  final carModels = status.data?.data ?? [];
+                  final int tabStatus = _tabController.index + 1;
+                  var agentCars = carModels
+                      .map((car) => _mapToAgentCar(car, tabStatus: tabStatus))
+                      .toList();
+
+                  if (_searchQuery.isNotEmpty) {
+                    final query = _searchQuery.toLowerCase();
+                    agentCars = agentCars.where((car) {
+                      return car.name.toLowerCase().contains(query) ||
+                          car.brand.toLowerCase().contains(query) ||
+                          car.year.toLowerCase().contains(query) ||
+                          car.chassisNo.toLowerCase().contains(query);
+                    }).toList();
+                  }
+
+                  return TabBarView(
+                    controller: _tabController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      _buildList(
+                        agentCars.where((c) => c.availability == CarAvailability.available).toList(),
+                      ),
+                      _buildList(
+                        agentCars.where((c) => c.availability == CarAvailability.reserved).toList(),
+                      ),
+                      _buildList(
+                        agentCars.where((c) => c.availability == CarAvailability.sold).toList(),
                       ),
                     ],
-                  ),
-                );
-              }
-
-              final carModels = status.data?.data ?? [];
-              final int tabStatus = _tabController.index + 1;
-              var agentCars = carModels
-                  .map((car) => _mapToAgentCar(car, tabStatus: tabStatus))
-                  .toList();
-
-              if (_searchQuery.isNotEmpty) {
-                final query = _searchQuery.toLowerCase();
-                agentCars = agentCars.where((car) {
-                  return car.name.toLowerCase().contains(query) ||
-                      car.brand.toLowerCase().contains(query) ||
-                      car.year.toLowerCase().contains(query) ||
-                      car.chassisNo.toLowerCase().contains(query);
-                }).toList();
-              }
-
-              return TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildList(
-                    agentCars.where((c) => c.availability == CarAvailability.available).toList(),
-                  ),
-                  _buildList(
-                    agentCars.where((c) => c.availability == CarAvailability.reserved).toList(),
-                  ),
-                  _buildList(
-                    agentCars.where((c) => c.availability == CarAvailability.sold).toList(),
-                  ),
-                ],
-              );
-            },
-          ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -238,34 +241,54 @@ class _AgentInventoryScreenState extends State<AgentInventoryScreen>
 
   Widget _buildList(List<AgentCar> list) {
     if (list.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.directions_car_filled_outlined,
-              size: 48.sp,
-              color: AppColor.hintColor(context),
+      return RefreshIndicator(
+        onRefresh: () async => refresh(),
+        color: AppColor.primaryColor(context),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 0.5.sh,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.directions_car_filled_outlined,
+                    size: 48.sp,
+                    color: AppColor.hintColor(context),
+                  ),
+                  Gap(12.h),
+                  Text(
+                    AppLocaleKey.agentNoDataAvailable.tr(),
+                    style: AppTextStyle.bodyMedium(
+                      context,
+                    ).copyWith(color: AppColor.hintColor(context), fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
             ),
-            Gap(12.h),
-            Text(
-              AppLocaleKey.agentNoDataAvailable.tr(),
-              style: AppTextStyle.bodyMedium(
-                context,
-              ).copyWith(color: AppColor.hintColor(context), fontWeight: FontWeight.w600),
-            ),
-          ],
+          ),
         ),
       );
     }
-    return ListView.builder(
-      padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 40.h),
-      itemCount: list.length,
-      itemBuilder: (_, i) => CarListCard(
-        car: list[i],
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => AgentCarDetailsScreen(car: list[i])),
+    return RefreshIndicator(
+      onRefresh: () async => refresh(),
+      color: AppColor.primaryColor(context),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 40.h),
+        itemCount: list.length,
+        itemBuilder: (_, i) => CarListCard(
+          car: list[i],
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AgentCarDetailsScreen(car: list[i])),
+            );
+            if (mounted) {
+              refresh();
+            }
+          },
         ),
       ),
     );

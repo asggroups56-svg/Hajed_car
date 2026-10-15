@@ -20,12 +20,29 @@ class AgentShell extends StatefulWidget {
 
 class _AgentShellState extends State<AgentShell> {
   int _currentIndex = 0;
+  final GlobalKey<AgentDashboardScreenState> _dashboardKey =
+      GlobalKey<AgentDashboardScreenState>();
+  final GlobalKey<AgentInventoryScreenState> _inventoryKey =
+      GlobalKey<AgentInventoryScreenState>();
+
+  void _onTabTapped(int index) {
+    setState(() => _currentIndex = index);
+    if (index == 0) {
+      _dashboardKey.currentState?.refresh();
+    } else if (index == 2) {
+      _inventoryKey.currentState?.refresh();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
-      const AgentDashboardScreen(),
+      AgentDashboardScreen(key: _dashboardKey),
       const AgentLeadsScreen(),
-      BlocProvider.value(value: sl<AdminCubit>(), child: const AgentInventoryScreen()),
+      BlocProvider.value(
+        value: sl<AdminCubit>(),
+        child: AgentInventoryScreen(key: _inventoryKey),
+      ),
       const AgentExternalQuoteScreen(),
     ];
     final navItems = [
@@ -44,7 +61,7 @@ class _AgentShellState extends State<AgentShell> {
         bottomNavigationBar: BottomNav(
           currentIndex: _currentIndex,
           items: navItems,
-          onTap: (i) => setState(() => _currentIndex = i),
+          onTap: _onTabTapped,
         ),
       ),
     );

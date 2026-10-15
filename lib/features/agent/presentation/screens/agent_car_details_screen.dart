@@ -143,8 +143,8 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                           ),
                         ),
                       ),
-                      onPressed: () {
-                        QuoteBuilderDialog.show(
+                      onPressed: () async {
+                        final success = await QuoteBuilderDialog.show(
                           context,
                           car: widget.car.toCarModel(),
                           existingSpecs: {
@@ -154,6 +154,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                             AppLocaleKey.agentTransmission.tr(): AppLocaleKey.agentAutomatic.tr(),
                           },
                         );
+                        if (success == true && context.mounted) {
+                          Navigator.of(context).pop();
+                        }
                       },
                     ),
                 ],
