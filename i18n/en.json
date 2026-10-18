@@ -1104,7 +1104,7 @@
   "agent_monthly": "Monthly",
   "agent_yearly": "SAR",
   "agent_estimate_price": "This is an estimated price and does not include comprehensive insurance",
-  "agent_estimate_price_desc": "Total financing value without down payment",
+  "agent_estimate_price_desc": "Estimated final total cost including fees and profit",
   "agent_years": "Financing duration in years",
   "agent_first_payment": "Down Payment",
   "agent_first_payment_desc": "Down payment should not exceed",

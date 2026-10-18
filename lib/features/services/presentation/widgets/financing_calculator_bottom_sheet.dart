@@ -1,11 +1,11 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/buttons/custom_button.dart';
 import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
-import 'package:car/core/cache/hive/hive_methods.dart';
-import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/services/presentation/widgets/custom_monthly_installment_card_widget.dart';
@@ -27,6 +27,7 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
   final double? firstInstallmentPct;
   final double? lastInstallmentPct;
   final double? adminFeesPct;
+  final double govFees;
   final List<FinancingAdModel> offers;
   final FinancingAdModel? initialOffer;
 
@@ -42,17 +43,16 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
     this.firstInstallmentPct,
     this.lastInstallmentPct,
     this.adminFeesPct,
+    this.govFees = 650,
     this.offers = const [],
     this.initialOffer,
   });
 
   @override
-  State<FinancingCalculatorBottomSheet> createState() =>
-      _FinancingCalculatorBottomSheetState();
+  State<FinancingCalculatorBottomSheet> createState() => _FinancingCalculatorBottomSheetState();
 }
 
-class _FinancingCalculatorBottomSheetState
-    extends State<FinancingCalculatorBottomSheet> {
+class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBottomSheet> {
   late int _durationYears;
   late double _downPayment;
   late double _lastPayment;
@@ -63,11 +63,7 @@ class _FinancingCalculatorBottomSheetState
   List<FinancingAdModel> get _availableOffers {
     if (widget.offers.isNotEmpty) return widget.offers;
     try {
-      final cubitOffers = context
-          .read<HomeCubit>()
-          .state
-          .normalFinancingStatus
-          .data;
+      final cubitOffers = context.read<HomeCubit>().state.normalFinancingStatus.data;
       if (cubitOffers != null && cubitOffers.isNotEmpty) return cubitOffers;
     } catch (_) {}
     return const [];
@@ -75,8 +71,7 @@ class _FinancingCalculatorBottomSheetState
 
   static const double _defaultApr = 4.5;
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.initialOffer;
-  double get _apr =>
-      _activeOffer?.interestRate ?? widget.interestRate ?? _defaultApr;
+  double get _apr => _activeOffer?.interestRate ?? widget.interestRate ?? _defaultApr;
 
   static String _formatAmount(double val) {
     if (val == val.roundToDouble()) {
@@ -92,12 +87,8 @@ class _FinancingCalculatorBottomSheetState
     _durationYears = widget.initialDuration;
     _downPayment = widget.initialDownPayment;
     _lastPayment = widget.initialLastPayment;
-    _downPaymentCtrl = TextEditingController(
-      text: _formatAmount(_downPayment),
-    );
-    _lastPaymentCtrl = TextEditingController(
-      text: _formatAmount(_lastPayment),
-    );
+    _downPaymentCtrl = TextEditingController(text: _formatAmount(_downPayment));
+    _lastPaymentCtrl = TextEditingController(text: _formatAmount(_lastPayment));
   }
 
   @override
@@ -107,8 +98,7 @@ class _FinancingCalculatorBottomSheetState
     super.dispose();
   }
 
-  double get _insurancePercent =>
-      double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
+  double get _insurancePercent => double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
 
   double get _financedAmount {
     final financed = widget.carPrice - _downPayment;
@@ -127,13 +117,13 @@ class _FinancingCalculatorBottomSheetState
     return _financedAmount + _totalInterest + _totalInsurance;
   }
 
-  double get _totalPrice =>
-      widget.carPrice + _totalInterest + _totalInsurance + _adminFees;
+  double get _govFees => widget.govFees;
 
-  double get _adminFees => widget.isOffer
-      ? widget.carPrice *
-            ((_activeOffer?.adminFeesPct ?? widget.adminFeesPct ?? 0) / 100)
-      : 0;
+  double get _adminFees =>
+      _financedAmount * ((_activeOffer?.adminFeesPct ?? widget.adminFeesPct ?? 0) / 100);
+
+  double get _totalPrice =>
+      widget.carPrice + _totalInterest + _totalInsurance + _adminFees + _govFees;
 
   void _selectOffer(FinancingAdModel offer) {
     setState(() {
@@ -153,17 +143,11 @@ class _FinancingCalculatorBottomSheetState
 
   double get _maxDownPayment => widget.isOffer
       ? widget.carPrice *
-            ((_activeOffer?.firstInstallmentPct ??
-                    widget.firstInstallmentPct ??
-                    0) /
-                100)
+            ((_activeOffer?.firstInstallmentPct ?? widget.firstInstallmentPct ?? 0) / 100)
       : widget.carPrice * 0.35;
   double get _maxLastPayment => widget.isOffer
       ? widget.carPrice *
-            ((_activeOffer?.lastInstallmentPct ??
-                    widget.lastInstallmentPct ??
-                    0) /
-                100)
+            ((_activeOffer?.lastInstallmentPct ?? widget.lastInstallmentPct ?? 0) / 100)
       : widget.carPrice * 0.45;
 
   @override
@@ -203,11 +187,7 @@ class _FinancingCalculatorBottomSheetState
                       color: AppColor.borderColor(context),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.close,
-                      size: 16.sp,
-                      color: AppColor.blackTextColor(context),
-                    ),
+                    child: Icon(Icons.close, size: 16.sp, color: AppColor.blackTextColor(context)),
                   ),
                 ),
 
@@ -261,31 +241,23 @@ class _FinancingCalculatorBottomSheetState
                             itemBuilder: (context, index) {
                               final offer = offersList[index];
                               final isSelected =
-                                  identical(_activeOffer, offer) ||
-                                  _selectedOffer == offer;
+                                  identical(_activeOffer, offer) || _selectedOffer == offer;
                               final bankTitle = offer.bankName ?? 'البنك';
 
                               return GestureDetector(
                                 onTap: () => _selectOffer(offer),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 250),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 14.w,
-                                    vertical: 8.h,
-                                  ),
+                                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? AppColor.primaryColor(
-                                            context,
-                                          ).withValues(alpha: 0.12)
+                                        ? AppColor.primaryColor(context).withValues(alpha: 0.12)
                                         : AppColor.cardColor(context),
                                     borderRadius: BorderRadius.circular(14.r),
                                     border: Border.all(
                                       color: isSelected
                                           ? AppColor.primaryColor(context)
-                                          : AppColor.borderColor(
-                                              context,
-                                            ).withValues(alpha: 0.6),
+                                          : AppColor.borderColor(context).withValues(alpha: 0.6),
                                       width: isSelected ? 1.8 : 1.0,
                                     ),
                                     boxShadow: isSelected
@@ -300,9 +272,7 @@ class _FinancingCalculatorBottomSheetState
                                           ]
                                         : [
                                             BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.02,
-                                              ),
+                                              color: Colors.black.withValues(alpha: 0.02),
                                               blurRadius: 4,
                                               offset: const Offset(0, 2),
                                             ),
@@ -315,9 +285,7 @@ class _FinancingCalculatorBottomSheetState
                                         Container(
                                           padding: EdgeInsets.all(2.w),
                                           decoration: BoxDecoration(
-                                            color: AppColor.primaryColor(
-                                              context,
-                                            ),
+                                            color: AppColor.primaryColor(context),
                                             shape: BoxShape.circle,
                                           ),
                                           child: Icon(
@@ -330,25 +298,17 @@ class _FinancingCalculatorBottomSheetState
                                       ],
                                       Text(
                                         bankTitle,
-                                        style: AppTextStyle.bodyMedium(context)
-                                            .copyWith(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w900
-                                                  : FontWeight.w700,
-                                              color: isSelected
-                                                  ? AppColor.primaryColor(
-                                                      context,
-                                                    )
-                                                  : AppColor.blackTextColor(
-                                                      context,
-                                                    ),
-                                              fontSize: 13.sp,
-                                            ),
+                                        style: AppTextStyle.bodyMedium(context).copyWith(
+                                          fontWeight: isSelected
+                                              ? FontWeight.w900
+                                              : FontWeight.w700,
+                                          color: isSelected
+                                              ? AppColor.primaryColor(context)
+                                              : AppColor.blackTextColor(context),
+                                          fontSize: 13.sp,
+                                        ),
                                       ),
-                                      if (offer
-                                              .displayBankImageUrl
-                                              ?.isNotEmpty ==
-                                          true) ...[
+                                      if (offer.displayBankImageUrl?.isNotEmpty == true) ...[
                                         Gap(10.w),
                                         Container(
                                           width: 30.w,
@@ -366,18 +326,14 @@ class _FinancingCalculatorBottomSheetState
                                           ),
                                           padding: EdgeInsets.all(2.w),
                                           child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              15.r,
-                                            ),
+                                            borderRadius: BorderRadius.circular(15.r),
                                             child: Image.network(
                                               offer.displayBankImageUrl!,
                                               fit: BoxFit.cover,
                                               errorBuilder: (_, __, ___) => Icon(
                                                 Icons.account_balance_rounded,
                                                 size: 14.sp,
-                                                color: AppColor.primaryColor(
-                                                  context,
-                                                ),
+                                                color: AppColor.primaryColor(context),
                                               ),
                                             ),
                                           ),
@@ -393,19 +349,12 @@ class _FinancingCalculatorBottomSheetState
                         Gap(10.h),
                         // Institution disclaimer
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 8.h,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
                           decoration: BoxDecoration(
-                            color: AppColor.greyColor(
-                              context,
-                            ).withValues(alpha: 0.07),
+                            color: AppColor.greyColor(context).withValues(alpha: 0.07),
                             borderRadius: BorderRadius.circular(8.r),
                             border: Border.all(
-                              color: AppColor.greyColor(
-                                context,
-                              ).withValues(alpha: 0.18),
+                              color: AppColor.greyColor(context).withValues(alpha: 0.18),
                             ),
                           ),
                           child: Row(
@@ -422,12 +371,11 @@ class _FinancingCalculatorBottomSheetState
                                   context.locale.languageCode == 'ar'
                                       ? 'تُستخدم أسماء الجهات الظاهرة لأغراض الحساب فقط، ولا تمثل عرضًا تمويليًا أو توصية أو مقارنة بين الجهات التمويلية.'
                                       : 'Institution names are displayed for calculation reference only and do not constitute a financing offer, recommendation, or comparison between financial institutions.',
-                                  style: AppTextStyle.bodySmall(context)
-                                      .copyWith(
-                                        color: AppColor.greyColor(context),
-                                        fontSize: 9.5.sp,
-                                        height: 1.55,
-                                      ),
+                                  style: AppTextStyle.bodySmall(context).copyWith(
+                                    color: AppColor.greyColor(context),
+                                    fontSize: 9.5.sp,
+                                    height: 1.55,
+                                  ),
                                   textAlign: context.locale.languageCode == 'ar'
                                       ? TextAlign.right
                                       : TextAlign.left,
@@ -491,13 +439,12 @@ class _FinancingCalculatorBottomSheetState
                               children: [
                                 Text(
                                   '$year',
-                                  style: AppTextStyle.bodyLarge(context)
-                                      .copyWith(
-                                        color: isSelected
-                                            ? AppColor.whiteColor(context)
-                                            : AppColor.blackTextColor(context),
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                  style: AppTextStyle.bodyLarge(context).copyWith(
+                                    color: isSelected
+                                        ? AppColor.whiteColor(context)
+                                        : AppColor.blackTextColor(context),
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
                                 Text(
                                   year == 1
@@ -505,13 +452,12 @@ class _FinancingCalculatorBottomSheetState
                                       : year == 2
                                       ? 'سنتين'
                                       : 'سنوات',
-                                  style: AppTextStyle.bodySmall(context)
-                                      .copyWith(
-                                        color: isSelected
-                                            ? AppColor.whiteColor(context)
-                                            : AppColor.greyColor(context),
-                                        fontSize: 10.sp,
-                                      ),
+                                  style: AppTextStyle.bodySmall(context).copyWith(
+                                    color: isSelected
+                                        ? AppColor.whiteColor(context)
+                                        : AppColor.greyColor(context),
+                                    fontSize: 10.sp,
+                                  ),
                                 ),
                               ],
                             ),
@@ -530,14 +476,8 @@ class _FinancingCalculatorBottomSheetState
                         // allowing the customer to see the installment for a different
                         // first-payment amount.
                         readOnly: false,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d*'),
-                          ),
-                        ],
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
                         hintText: '0.0',
                         onChanged: (v) {
                           setState(() {
@@ -564,10 +504,9 @@ class _FinancingCalculatorBottomSheetState
                     child: ValueWithCurrencyIcon(
                       text:
                           '${AppLocaleKey.agentFirstPayment.tr()}:${fmt.format(_maxDownPayment.round())} ${AppLocaleKey.sar.tr()}',
-                      textStyle: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.greyColor(context),
-                        fontSize: 11.sp,
-                      ),
+                      textStyle: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
                     ),
                   ),
                   Gap(20.h),
@@ -575,12 +514,8 @@ class _FinancingCalculatorBottomSheetState
                     title: AppLocaleKey.agentLastPayment.tr(),
                     controller: _lastPaymentCtrl,
                     readOnly: false,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
-                    ],
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
                     hintText: '0.0',
                     suffixIcon: Padding(
                       padding: const EdgeInsets.only(top: 8.0),
@@ -605,10 +540,9 @@ class _FinancingCalculatorBottomSheetState
                     child: ValueWithCurrencyIcon(
                       text:
                           '${AppLocaleKey.agentLastPaymentDesc.tr()} : ${fmt.format(_maxLastPayment.round())} ${AppLocaleKey.sar.tr()}',
-                      textStyle: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.greyColor(context),
-                        fontSize: 11.sp,
-                      ),
+                      textStyle: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
                     ),
                   ),
                   Gap(24.h),
@@ -631,10 +565,9 @@ class _FinancingCalculatorBottomSheetState
 
                     child: Text(
                       AppLocaleKey.agentBuyNow.tr(),
-                      style: AppTextStyle.bodyMedium(context).copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColor.whiteColor(context),
-                      ),
+                      style: AppTextStyle.bodyMedium(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700, color: AppColor.whiteColor(context)),
                     ),
                   ),
                   Gap(8.h),

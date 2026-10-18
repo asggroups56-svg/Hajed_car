@@ -1111,7 +1111,7 @@
   "agent_monthly": "شهريًا",
   "agent_yearly": "﷼",
   "agent_estimate_price": "هذا السعر التقديري ولا يتضمن التأمين الشامل للسيارة",
-  "agent_estimate_price_desc": "عبارة عن إجمالي قيمة التمويل بدون دفعة أولى",
+  "agent_estimate_price_desc": "عبارة عن إجمالي التكلفة التقديرية شاملة الرسوم والأرباح",
   "agent_years": "مدة التمويل بالسنوات",
   "agent_first_payment": "الدفعة الأولى",
   "agent_first_payment_desc": "الدفعة الأولى يجب أن لا تزيد عن",

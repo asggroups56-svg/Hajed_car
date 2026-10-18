@@ -213,6 +213,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
             firstInstallmentPct: _activeOffer?.firstInstallmentPct,
             lastInstallmentPct: _activeOffer?.lastInstallmentPct,
             adminFeesPct: _activeOffer?.adminFeesPct,
+            govFees: 650.0,
             offers: widget.offers,
             initialOffer: _activeOffer,
           ),
