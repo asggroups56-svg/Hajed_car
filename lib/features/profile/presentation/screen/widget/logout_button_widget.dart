@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -134,13 +135,22 @@ class LogoutButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = HiveMethods.isGuest();
+    final actionColor = isGuest ? AppColor.primaryColor(context) : AppColor.redColor(context);
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => _showLogoutDialog(context),
+        onPressed: () {
+          if (isGuest) {
+            Navigator.pushNamed(context, RoutesName.loginScreen);
+          } else {
+            _showLogoutDialog(context);
+          }
+        },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.redColor(context).withValues(alpha: 0.1),
-          foregroundColor: AppColor.redColor(context),
+          backgroundColor: actionColor.withValues(alpha: 0.1),
+          foregroundColor: actionColor,
           elevation: 0,
           padding: EdgeInsets.symmetric(vertical: 16.h),
           shape: RoundedRectangleBorder(
@@ -150,10 +160,10 @@ class LogoutButtonWidget extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.logout_rounded, size: 20.sp),
+            Icon(isGuest ? Icons.login_rounded : Icons.logout_rounded, size: 20.sp),
             Gap(10.w),
             Text(
-              AppLocaleKey.logout.tr(),
+              isGuest ? AppLocaleKey.login.tr() : AppLocaleKey.logout.tr(),
               style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
             ),
           ],
