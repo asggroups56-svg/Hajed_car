@@ -33,10 +33,7 @@ import 'package:gap/gap.dart';
 class QuoteBuilderDialog extends StatefulWidget {
   final CarModel car;
   final Map<String, String> existingSpecs;
-
-  /// Callback يُستدعى عند النجاح — يُستخدم لإغلاق الـ sheet من الخارج
   final void Function(String successMsg) onSuccess;
-
   const QuoteBuilderDialog({
     super.key,
     required this.car,
@@ -170,6 +167,9 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
   void initState() {
     super.initState();
     _priceController = TextEditingController(text: widget.car.costPrice?.toStringAsFixed(0) ?? '0');
+    if (widget.car.paintingsVal != null && widget.car.paintingsVal! > 0) {
+      _platePriceController.text = widget.car.paintingsVal!.toStringAsFixed(0);
+    }
     _begDate = DateTime.now();
     _begDateController.text = _today;
     _endDate = DateTime.now().add(const Duration(days: 2));

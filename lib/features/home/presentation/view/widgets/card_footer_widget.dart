@@ -138,16 +138,23 @@ class CardFooter extends StatelessWidget {
     // حساب السعر شامل الضريبة
     String priceWithVatText = '0';
     if (hasPrice) {
+      final double paintingsVal = (car['PaintingsVal'] as num?)?.toDouble() ??
+          (car['PAINTINGS_VAL'] as num?)?.toDouble() ??
+          (car['paintingsVal'] as num?)?.toDouble() ??
+          double.tryParse(car['PaintingsVal']?.toString() ?? '') ??
+          double.tryParse(car['PAINTINGS_VAL']?.toString() ?? '') ??
+          double.tryParse(car['paintingsVal']?.toString() ?? '') ??
+          0.0;
       final isAlreadyFormatted = priceRaw.contains(',');
       final cleanPrice = priceRaw.replaceAll(RegExp(r'[^0-9.]'), '');
       final double originalPrice = double.tryParse(cleanPrice) ?? 0;
+      final formatter = NumberFormat('#,##0', 'en_US');
       if (isAlreadyFormatted) {
-        final formatter = NumberFormat('#,##0', 'en_US');
-        priceWithVatText = formatter.format(originalPrice);
+        priceWithVatText = formatter.format(originalPrice + paintingsVal);
       } else {
         final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
-        final formatter = NumberFormat('#,##0', 'en_US');
-        priceWithVatText = formatter.format(priceWithVat);
+        final double totalCashPrice = priceWithVat + paintingsVal;
+        priceWithVatText = formatter.format(totalCashPrice);
       }
     }
 

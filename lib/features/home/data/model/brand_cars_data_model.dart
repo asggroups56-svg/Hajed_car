@@ -53,6 +53,7 @@ class GetBrandCarsDataModel extends Equatable {
   final List<String> extraImages;
   final String? carImage;
   final num? SALE_PRICE;
+  final double? paintingsVal;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -122,6 +123,7 @@ class GetBrandCarsDataModel extends Equatable {
     this.customerName,
     this.reservedName,
     this.SALE_PRICE,
+    this.paintingsVal,
   });
 
   final String? customerName;
@@ -156,15 +158,18 @@ class GetBrandCarsDataModel extends Equatable {
     if (originalPrice <= 0) return '---';
 
     final formatter = NumberFormat('#,##0', 'en_US');
+    // Always add paintingsVal regardless of whether price is pre-formatted or not
+    final double plates = paintingsVal ?? 0;
     if (isAlreadyFormatted) {
-      return formatter.format(originalPrice);
+      // Price already includes VAT — just add paintings/plates value
+      return formatter.format(originalPrice + plates);
     }
 
     final vatNumber = HiveMethods.getVatNumber();
     final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
     final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
-
-    return formatter.format(priceWithVat);
+    // Cash price = price + VAT + plates/paintings value
+    return formatter.format(priceWithVat + plates);
   }
 
   Map<String, dynamic> toMap() {
@@ -235,6 +240,9 @@ class GetBrandCarsDataModel extends Equatable {
       'isTamaraAvailable': isTamaraAvailable,
       'video_id': videoId,
       "SALE_PRICE": SALE_PRICE,
+      'PaintingsVal': paintingsVal,
+      'PAINTINGS_VAL': paintingsVal,
+      'paintingsVal': paintingsVal,
     };
   }
 
@@ -321,6 +329,7 @@ class GetBrandCarsDataModel extends Equatable {
       customerName: customerName ?? other.customerName,
       reservedName: reservedName ?? other.reservedName,
       SALE_PRICE: SALE_PRICE != 0 ? SALE_PRICE : other.SALE_PRICE,
+      paintingsVal: paintingsVal ?? other.paintingsVal,
     );
   }
 
@@ -392,6 +401,7 @@ class GetBrandCarsDataModel extends Equatable {
       customerName: customerName,
       reservedName: reservedName,
       SALE_PRICE: SALE_PRICE,
+      paintingsVal: paintingsVal,
     );
   }
 
@@ -501,6 +511,10 @@ class GetBrandCarsDataModel extends Equatable {
       cashPrice: getString('cashPrice'),
       monthlyInstallment: getDouble('monthlyInstallment', 'MonthlyInstallment', 'installmentPrice'),
       interestRate: getDouble('interestRate', 'InterestRate'),
+      paintingsVal: (json['PaintingsVal'] as num?)?.toDouble() ??
+          (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
+          (json['paintingsVal'] as num?)?.toDouble() ??
+          getDouble('PaintingsVal', 'PAINTINGS_VAL', 'paintingsVal'),
       customerName:
           json['CUSTOMER_NAME']?.toString() ??
           json['customerName']?.toString() ??
@@ -618,6 +632,7 @@ class GetBrandCarsDataModel extends Equatable {
     isFavorite,
     isTamaraAvailable,
     videoId,
+    paintingsVal,
   ];
 
   CarModel toCarModel() {
@@ -636,6 +651,7 @@ class GetBrandCarsDataModel extends Equatable {
       costPrice: price != null ? double.tryParse(price!.replaceAll(RegExp(r'[^0-9.]'), '')) : null,
       colorCode: colorCode,
       mobileShow: mobileShow,
+      paintingsVal: paintingsVal,
     );
   }
 }

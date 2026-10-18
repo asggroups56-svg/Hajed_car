@@ -107,6 +107,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
       color: car.bodyColor ?? '',
       customerName: car.customerName,
       reservedName: car.reservedName,
+      paintingsVal: car.paintingsVal,
     );
   }
 

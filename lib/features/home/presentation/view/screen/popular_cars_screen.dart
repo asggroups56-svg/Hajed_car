@@ -104,6 +104,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'MAKE_YEAR': car.makeYear,
       'GR_NAME': car.grName,
       'GROUP_NAME': car.groupName,
+      'PaintingsVal': car.paintingsVal,
+      'PAINTINGS_VAL': car.paintingsVal,
+      'paintingsVal': car.paintingsVal,
     };
   }
 

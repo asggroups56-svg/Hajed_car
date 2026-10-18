@@ -49,6 +49,7 @@ class FinancingAdModel extends Equatable {
   final String? carImage;
   final String? displayBankName;
   final String? InsurancePct;
+  final double? paintingsVal;
 
   const FinancingAdModel({
     this.programId,
@@ -94,6 +95,7 @@ class FinancingAdModel extends Equatable {
     this.carImage,
     this.displayBankName,
     this.InsurancePct,
+    this.paintingsVal,
   });
 
   static double? _toDouble(dynamic value) {
@@ -153,6 +155,10 @@ class FinancingAdModel extends Equatable {
       carImage: json['carimage']?.toString(),
       displayBankName: json['BANK_NAME']?.toString(),
       InsurancePct: (json['InsurancePct'] as num?)?.toString(),
+      paintingsVal: (json['PaintingsVal'] as num?)?.toDouble() ??
+          (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
+          (json['paintingsVal'] as num?)?.toDouble() ??
+          _toDouble(json['PaintingsVal'] ?? json['PAINTINGS_VAL'] ?? json['paintingsVal']),
     );
   }
 
@@ -294,6 +300,7 @@ class FinancingAdModel extends Equatable {
       color: color ?? bodyColor ?? '',
       extraImages: images,
       carImage: images.isNotEmpty ? images.first : null,
+      paintingsVal: paintingsVal,
     );
   }
 
@@ -317,6 +324,9 @@ class FinancingAdModel extends Equatable {
       'engine': cylinder != null ? '$cylinder Cyl' : 'V4',
       'video_id': 'D7O8J5vVf-M',
       'isFavorite': false,
+      'PaintingsVal': paintingsVal,
+      'PAINTINGS_VAL': paintingsVal,
+      'paintingsVal': paintingsVal,
       'carStatus': carStatus ?? 1,
       'carStatusText': '',
       'CHASSIS_NO': chassisNo ?? '',

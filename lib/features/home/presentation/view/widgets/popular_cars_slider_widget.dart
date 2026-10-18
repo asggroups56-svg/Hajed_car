@@ -143,6 +143,9 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       // from a map without it turns the colour code into 0.
       'COLOR_CODE': car.colorCode,
       'colorcode': car.colorCode,
+      'PaintingsVal': car.paintingsVal,
+      'PAINTINGS_VAL': car.paintingsVal,
+      'paintingsVal': car.paintingsVal,
     };
   }
 

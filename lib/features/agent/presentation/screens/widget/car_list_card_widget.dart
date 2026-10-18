@@ -22,7 +22,8 @@ class CarListCard extends StatelessWidget {
     final double basePrice = car.price;
     final double vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double priceWithVat = basePrice * (1 + vatPercentage / 100);
+    final double priceWithVat =
+        basePrice * (1 + vatPercentage / 100) + (car.paintingsVal ?? 0.0);
     return GestureDetector(
       onTap: onTap,
       child: Card(

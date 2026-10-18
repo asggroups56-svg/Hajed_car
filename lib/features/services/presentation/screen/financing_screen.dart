@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:car/core/cache/hive/hive_methods.dart';
-import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -69,12 +68,13 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   final _employerCtrl = TextEditingController();
   final _jobTitleCtrl = TextEditingController();
   final _salaryCtrl = TextEditingController();
+  final _bankCtrl = TextEditingController();
   String _employmentType = 'private';
 
   // Documents
   Map<String, File?> _uploadedFiles = {};
 
-  bool _isCalculatorCompleted = false;
+  bool _hasReviewedCalculator = false;
 
   // OTP state
   String _phoneNumber = '';
@@ -117,7 +117,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   double get _monthlyInstallment {
     final total = _totalFinancedWithInterest;
     if (total <= 0 || _durationYears <= 0) return 0;
-    return (total - _lastPayment) / (_durationYears * 12);
+    final remaining = total - _lastPayment;
+    return remaining > 0 ? (remaining / (_durationYears * 12)) : 0;
   }
 
   @override
@@ -148,7 +149,17 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _lastPayment =
         widget.initialLastPayment ?? (_carPrice * ((_activeOffer?.lastInstallmentPct ?? 0) / 100));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _showCalculatorSheet(isInitial: true));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final homeCubit = context.read<HomeCubit>();
+      if (homeCubit.state.banksStatus.data == null ||
+          homeCubit.state.banksStatus.data!.isEmpty) {
+        homeCubit.getBanks();
+      }
+      if (homeCubit.state.normalFinancingStatus.data == null ||
+          homeCubit.state.normalFinancingStatus.data!.isEmpty) {
+        homeCubit.getNormalFinancing();
+      }
+    });
   }
 
   @override
@@ -160,6 +171,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _employerCtrl.dispose();
     _jobTitleCtrl.dispose();
     _salaryCtrl.dispose();
+    _bankCtrl.dispose();
     super.dispose();
   }
 
@@ -173,17 +185,17 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         initialChildSize: 0.85,
         maxChildSize: 0.95,
         minChildSize: 0.5,
-        builder: (_, __) => const FinancingRequirementsBottomSheet(),
+        builder: (ctx, scrollController) => const FinancingRequirementsBottomSheet(),
       ),
     );
   }
 
-  Future<void> _showCalculatorSheet({bool isInitial = false}) async {
+  Future<bool> _showCalculatorSheet() async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      isDismissible: !isInitial,
-      enableDrag: !isInitial,
+      isDismissible: true,
+      enableDrag: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -192,7 +204,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
           initialChildSize: 0.92,
           maxChildSize: 0.97,
           minChildSize: 0.5,
-          builder: (_, __) => FinancingCalculatorBottomSheet(
+          builder: (ctx, scrollController) => FinancingCalculatorBottomSheet(
             carPrice: _carPrice,
             initialDownPayment: _downPayment,
             initialLastPayment: _lastPayment,
@@ -210,21 +222,21 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       ),
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     if (result != null) {
       setState(() {
-        _isCalculatorCompleted = true;
+        _hasReviewedCalculator = true;
         _durationYears = result['duration'] ?? _durationYears;
-        _downPayment = result['down'] ?? _downPayment;
-        _lastPayment = result['last'] ?? _lastPayment;
+        _downPayment = (result['down'] as num?)?.toDouble() ?? _downPayment;
+        _lastPayment = (result['last'] as num?)?.toDouble() ?? _lastPayment;
         if (result['offer'] is FinancingAdModel) {
           _selectedOffer = result['offer'];
         }
       });
-    } else if (isInitial) {
-      Navigator.pop(context);
+      return true;
     }
+    return false;
   }
 
   Future<void> _onNextStep() async {
@@ -236,7 +248,16 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       context.read<HomeCubit>().sendOtp(SendOtpModel(mobileNumber: _phoneNumber));
     } else if (current == 1) {
       if (!(_formKey2.currentState?.validate() ?? false)) return;
-      if (current < 2) _tabController.animateTo(current + 1);
+      if (!_hasReviewedCalculator) {
+        final confirmed = await _showCalculatorSheet();
+        if (confirmed && current < 2) {
+          _tabController.animateTo(current + 1);
+        } else if (!confirmed) {
+          _showSnack(AppLocaleKey.pleaseConfirmFinancing.tr());
+        }
+      } else {
+        if (current < 2) _tabController.animateTo(current + 1);
+      }
     } else if (current == 2) {
       final requiredDocs = FinancingDocumentsTab.requiredDocuments;
       final missingDocs = requiredDocs.where((doc) => _uploadedFiles[doc] == null).toList();
@@ -286,11 +307,17 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       return;
     }
 
+    final bank = _bankCtrl.text.trim();
+    final baseProgramName =
+        _activeOffer?.programName ?? _activeOffer?.displayBankName ?? 'Auto Finance Premium';
+    final programNameWithBank = bank.isNotEmpty
+        ? '$baseProgramName | البنك المحول له: $bank'
+        : baseProgramName;
+
     final model = AddLoanApplicationModel(
       applicationId: 0,
       programId: _activeOffer?.programId ?? 2,
-      programName:
-          _activeOffer?.programName ?? _activeOffer?.displayBankName ?? 'Auto Finance Premium',
+      programName: programNameWithBank,
       customerNo: customerNoVal,
       idNo: _idCtrl.text.trim(),
       // areaNo: _selectedCity,
@@ -398,6 +425,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
             } else if (status.isSuccess && status.data != null) {
               setState(() => _isSubmittingLoan = false);
               final phone = _phoneCtrl.text.trim();
+              final bank = _bankCtrl.text.trim();
               final textMsg =
                   'طلب تمويل جديد: ${_activeOffer?.programName ?? _activeOffer?.displayBankName ?? "برنامج التمويل"}\n'
                   'السيارة: ${widget.car?.itemName ?? "غير محدد"}\n'
@@ -412,7 +440,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                   'رقم التواصل: $phone\n'
                   'جهة العمل: ${_employerCtrl.text.trim()}\n'
                   'المسمى الوظيفي: ${_jobTitleCtrl.text.trim()}\n'
-                  'الراتب الشهري: ${_salaryCtrl.text.trim()} ر.س';
+                  'الراتب الشهري: ${_salaryCtrl.text.trim()} ر.س\n'
+                  'البنك المحول له: ${bank.isNotEmpty ? bank : "غير محدد"}';
 
               context.read<HomeCubit>().sendWhatsApp(
                 SendWhatsAppModel(toNumber: phone, text: textMsg),
@@ -434,19 +463,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   }
 
   Widget _buildScaffold(BuildContext context) {
-    if (!_isCalculatorCompleted) {
-      return Scaffold(
-        backgroundColor: AppColor.scaffoldColor(context),
-        appBar: CustomAppBar(
-          automaticallyImplyLeading: false,
-          context,
-          elevation: 0,
-          leading: const SizedBox.shrink(),
-        ),
-        body: const SizedBox.shrink(),
-      );
-    }
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -468,7 +484,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                 downPayment: _downPayment,
                 lastPayment: _lastPayment,
                 bankName: _activeOffer?.displayBankName,
-                onEditCalculator: _showCalculatorSheet,
+                onEditCalculator: () => _showCalculatorSheet(),
                 onShowRequirements: _showRequirementsSheet,
                 onPhoneChanged: (phone) => _phoneNumber = phone,
                 fullNameCtrl: _fullNameCtrl,
@@ -479,10 +495,11 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
               ),
               FinancingWorkInfoTab(
                 formKey: _formKey2,
-                onShowCalculator: _showCalculatorSheet,
+                onShowCalculator: () => _showCalculatorSheet(),
                 employerCtrl: _employerCtrl,
                 jobTitleCtrl: _jobTitleCtrl,
                 salaryCtrl: _salaryCtrl,
+                bankCtrl: _bankCtrl,
                 employmentType: _employmentType,
                 onEmploymentTypeChanged: (t) => setState(() => _employmentType = t ?? 'private'),
               ),

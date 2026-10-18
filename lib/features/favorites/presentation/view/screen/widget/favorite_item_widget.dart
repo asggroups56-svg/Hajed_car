@@ -35,9 +35,17 @@ class FavoriteItemWidget extends StatelessWidget {
     }
 
     final double priceWithVat = originalPrice * ((vatPercentage / 100)) + originalPrice;
+    final double paintingsVal = (carData['PaintingsVal'] as num?)?.toDouble() ??
+        (carData['PAINTINGS_VAL'] as num?)?.toDouble() ??
+        (carData['paintingsVal'] as num?)?.toDouble() ??
+        double.tryParse(carData['PaintingsVal']?.toString() ?? '') ??
+        double.tryParse(carData['PAINTINGS_VAL']?.toString() ?? '') ??
+        double.tryParse(carData['paintingsVal']?.toString() ?? '') ??
+        0.0;
+    final double totalCashPrice = priceWithVat + paintingsVal;
 
     final formatter = NumberFormat('#,##0', 'en_US');
-    return formatter.format(priceWithVat);
+    return formatter.format(totalCashPrice);
   }
 
   String _getVatPercentageText(Map<String, dynamic> carData) {

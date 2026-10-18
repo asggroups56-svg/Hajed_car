@@ -27,25 +27,32 @@ class CardContentSection extends StatelessWidget {
     if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
       return '---';
     }
+    final double paintingsVal = (car['PaintingsVal'] as num?)?.toDouble() ??
+        (car['PAINTINGS_VAL'] as num?)?.toDouble() ??
+        (car['paintingsVal'] as num?)?.toDouble() ??
+        double.tryParse(car['PaintingsVal']?.toString() ?? '') ??
+        double.tryParse(car['PAINTINGS_VAL']?.toString() ?? '') ??
+        double.tryParse(car['paintingsVal']?.toString() ?? '') ??
+        0.0;
+
     // If price already contains commas (already formatted from formattedPriceWithVat),
-    // strip commas and return formatted without re-applying VAT
+    // strip commas and return formatted adding paintingsVal
     final isAlreadyFormatted = rawPrice.contains(',');
     final numericStr = rawPrice.replaceAll(RegExp(r'[^0-9.]'), '');
     final double parsedPrice = double.tryParse(numericStr) ?? 0;
     if (parsedPrice <= 0) return rawPrice;
 
+    final formatter = NumberFormat('#,##0', 'en_US');
     if (isAlreadyFormatted) {
-      // Price already includes VAT, just re-format to remove decimals
-      final formatter = NumberFormat('#,##0', 'en_US');
-      return formatter.format(parsedPrice);
+      return formatter.format(parsedPrice + paintingsVal);
     }
 
-    // Raw price without VAT - add VAT
+    // Raw price without VAT - add VAT + paintings/plates value
     final vatNumber = HiveMethods.getVatNumber();
     final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
     final double priceWithVat = parsedPrice * (1 + (vatPercentage / 100));
-    final formatter = NumberFormat('#,##0', 'en_US');
-    return formatter.format(priceWithVat);
+    final double totalCashPrice = priceWithVat + paintingsVal;
+    return formatter.format(totalCashPrice);
   }
 
   List<Color> _parseCarColors(BuildContext context, String colorName) {

@@ -378,7 +378,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     child: SizedBox(
                       width: 70.w,
                       height: 70.w,
-                      child: CustomLoading(size: 70.r, color: AppColor.primaryColor(context)),
+                      child: CustomLoading(size: 70.r),
                     ),
                   ),
                 ),
@@ -390,9 +390,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 right: 16.w,
                 child: FadeTransition(
                   opacity: _subTitleFade,
-                  child: const Center(
-                    child: CopyrightWidget(),
-                  ),
+                  child: const Center(child: CopyrightWidget()),
                 ),
               ),
             ],

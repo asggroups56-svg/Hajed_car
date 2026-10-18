@@ -115,6 +115,7 @@ class AgentCar {
   final String reservedName;
   final String groupCode;
   final String? colorCode;
+  final double? paintingsVal;
 
   const AgentCar({
     required this.id,
@@ -135,6 +136,7 @@ class AgentCar {
     this.customerName = '',
     this.reservedName = '',
     this.colorCode,
+    this.paintingsVal,
   });
 
   GetBrandCarsDataModel toBrandCar() {
@@ -172,6 +174,7 @@ class AgentCar {
       mobileShow: true,
       carImage: imageUrl,
       color: color,
+      paintingsVal: paintingsVal,
     );
   }
 
@@ -191,6 +194,7 @@ class AgentCar {
       costPrice: price,
       colorCode: int.tryParse(colorCode ?? '') ?? 0,
       mobileShow: true,
+      paintingsVal: paintingsVal,
     );
   }
 

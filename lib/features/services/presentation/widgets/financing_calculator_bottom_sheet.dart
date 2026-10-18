@@ -78,6 +78,13 @@ class _FinancingCalculatorBottomSheetState
   double get _apr =>
       _activeOffer?.interestRate ?? widget.interestRate ?? _defaultApr;
 
+  static String _formatAmount(double val) {
+    if (val == val.roundToDouble()) {
+      return val.toInt().toString();
+    }
+    return val.toStringAsFixed(1);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,10 +93,10 @@ class _FinancingCalculatorBottomSheetState
     _downPayment = widget.initialDownPayment;
     _lastPayment = widget.initialLastPayment;
     _downPaymentCtrl = TextEditingController(
-      text: _downPayment.toStringAsFixed(1),
+      text: _formatAmount(_downPayment),
     );
     _lastPaymentCtrl = TextEditingController(
-      text: _lastPayment.toStringAsFixed(1),
+      text: _formatAmount(_lastPayment),
     );
   }
 
@@ -133,14 +140,15 @@ class _FinancingCalculatorBottomSheetState
       _selectedOffer = offer;
       _downPayment = widget.carPrice * (offer.firstInstallmentPct ?? 0) / 100;
       _lastPayment = widget.carPrice * (offer.lastInstallmentPct ?? 0) / 100;
-      _downPaymentCtrl.text = _downPayment.toStringAsFixed(1);
-      _lastPaymentCtrl.text = _lastPayment.toStringAsFixed(1);
+      _downPaymentCtrl.text = _formatAmount(_downPayment);
+      _lastPaymentCtrl.text = _formatAmount(_lastPayment);
     });
   }
 
   double get _monthlyInstallment {
     if (_totalFinancedWithInterest <= 0 || _durationYears <= 0) return 0;
-    return (_totalFinancedWithInterest - _lastPayment) / (_durationYears * 12);
+    final remaining = _totalFinancedWithInterest - _lastPayment;
+    return remaining > 0 ? (remaining / (_durationYears * 12)) : 0;
   }
 
   double get _maxDownPayment => widget.isOffer
@@ -566,7 +574,7 @@ class _FinancingCalculatorBottomSheetState
                   CustomFormField(
                     title: AppLocaleKey.agentLastPayment.tr(),
                     controller: _lastPaymentCtrl,
-                    readOnly: widget.isOffer,
+                    readOnly: false,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),

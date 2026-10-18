@@ -32,8 +32,15 @@ class RecentlyViewedWidget extends StatelessWidget {
 
     final vatSerial = HiveMethods.getVatNumber();
     final double vatPercentage = double.tryParse(vatSerial.toString()) ?? 15.0;
+    final double paintingsVal = (car['PaintingsVal'] as num?)?.toDouble() ??
+        (car['PAINTINGS_VAL'] as num?)?.toDouble() ??
+        (car['paintingsVal'] as num?)?.toDouble() ??
+        double.tryParse(car['PaintingsVal']?.toString() ?? '') ??
+        double.tryParse(car['PAINTINGS_VAL']?.toString() ?? '') ??
+        double.tryParse(car['paintingsVal']?.toString() ?? '') ??
+        0.0;
 
-    return originalPrice * (1 + (vatPercentage / 100));
+    return originalPrice * (1 + (vatPercentage / 100)) + paintingsVal;
   }
 
   @override

@@ -97,7 +97,8 @@ class _CashPackagesWidgetState extends State<CashPackagesWidget> {
     if (_baseCarPrice <= 0) return const SizedBox.shrink();
     final formatter = NumberFormat('#,##0', 'en_US');
     final selectedPackage = _packages[_selectedIndex];
-    final basePriceWithVat = _getPriceWithVat(_baseCarPrice);
+    final double plates = widget.car.paintingsVal ?? 0.0;
+    final basePriceWithVat = _getPriceWithVat(_baseCarPrice) + plates;
     final extraPriceWithVat = _getPriceWithVat(selectedPackage.extraPrice);
     final currentTotalWithVat = basePriceWithVat + extraPriceWithVat;
     return Container(
