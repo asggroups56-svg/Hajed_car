@@ -39,7 +39,7 @@ class BankOffer {
       return {'totalAmount': 0, 'monthlyInstallment': 0};
     }
     final totalInterest = netFinanceAmount * (apr / 100) * durationYears;
-    final totalInsurance = carPrice.toDouble() * (insurancePct / 100) * durationYears;
+    final totalInsurance = netFinanceAmount * (insurancePct / 100) * durationYears;
     final totalFinancedWithInterest = netFinanceAmount + totalInterest + totalInsurance;
     final totalMonths = durationYears * 12;
     final monthlyInstallment = (totalFinancedWithInterest - finalPaymentAmount) / totalMonths;

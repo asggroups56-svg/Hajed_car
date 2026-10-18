@@ -120,7 +120,7 @@ class _FinancingCalculatorBottomSheetState
   }
 
   double get _totalInsurance {
-    return widget.carPrice * (_insurancePercent / 100) * _durationYears;
+    return _financedAmount * (_insurancePercent / 100) * _durationYears;
   }
 
   double get _totalFinancedWithInterest {

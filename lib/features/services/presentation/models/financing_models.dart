@@ -86,7 +86,7 @@ class BankOffer {
       return {'totalAmount': 0, 'monthlyInstallment': 0, 'apr': apr, 'lastPaymentAmount': 0};
     }
     final totalInterest = netFinance * (apr / 100) * durationYears;
-    final totalInsurance = principal * (insurancePct / 100) * durationYears;
+    final totalInsurance = netFinance * (insurancePct / 100) * durationYears;
     final totalFinancedWithInterest = netFinance + totalInterest + totalInsurance;
     final totalMonths = durationYears * 12;
     final monthly = (totalFinancedWithInterest - residual) / totalMonths;

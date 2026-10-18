@@ -83,7 +83,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   bool _isSendingOtp = false;
   bool _isSubmittingLoan = false;
 
-
   static const double _defaultApr = 4.5;
 
   late double _carPrice;
@@ -107,7 +106,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   }
 
   double get _totalInsurance {
-    return _carPrice * (_insurancePercent / 100) * _durationYears;
+    return _financedAmount * (_insurancePercent / 100) * _durationYears;
   }
 
   double get _totalFinancedWithInterest {
@@ -127,7 +126,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
 
-
     _selectedOffer = widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
@@ -138,9 +136,10 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final basePrice =
         widget.initialCarPrice ??
         (double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000);
-    final cashPrice = basePrice + 3000;
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    _carPrice = widget.initialPriceIncludesVat ? cashPrice : cashPrice * (1 + vatPercentage / 100);
+    final priceWithVat =
+        widget.initialPriceIncludesVat ? basePrice : basePrice * (1 + vatPercentage / 100);
+    _carPrice = priceWithVat + 3000;
 
     _downPayment =
         widget.initialDownPayment ?? (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
@@ -151,8 +150,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final homeCubit = context.read<HomeCubit>();
-      if (homeCubit.state.banksStatus.data == null ||
-          homeCubit.state.banksStatus.data!.isEmpty) {
+      if (homeCubit.state.banksStatus.data == null || homeCubit.state.banksStatus.data!.isEmpty) {
         homeCubit.getBanks();
       }
       if (homeCubit.state.normalFinancingStatus.data == null ||

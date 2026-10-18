@@ -202,11 +202,11 @@ class FinancingAdModel extends Equatable {
     return monthlyInstallmentForPrice(price ?? 0);
   }
 
-  double monthlyInstallmentForPrice(double basePrice) {
+  double monthlyInstallmentForPrice(double basePrice, {double financingFee = 3000}) {
     final months = totalMonths ?? 60;
     if (months <= 0) return 0;
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final carPrice = basePrice * (1 + vatPercentage / 100);
+    final carPrice = (basePrice * (1 + vatPercentage / 100)) + financingFee;
     final downPaymentPercent = firstInstallmentPct ?? 0;
     final finalPaymentPercent = lastInstallmentPct ?? 0;
     final flatRatePercent = interestRate ?? 0;
@@ -218,7 +218,7 @@ class FinancingAdModel extends Equatable {
     final netFinanceAmount = carPrice - downPaymentAmount;
 
     final totalInterest = netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance = carPrice * (insurancePercent / 100) * financeYears;
+    final totalInsurance = netFinanceAmount * (insurancePercent / 100) * financeYears;
 
     final totalFinancedWithInterest = netFinanceAmount + totalInterest + totalInsurance;
     return (totalFinancedWithInterest - finalPaymentAmount) / months;
@@ -248,7 +248,7 @@ class FinancingAdModel extends Equatable {
     final netFinanceAmount = carPrice - downPaymentAmount;
 
     final totalInterest = netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance = carPrice * (insurancePercent / 100) * financeYears;
+    final totalInsurance = netFinanceAmount * (insurancePercent / 100) * financeYears;
 
     final totalFinancedWithInterest = netFinanceAmount + totalInterest + totalInsurance;
     final monthlyInstallment = months > 0

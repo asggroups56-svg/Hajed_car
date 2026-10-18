@@ -1,7 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:car/core/custom_widgets/copyright_widget.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
-import 'package:car/core/custom_widgets/developer_contact_bottom_sheet.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -65,15 +64,6 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.help_outline_rounded,
               title: AppLocaleKey.faqs.tr(),
               onTap: () => Navigator.pushNamed(context, RoutesName.faqScreen),
-            ),
-          ),
-          Gap(12.h),
-          FadeInLeft(
-            duration: const Duration(milliseconds: 500),
-            child: SettingItemsWidget(
-              icon: Icons.code_rounded,
-              title: AppLocaleKey.contactDeveloper.tr(),
-              onTap: () => showDeveloperContactBottomSheet(context),
             ),
           ),
           Gap(24.h),

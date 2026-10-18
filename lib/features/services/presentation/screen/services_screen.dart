@@ -1,11 +1,13 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/developer_contact_bottom_sheet.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/settings/presentation/screen/widget/logout_button_widget.dart';
+import 'package:car/features/settings/presentation/screen/widget/setting_items_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -95,6 +97,22 @@ class ServicesScreen extends StatelessWidget {
               }, childCount: _getServicesData().length),
             ),
           ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return FadeInLeft(
+                  duration: const Duration(milliseconds: 500),
+                  child: SettingItemsWidget(
+                    icon: Icons.code_rounded,
+                    title: AppLocaleKey.contactDeveloper.tr(),
+                    onTap: () => showDeveloperContactBottomSheet(context),
+                  ),
+                );
+              }, childCount: 1),
+            ),
+          ),
+          SliverToBoxAdapter(child: Gap(20.h)),
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             sliver: SliverList(
@@ -259,7 +277,8 @@ class ServicesScreen extends StatelessWidget {
       Navigator.pushNamed(context, RoutesName.bespokeSelectionScreen);
     } else if (label == AppLocaleKey.carValuation.tr() || label == AppLocaleKey.valuation.tr()) {
       Navigator.pushNamed(context, RoutesName.carValuationScreen);
-    } else if (label == AppLocaleKey.comparisonService.tr() || label == AppLocaleKey.compareCars.tr()) {
+    } else if (label == AppLocaleKey.comparisonService.tr() ||
+        label == AppLocaleKey.compareCars.tr()) {
       Navigator.pushNamed(context, RoutesName.carComparisonScreen);
     } else if (label == AppLocaleKey.aboutCompany.tr()) {
       Navigator.pushNamed(context, RoutesName.aboutScreen);
