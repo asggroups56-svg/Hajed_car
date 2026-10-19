@@ -37,8 +37,6 @@ dependencies:
   equatable: ^2.0.5
   bloc: ^9.0.0
   http: ^1.2.1
-  http_parser: ^4.0.2
-  loading_animation_widget: ^1.2.1
   pretty_dio_logger: ^1.3.1
   easy_localization: ^3.0.7
   shimmer_animation: ^2.2.1
@@ -50,18 +48,13 @@ dependencies:
   pinput: ^5.0.0
   flutter_svg: ^2.2.0
   tabby_flutter_inapp_sdk: ^1.11.0
-  tamara_flutter_sdk: ^1.0.17
   bot_toast: ^4.1.3
-  rename: ^3.1.0
   shared_preferences: ^2.2.2
   flutter_jailbreak_detection: ^1.2.0
   intl: ^0.20.2
   fl_chart: ^0.70.2
   flutter:
     sdk: flutter
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   youtube_player_flutter: ^9.1.3
   flutter_inappwebview: 6.1.5
   pdf: ^3.12.0
@@ -69,11 +62,9 @@ dependencies:
   share_plus: ^12.0.1
   path_provider: ^2.1.5
   open_filex: ^4.7.0
-  screenshot: ^3.0.0
   firebase_core:
   firebase_messaging: ^16.2.2
   flutter_local_notifications: ^19.0.0
-  file_picker: ^11.0.2
   moyasar: ^3.0.3
   permission_handler: ^11.4.0
   image_picker: ^1.2.2
@@ -137,4 +128,3 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/loge.png"
-

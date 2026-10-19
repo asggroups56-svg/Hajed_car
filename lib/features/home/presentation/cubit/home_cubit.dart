@@ -60,11 +60,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     await result.fold<Future<void>>(
       (failure) async {
-        emit(
-          state.copyWith(
-            carsModelsStatus: StatusState.failure(failure.errMessage),
-          ),
-        );
+        emit(state.copyWith(carsModelsStatus: StatusState.failure(failure.errMessage)));
       },
       (response) async {
         dynamic data = response.cars;
@@ -128,12 +124,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> getBrandCars(String brandId) async {
     if (brandId == 'null' || brandId.isEmpty) {
-      emit(
-        state.copyWith(
-          brandCarsStatus: const StatusState.success([]),
-          selectedBrandId: null,
-        ),
-      );
+      emit(state.copyWith(brandCarsStatus: const StatusState.success([]), selectedBrandId: null));
       return;
     }
 
@@ -158,11 +149,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     result.fold(
       (failure) {
-        emit(
-          state.copyWith(
-            brandCarsStatus: StatusState.failure(failure.errMessage),
-          ),
-        );
+        emit(state.copyWith(brandCarsStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
         emit(state.copyWith(brandCarsStatus: StatusState.success(response)));
@@ -199,11 +186,7 @@ class HomeCubit extends Cubit<HomeState> {
     );
     result.fold(
       (failure) {
-        emit(
-          state.copyWith(
-            allCarsStatus: StatusState.failure(failure.errMessage),
-          ),
-        );
+        emit(state.copyWith(allCarsStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
         emit(state.copyWith(allCarsStatus: StatusState.success(response)));
@@ -222,15 +205,12 @@ class HomeCubit extends Cubit<HomeState> {
 
     emit(
       state.copyWith(
-        allCarsStatus: StatusState.success(
-          cars.where((car) => car.itemCode != itemCode).toList(),
-        ),
+        allCarsStatus: StatusState.success(cars.where((car) => car.itemCode != itemCode).toList()),
       ),
     );
   }
 
-  bool isCarLocallyReserved(String itemCode) =>
-      _locallyReservedCarCodes.contains(itemCode);
+  bool isCarLocallyReserved(String itemCode) => _locallyReservedCarCodes.contains(itemCode);
 
   /// Refreshes the same inventory query after a successful reservation.
   /// The local exclusion is applied again in case the inventory API has not
@@ -250,20 +230,13 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void selectBrand(int index, String brandId) {
-    emit(
-      state.copyWith(
-        selectedIndex: index,
-        selectedBrandId: int.tryParse(brandId),
-      ),
-    );
+    emit(state.copyWith(selectedIndex: index, selectedBrandId: int.tryParse(brandId)));
     unawaited(getBrandCars(brandId));
   }
 
   List<CarModel> getFilteredBrands(List<CarModel> brands, String query) {
     if (query.isEmpty) return brands;
-    return brands
-        .where((b) => b.groupName.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    return brands.where((b) => b.groupName.toLowerCase().contains(query.toLowerCase())).toList();
   }
 
   void updateSearchQuery(String value) {
@@ -271,11 +244,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> getAddBookingPermission(AddBookingPermissionModel model) async {
-    emit(
-      state.copyWith(
-        addBookingPermissionResponseModel: const StatusState.loading(),
-      ),
-    );
+    emit(state.copyWith(addBookingPermissionResponseModel: const StatusState.loading()));
     final result = await homeRepo.addBookingPermission(model);
     result.fold(
       (failure) {
@@ -289,38 +258,22 @@ class HomeCubit extends Cubit<HomeState> {
         );
       },
       (response) {
-        emit(
-          state.copyWith(
-            addBookingPermissionResponseModel: StatusState.success(response),
-          ),
-        );
+        emit(state.copyWith(addBookingPermissionResponseModel: StatusState.success(response)));
       },
     );
   }
 
   Future<void> cancelReservedCar(CancelReservedCarModel model) async {
-    emit(
-      state.copyWith(
-        cancelReservedCarResponseModel: const StatusState.loading(),
-      ),
-    );
+    emit(state.copyWith(cancelReservedCarResponseModel: const StatusState.loading()));
     final result = await homeRepo.cancelreservedcar(model);
     result.fold(
       (failure) {
         emit(
-          state.copyWith(
-            cancelReservedCarResponseModel: StatusState.failure(
-              failure.errMessage,
-            ),
-          ),
+          state.copyWith(cancelReservedCarResponseModel: StatusState.failure(failure.errMessage)),
         );
       },
       (response) {
-        emit(
-          state.copyWith(
-            cancelReservedCarResponseModel: StatusState.success(response),
-          ),
-        );
+        emit(state.copyWith(cancelReservedCarResponseModel: StatusState.success(response)));
       },
     );
   }
@@ -330,11 +283,7 @@ class HomeCubit extends Cubit<HomeState> {
     final result = await homeRepo.sendOtp(model);
     result.fold(
       (failure) {
-        emit(
-          state.copyWith(
-            sendOtpStatus: StatusState.failure(failure.errMessage),
-          ),
-        );
+        emit(state.copyWith(sendOtpStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
         emit(state.copyWith(sendOtpStatus: StatusState.success(response)));
@@ -347,9 +296,7 @@ class HomeCubit extends Cubit<HomeState> {
     final result = await homeRepo.getBanks(searchVal);
     result.fold(
       (failure) {
-        emit(
-          state.copyWith(banksStatus: StatusState.failure(failure.errMessage)),
-        );
+        emit(state.copyWith(banksStatus: StatusState.failure(failure.errMessage)));
       },
       (response) {
         emit(state.copyWith(banksStatus: StatusState.success(response)));
@@ -370,28 +317,16 @@ class HomeCubit extends Cubit<HomeState> {
     result.fold(
       (failure) {
         if (isSpecificProgram) {
-          emit(
-            state.copyWith(
-              programCarsStatus: StatusState.failure(failure.errMessage),
-            ),
-          );
+          emit(state.copyWith(programCarsStatus: StatusState.failure(failure.errMessage)));
         } else {
-          emit(
-            state.copyWith(
-              financingAdsStatus: StatusState.failure(failure.errMessage),
-            ),
-          );
+          emit(state.copyWith(financingAdsStatus: StatusState.failure(failure.errMessage)));
         }
       },
       (response) {
         if (isSpecificProgram) {
-          emit(
-            state.copyWith(programCarsStatus: StatusState.success(response)),
-          );
+          emit(state.copyWith(programCarsStatus: StatusState.success(response)));
         } else {
-          emit(
-            state.copyWith(financingAdsStatus: StatusState.success(response)),
-          );
+          emit(state.copyWith(financingAdsStatus: StatusState.success(response)));
         }
       },
     );
@@ -401,14 +336,9 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(normalFinancingStatus: const StatusState.loading()));
     final result = await homeRepo.getNormalFinancing();
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          normalFinancingStatus: StatusState.failure(failure.errMessage),
-        ),
-      ),
-      (response) => emit(
-        state.copyWith(normalFinancingStatus: StatusState.success(response)),
-      ),
+      (failure) =>
+          emit(state.copyWith(normalFinancingStatus: StatusState.failure(failure.errMessage))),
+      (response) => emit(state.copyWith(normalFinancingStatus: StatusState.success(response))),
     );
   }
 
@@ -421,59 +351,34 @@ class HomeCubit extends Cubit<HomeState> {
     required List<File> files,
   }) async {
     emit(state.copyWith(addLoanApplicationStatus: const StatusState.loading()));
-    final result = await homeRepo.addLoanApplicationWithFiles(
-      model: model,
-      files: files,
-    );
+    final result = await homeRepo.addLoanApplicationWithFiles(model: model, files: files);
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          addLoanApplicationStatus: StatusState.failure(failure.errMessage),
-        ),
-      ),
-      (response) => emit(
-        state.copyWith(addLoanApplicationStatus: StatusState.success(response)),
-      ),
+      (failure) =>
+          emit(state.copyWith(addLoanApplicationStatus: StatusState.failure(failure.errMessage))),
+      (response) => emit(state.copyWith(addLoanApplicationStatus: StatusState.success(response))),
     );
   }
 
   Future<void> getCustLoanApplications(String code) async {
-    emit(
-      state.copyWith(custLoanApplicationsStatus: const StatusState.loading()),
-    );
+    emit(state.copyWith(custLoanApplicationsStatus: const StatusState.loading()));
     final result = await homeRepo.getCustLoanApplications(code);
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          custLoanApplicationsStatus: StatusState.failure(failure.errMessage),
-        ),
-      ),
-      (response) => emit(
-        state.copyWith(
-          custLoanApplicationsStatus: StatusState.success(response),
-        ),
-      ),
+      (failure) =>
+          emit(state.copyWith(custLoanApplicationsStatus: StatusState.failure(failure.errMessage))),
+      (response) => emit(state.copyWith(custLoanApplicationsStatus: StatusState.success(response))),
     );
   }
 
-  Future<void> getNotificationsData({
-    required String currentUserId,
-    required int userType,
-  }) async {
+  Future<void> getNotificationsData({required String currentUserId, required int userType}) async {
     emit(state.copyWith(notificationsStatus: const StatusState.loading()));
     final result = await homeRepo.getNotificationsData(
       currentUserId: currentUserId,
       userType: userType,
     );
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          notificationsStatus: StatusState.failure(failure.errMessage),
-        ),
-      ),
-      (response) => emit(
-        state.copyWith(notificationsStatus: StatusState.success(response)),
-      ),
+      (failure) =>
+          emit(state.copyWith(notificationsStatus: StatusState.failure(failure.errMessage))),
+      (response) => emit(state.copyWith(notificationsStatus: StatusState.success(response))),
     );
   }
 
@@ -533,22 +438,31 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       emit(state.copyWith(sendWhatsAppStatus: const StatusState.loading()));
       final result = await homeRepo.sendWhatsApp(model);
-      result.fold(
-        (failure) {
-          emit(
-            state.copyWith(
-              sendWhatsAppStatus: StatusState.failure(failure.errMessage),
-            ),
-          );
-        },
-        (response) => emit(
-          state.copyWith(sendWhatsAppStatus: StatusState.success(response)),
-        ),
-      );
+      result.fold((failure) {
+        emit(state.copyWith(sendWhatsAppStatus: StatusState.failure(failure.errMessage)));
+      }, (response) => emit(state.copyWith(sendWhatsAppStatus: StatusState.success(response))));
     } catch (e) {
-      emit(
-        state.copyWith(sendWhatsAppStatus: StatusState.failure(e.toString())),
-      );
+      emit(state.copyWith(sendWhatsAppStatus: StatusState.failure(e.toString())));
     }
+  }
+
+  Future<void> sendWhatsAppPdf(SendWhatsAppPdfModel model) async {
+    try {
+      emit(state.copyWith(sendWhatsAppPdfStatus: const StatusState.loading()));
+      final result = await homeRepo.sendWhatsAppPdf(model);
+      result.fold((failure) {
+        emit(state.copyWith(sendWhatsAppPdfStatus: StatusState.failure(failure.errMessage)));
+      }, (response) => emit(state.copyWith(sendWhatsAppPdfStatus: StatusState.success(response))));
+    } catch (e) {
+      emit(state.copyWith(sendWhatsAppPdfStatus: StatusState.failure(e.toString())));
+    }
+  }
+
+  Future<void> sendWhatsAppWithPdf({
+    required SendWhatsAppModel textModel,
+    required SendWhatsAppPdfModel pdfModel,
+  }) async {
+    await sendWhatsApp(textModel);
+    await sendWhatsAppPdf(pdfModel);
   }
 }

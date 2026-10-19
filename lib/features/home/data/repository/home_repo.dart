@@ -77,6 +77,9 @@ abstract interface class HomeRepo {
   Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsApp(
     SendWhatsAppModel model,
   );
+  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsAppPdf(
+    SendWhatsAppPdfModel model,
+  );
 }
 
 class HomeRepoImpl implements HomeRepo {
@@ -669,6 +672,21 @@ class HomeRepoImpl implements HomeRepo {
       request: () async {
         final response = await apiConsumer.post(
           EndPoints.sendWhatsApp,
+          body: model.toJson(),
+        );
+        return SendWhatsAppResponseModel.fromJson(response);
+      },
+    );
+  }
+
+  @override
+  Future<Either<Failure, SendWhatsAppResponseModel>> sendWhatsAppPdf(
+    SendWhatsAppPdfModel model,
+  ) async {
+    return handleDioRequest(
+      request: () async {
+        final response = await apiConsumer.post(
+          EndPoints.sendWhatsAppPdf,
           body: model.toJson(),
         );
         return SendWhatsAppResponseModel.fromJson(response);

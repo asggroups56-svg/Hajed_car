@@ -28,6 +28,7 @@ class HomeState extends Equatable {
   final StatusState<List<CustomerLoanApplicationModel>> custLoanApplicationsStatus;
   final StatusState<List<NotificationModel>> notificationsStatus;
   final StatusState<SendWhatsAppResponseModel> sendWhatsAppStatus;
+  final StatusState<SendWhatsAppResponseModel> sendWhatsAppPdfStatus;
 
   const HomeState({
     this.carsModelsStatus = const StatusState.initial(),
@@ -56,6 +57,7 @@ class HomeState extends Equatable {
     this.custLoanApplicationsStatus = const StatusState.initial(),
     this.notificationsStatus = const StatusState.initial(),
     this.sendWhatsAppStatus = const StatusState.initial(),
+    this.sendWhatsAppPdfStatus = const StatusState.initial(),
   });
 
   HomeState copyWith({
@@ -85,6 +87,7 @@ class HomeState extends Equatable {
     StatusState<List<CustomerLoanApplicationModel>>? custLoanApplicationsStatus,
     StatusState<List<NotificationModel>>? notificationsStatus,
     StatusState<SendWhatsAppResponseModel>? sendWhatsAppStatus,
+    StatusState<SendWhatsAppResponseModel>? sendWhatsAppPdfStatus,
   }) {
     return HomeState(
       carsModelsStatus: carsModelsStatus ?? this.carsModelsStatus,
@@ -116,6 +119,7 @@ class HomeState extends Equatable {
           custLoanApplicationsStatus ?? this.custLoanApplicationsStatus,
       notificationsStatus: notificationsStatus ?? this.notificationsStatus,
       sendWhatsAppStatus: sendWhatsAppStatus ?? this.sendWhatsAppStatus,
+      sendWhatsAppPdfStatus: sendWhatsAppPdfStatus ?? this.sendWhatsAppPdfStatus,
     );
   }
 
@@ -147,5 +151,6 @@ class HomeState extends Equatable {
     custLoanApplicationsStatus,
     notificationsStatus,
     sendWhatsAppStatus,
+    sendWhatsAppPdfStatus,
   ];
 }

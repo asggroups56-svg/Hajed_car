@@ -17,28 +17,49 @@ class SendWhatsAppModel extends Equatable {
   final String toNumber;
   final String tempname;
   final String text;
-  final String? fileUrl;
-  final String? fileName;
 
   const SendWhatsAppModel({
     required this.toNumber,
     this.tempname = 'utility',
     required this.text,
-    this.fileUrl,
-    this.fileName,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ToNumber': formatSaudiPhoneNumber(toNumber),
+      'tempname': tempname,
+      'Text': text.replaceAll('\n', ' - ').replaceAll(RegExp(r'\s+'), ' ').trim(),
+    };
+  }
+
+  @override
+  List<Object?> get props => [toNumber, tempname, text];
+}
+
+class SendWhatsAppPdfModel extends Equatable {
+  final String toNumber;
+  final String tempname;
+  final String? text;
+  final String fileUrl;
+  final String fileName;
+
+  const SendWhatsAppPdfModel({
+    required this.toNumber,
+    this.tempname = 'utility',
+    this.text,
+    required this.fileUrl,
+    required this.fileName,
   });
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'ToNumber': formatSaudiPhoneNumber(toNumber),
       'tempname': tempname,
-      'Text': text.replaceAll('\n', ' - ').replaceAll(RegExp(r'\s+'), ' ').trim(),
+      'fileurl': fileUrl,
+      'Filename': fileName,
     };
-    if (fileUrl != null && fileUrl!.isNotEmpty) {
-      map['fileurl'] = fileUrl;
-    }
-    if (fileName != null && fileName!.isNotEmpty) {
-      map['Filename'] = fileName;
+    if (text != null && text!.trim().isNotEmpty) {
+      map['Text'] = text!.replaceAll('\n', ' - ').replaceAll(RegExp(r'\s+'), ' ').trim();
     }
     return map;
   }

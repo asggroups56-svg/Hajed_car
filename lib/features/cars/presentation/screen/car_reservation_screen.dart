@@ -138,8 +138,7 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     if (_isFinancingFlow) {
       final double basePrice = _parsePrice(widget.car.price, withTax: false);
       final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
-      final double financingTotalPriceWithTax =
-          (basePrice * ((100 + vatSerial) / 100)) + 3000;
+      final double financingTotalPriceWithTax = (basePrice * ((100 + vatSerial) / 100)) + 3000;
 
       Navigator.push(
         context,
@@ -440,16 +439,23 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                     'رقم السيارة: ${widget.car.itemCode}\n'
                     'المبلغ الإجمالي: $_totalPrice ر.س\n'
                     'العربون: $_depositAmount ر.س\n';
-                context.read<HomeCubit>().sendWhatsApp(
-                  SendWhatsAppModel(
+                final homeCubit = context.read<HomeCubit>();
+
+                // 1. إرسال أوبجكت الرسالة النصية أولاً مباشرة
+                final messageModel = SendWhatsAppModel(toNumber: phone, text: textMsg);
+                homeCubit.sendWhatsApp(messageModel);
+
+                // 2. إرسال أوبجكت ملف الـ PDF بعد دقيقتين
+                if (bookingNo.isNotEmpty) {
+                  final pdfModel = SendWhatsAppPdfModel(
                     toNumber: phone,
-                    text: textMsg,
-                    fileUrl: bookingNo.isNotEmpty
-                        ? 'https://delta-asg.com:54510/files/$bookingNo.pdf'
-                        : null,
-                    fileName: bookingNo.isNotEmpty ? '$bookingNo.pdf' : null,
-                  ),
-                );
+                    fileUrl: 'https://delta-asg.com:54510/files/$bookingNo.pdf',
+                    fileName: '$bookingNo.pdf',
+                  );
+                  Future.delayed(const Duration(seconds: 50), () {
+                    homeCubit.sendWhatsAppPdf(pdfModel);
+                  });
+                }
               }
               // Notification is handled exclusively by FCM push endpoint
               _navigateToSuccess();
