@@ -82,11 +82,15 @@ class _BankInstallmentsBannerWidgetState extends State<BankInstallmentsBannerWid
     // No valid price → hide financing entirely
     if (price <= 0) return null;
 
+    final double platesVal = widget.car.paintingsVal ?? 0.0;
+
     // 1. Direct explicit offer passed to the car
     if (widget.offers.isNotEmpty || widget.offer != null) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
-        return NumberFormat('#,##0', 'en_US').format(lowestOffer.monthlyInstallmentForPrice(price));
+        return NumberFormat('#,##0', 'en_US').format(
+          lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal),
+        );
       }
     }
 
@@ -98,7 +102,7 @@ class _BankInstallmentsBannerWidgetState extends State<BankInstallmentsBannerWid
     // 3. Explicit interest rate from API
     if (widget.car.interestRate != null && widget.car.interestRate! > 0) {
       final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-      final priceWithVat = (price * (1 + vatPercentage / 100)) + _financingFee;
+      final priceWithVat = ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
       const years = 5;
       const months = 60;
       final totalInterest = priceWithVat * (widget.car.interestRate! / 100) * years;
@@ -118,13 +122,15 @@ class _BankInstallmentsBannerWidgetState extends State<BankInstallmentsBannerWid
     if (cubitOffers.isNotEmpty) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
-        return NumberFormat('#,##0', 'en_US').format(lowestOffer.monthlyInstallmentForPrice(price));
+        return NumberFormat('#,##0', 'en_US').format(
+          lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal),
+        );
       }
     }
 
     // 6. Generic calculation fallback if price is present
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final priceWithVat = (price * (1 + vatPercentage / 100)) + _financingFee;
+    final priceWithVat = ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
     final estimatedMonthly = (priceWithVat * 1.225) / 60;
     if (estimatedMonthly > 0) {
       return NumberFormat('#,##0', 'en_US').format(estimatedMonthly);

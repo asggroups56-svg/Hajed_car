@@ -27,7 +27,7 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
   final double? firstInstallmentPct;
   final double? lastInstallmentPct;
   final double? adminFeesPct;
-  final double govFees;
+  final String? userSalaryBank;
   final List<FinancingAdModel> offers;
   final FinancingAdModel? initialOffer;
 
@@ -43,7 +43,7 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
     this.firstInstallmentPct,
     this.lastInstallmentPct,
     this.adminFeesPct,
-    this.govFees = 650,
+    this.userSalaryBank,
     this.offers = const [],
     this.initialOffer,
   });
@@ -71,7 +71,22 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
 
   static const double _defaultApr = 4.5;
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.initialOffer;
-  double get _apr => _activeOffer?.interestRate ?? widget.interestRate ?? _defaultApr;
+
+  double get _apr {
+    final userBank = widget.userSalaryBank?.trim() ?? '';
+    final offer = _activeOffer;
+    if (offer != null) {
+      if (userBank.isNotEmpty) {
+        final offerBank = offer.displayBankName ?? offer.bankName;
+        final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
+        if (!isSame && (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
+          return offer.interestRateOther!;
+        }
+      }
+      return offer.interestRate ?? widget.interestRate ?? _defaultApr;
+    }
+    return widget.interestRate ?? _defaultApr;
+  }
 
   static String _formatAmount(double val) {
     if (val == val.roundToDouble()) {
@@ -117,13 +132,11 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
     return _financedAmount + _totalInterest + _totalInsurance;
   }
 
-  double get _govFees => widget.govFees;
-
   double get _adminFees =>
       _financedAmount * ((_activeOffer?.adminFeesPct ?? widget.adminFeesPct ?? 0) / 100);
 
   double get _totalPrice =>
-      widget.carPrice + _totalInterest + _totalInsurance + _adminFees + _govFees;
+      widget.carPrice + _totalInterest + _totalInsurance + _adminFees;
 
   void _selectOffer(FinancingAdModel offer) {
     setState(() {

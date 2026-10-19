@@ -20,6 +20,7 @@ class FinancingAdModel extends Equatable {
   final double? adminFeesPct;
   final String? programPic;
   final double? interestRate;
+  final double? interestRateOther;
   final int? totalMonths;
   final String? modelName;
   final int? modelYear;
@@ -66,6 +67,7 @@ class FinancingAdModel extends Equatable {
     this.adminFeesPct,
     this.programPic,
     this.interestRate,
+    this.interestRateOther,
     this.totalMonths,
     this.modelName,
     this.price,
@@ -126,6 +128,12 @@ class FinancingAdModel extends Equatable {
       adminFeesPct: _toDouble(json['AdminFeesPct']),
       programPic: json['programpic']?.toString(),
       interestRate: _toDouble(json['InterestRate']),
+      interestRateOther: _toDouble(
+        json['InterestRate_other'] ??
+            json['InterestRateOther'] ??
+            json['interestRateOther'] ??
+            json['INTEREST_RATE_OTHER'],
+      ),
       totalMonths: _toInt(json['TotalMonths'] ?? json['Months'] ?? json['DurationMonths']),
       modelName: json['modelName']?.toString(),
       modelYear: _toInt(json['ModelYear']),
@@ -202,14 +210,57 @@ class FinancingAdModel extends Equatable {
     return monthlyInstallmentForPrice(price ?? 0);
   }
 
-  double monthlyInstallmentForPrice(double basePrice, {double financingFee = 3000}) {
+  static bool isSameBankName(String? bank1, String? bank2) {
+    if (bank1 == null || bank2 == null) return false;
+    final b1 = _normalizeBankName(bank1);
+    final b2 = _normalizeBankName(bank2);
+    if (b1.isEmpty || b2.isEmpty) return false;
+    return b1 == b2 || b1.contains(b2) || b2.contains(b1);
+  }
+
+  static String _normalizeBankName(String name) {
+    return name
+        .toLowerCase()
+        .replaceAll('بنك', '')
+        .replaceAll('مصرف', '')
+        .replaceAll('شركة', '')
+        .replaceAll('bank', '')
+        .replaceAll('al', '')
+        .replaceAll('ال', '')
+        .replaceAll(RegExp(r'[^\w\u0621-\u064A]'), '')
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll('ة', 'ه')
+        .replaceAll('ى', 'ي')
+        .trim();
+  }
+
+  double getEffectiveInterestRate({String? userSalaryBank}) {
+    if (userSalaryBank != null && userSalaryBank.trim().isNotEmpty) {
+      final activeBank = displayBankName ?? bankName;
+      if (activeBank != null && !isSameBankName(userSalaryBank, activeBank)) {
+        if (interestRateOther != null && interestRateOther! > 0) {
+          return interestRateOther!;
+        }
+      }
+    }
+    return interestRate ?? 0;
+  }
+
+  double monthlyInstallmentForPrice(
+    double basePrice, {
+    double financingFee = 3000,
+    double platesVal = 0,
+    String? userSalaryBank,
+  }) {
     final months = totalMonths ?? 60;
     if (months <= 0) return 0;
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final carPrice = (basePrice * (1 + vatPercentage / 100)) + financingFee;
+    final carPrice = ((basePrice + financingFee) * (1 + vatPercentage / 100)) + platesVal;
     final downPaymentPercent = firstInstallmentPct ?? 0;
     final finalPaymentPercent = lastInstallmentPct ?? 0;
-    final flatRatePercent = interestRate ?? 0;
+    final flatRatePercent = getEffectiveInterestRate(userSalaryBank: userSalaryBank);
     final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
     final financeYears = months / 12;
 
@@ -346,6 +397,8 @@ class FinancingAdModel extends Equatable {
       'GR_NAME': programName ?? '',
       'GROUP_NAME': programName ?? '',
       'interestRate': interestRate,
+      'InterestRate_other': interestRateOther,
+      'interestRateOther': interestRateOther,
       'firstInstallmentPct': firstInstallmentPct,
       'lastInstallmentPct': lastInstallmentPct,
       'adminFeesPct': adminFeesPct,
@@ -368,6 +421,7 @@ class FinancingAdModel extends Equatable {
     adminFeesPct,
     programPic,
     interestRate,
+    interestRateOther,
     totalMonths,
     modelName,
     modelYear,

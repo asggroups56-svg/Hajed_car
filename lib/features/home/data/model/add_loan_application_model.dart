@@ -23,6 +23,9 @@ class AddLoanApplicationModel extends Equatable {
   final int applicationStatus;
   final int gender;
   final int REPRESCODE;
+  final int? bank;
+  final String? groupCode;
+  final int? colorCode;
 
   const AddLoanApplicationModel({
     this.applicationId = 0,
@@ -47,6 +50,9 @@ class AddLoanApplicationModel extends Equatable {
     this.applicationStatus = 0,
     required this.gender,
     required this.REPRESCODE,
+    this.bank,
+    this.groupCode,
+    this.colorCode,
   });
 
   static double _round2(double val) {
@@ -83,16 +89,20 @@ class AddLoanApplicationModel extends Equatable {
       'ProgramID': programId,
       'ProgramName': programName,
       'CUSTOMERNO': customerNo,
+      'REPRESCODE': REPRESCODE != 0 ? REPRESCODE : 1,
       'IDNO': idNo,
-      // 'AREANO': _getAreaNo(areaNo ?? ''),
+      'AREANO': _getAreaNo(areaNo ?? ''),
+      'GroupCode': groupCode ?? '',
       'ITEMCODE': itemCode.toString(),
       'ITEMNAME': itemName,
       'MAKEYEAR': makeYear.toString(),
+      'colorcode': colorCode ?? 1,
       'SALEPRICE': _round2(salePrice),
       'WorkType': workType.toInt(),
       'Employer': employer,
       'Jobtitle': jobTitle,
       'monthlysalary': _round2(monthlySalary),
+      'Bank': bank ?? 1,
       'TermMonths': termMonths,
       'DownPayment': _round2(downPayment),
       'lastPayment': _round2(lastPayment),
@@ -100,7 +110,6 @@ class AddLoanApplicationModel extends Equatable {
       'MonthlyInstallment': _round2(monthlyInstallment),
       'ApplicationStatus': applicationStatus,
       'Gender': gender,
-      'REPRESCODE': REPRESCODE,
     };
   }
 
@@ -110,16 +119,20 @@ class AddLoanApplicationModel extends Equatable {
       programId: json['ProgramID'] ?? 0,
       programName: json['ProgramName'] ?? '',
       customerNo: json['CUSTOMERNO'] ?? 0,
+      REPRESCODE: json['REPRESCODE'] ?? 0,
       idNo: json['IDNO'] ?? '',
-      areaNo: json['AREANO'] ?? '',
+      areaNo: json['AREANO']?.toString() ?? '1',
+      groupCode: json['GroupCode']?.toString(),
       itemCode: json['ITEMCODE'] ?? '',
       itemName: json['ITEMNAME'] ?? '',
       makeYear: json['MAKEYEAR']?.toString() ?? '',
+      colorCode: (json['colorcode'] as num?)?.toInt(),
       salePrice: (json['SALEPRICE'] as num?)?.toDouble() ?? 0.0,
       workType: (json['WorkType'] as num?)?.toDouble() ?? 1.0,
       employer: json['Employer'] ?? '',
       jobTitle: json['Jobtitle'] ?? '',
       monthlySalary: (json['monthlysalary'] as num?)?.toDouble() ?? 0.0,
+      bank: (json['Bank'] as num?)?.toInt(),
       termMonths: json['TermMonths'] ?? 0,
       downPayment: (json['DownPayment'] as num?)?.toDouble() ?? 0.0,
       lastPayment: (json['lastPayment'] as num?)?.toDouble() ?? 0.0,
@@ -127,7 +140,6 @@ class AddLoanApplicationModel extends Equatable {
       monthlyInstallment: (json['MonthlyInstallment'] as num?)?.toDouble() ?? 0.0,
       applicationStatus: json['ApplicationStatus'] ?? 0,
       gender: json['Gender'] ?? 1,
-      REPRESCODE: json['REPRESCODE'] ?? 0,
     );
   }
 
@@ -137,16 +149,20 @@ class AddLoanApplicationModel extends Equatable {
     programId,
     programName,
     customerNo,
+    REPRESCODE,
     idNo,
     areaNo,
+    groupCode,
     itemCode,
     itemName,
     makeYear,
+    colorCode,
     salePrice,
     workType,
     employer,
     jobTitle,
     monthlySalary,
+    bank,
     termMonths,
     downPayment,
     lastPayment,
@@ -154,6 +170,5 @@ class AddLoanApplicationModel extends Equatable {
     monthlyInstallment,
     applicationStatus,
     gender,
-    REPRESCODE,
   ];
 }

@@ -6,6 +6,7 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/widget/otp_bottom_sheet.dart';
 import 'package:car/features/home/data/model/add_loan_application_model.dart';
+import 'package:car/features/home/data/model/banks_data_model.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/data/model/send_otp_model.dart';
@@ -70,6 +71,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   final _salaryCtrl = TextEditingController();
   final _bankCtrl = TextEditingController();
   String _employmentType = 'private';
+  BANKSDATAModel? _selectedBank;
 
   // Documents
   Map<String, File?> _uploadedFiles = {};
@@ -93,7 +95,18 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
 
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer;
   bool get _isOffer => _activeOffer != null;
-  double get _apr => _activeOffer?.interestRate ?? _defaultApr;
+  double get _apr {
+    final userBank = _bankCtrl.text.trim();
+    final offer = _activeOffer;
+    if (offer != null && userBank.isNotEmpty) {
+      final offerBank = offer.displayBankName ?? offer.bankName;
+      final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
+      if (!isSame && (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
+        return offer.interestRateOther!;
+      }
+    }
+    return _activeOffer?.interestRate ?? _defaultApr;
+  }
   double get _insurancePercent => double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
 
   double get _financedAmount {
@@ -137,9 +150,11 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         widget.initialCarPrice ??
         (double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000);
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final priceWithVat =
-        widget.initialPriceIncludesVat ? basePrice : basePrice * (1 + vatPercentage / 100);
-    _carPrice = priceWithVat + 3000;
+    final double platesVal = widget.car?.paintingsVal ?? 0.0;
+    final double priceWithFee = basePrice + 3000;
+    final double priceWithVat =
+        widget.initialPriceIncludesVat ? priceWithFee : priceWithFee * (1 + vatPercentage / 100);
+    _carPrice = priceWithVat + platesVal;
 
     _downPayment =
         widget.initialDownPayment ?? (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
@@ -213,7 +228,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
             firstInstallmentPct: _activeOffer?.firstInstallmentPct,
             lastInstallmentPct: _activeOffer?.lastInstallmentPct,
             adminFeesPct: _activeOffer?.adminFeesPct,
-            govFees: 650.0,
+            userSalaryBank: _bankCtrl.text.trim(),
             offers: widget.offers,
             initialOffer: _activeOffer,
           ),
@@ -313,21 +328,32 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         ? '$baseProgramName | البنك المحول له: $bank'
         : baseProgramName;
 
+    final int repCode = int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
+    final int bankCode = _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
+
     final model = AddLoanApplicationModel(
       applicationId: 0,
-      programId: _activeOffer?.programId ?? 2,
+      programId: _activeOffer?.programId ?? 3,
       programName: programNameWithBank,
       customerNo: customerNoVal,
+      REPRESCODE: repCode > 0 ? repCode : 1,
       idNo: _idCtrl.text.trim(),
-      // areaNo: _selectedCity,
+      areaNo: '1',
+      groupCode: (widget.car?.groupCode != null && widget.car!.groupCode > 0)
+          ? widget.car!.groupCode.toString()
+          : '100710131',
       itemCode: widget.car?.itemCode ?? '',
       itemName: widget.car?.itemName ?? '',
       makeYear: makeYearStr,
+      colorCode: (widget.car?.colorCode != null && widget.car!.colorCode > 0)
+          ? widget.car!.colorCode
+          : 1,
       salePrice: _carPrice,
       workType: workTypeValue,
       employer: _employerCtrl.text.trim(),
       jobTitle: _jobTitleCtrl.text.trim(),
       monthlySalary: double.tryParse(_salaryCtrl.text.trim()) ?? 0.0,
+      bank: bankCode,
       termMonths: _durationYears * 12,
       downPayment: _downPayment,
       lastPayment: _lastPayment,
@@ -335,7 +361,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       monthlyInstallment: _monthlyInstallment,
       applicationStatus: 0,
       gender: genderValue,
-      REPRESCODE: int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0,
     );
 
     final filesList = _uploadedFiles.values.whereType<File>().toList();
@@ -501,6 +526,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                 bankCtrl: _bankCtrl,
                 employmentType: _employmentType,
                 onEmploymentTypeChanged: (t) => setState(() => _employmentType = t ?? 'private'),
+                onBankSelected: (bank) => setState(() => _selectedBank = bank),
               ),
               FinancingDocumentsTab(
                 uploadedFiles: _uploadedFiles,

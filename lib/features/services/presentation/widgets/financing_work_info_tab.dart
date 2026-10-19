@@ -24,6 +24,7 @@ class FinancingWorkInfoTab extends StatefulWidget {
   final String? employmentType;
   final ValueChanged<String?>? onEmploymentTypeChanged;
   final ValueChanged<String?>? onBankChanged;
+  final ValueChanged<BANKSDATAModel?>? onBankSelected;
 
   const FinancingWorkInfoTab({
     super.key,
@@ -36,6 +37,7 @@ class FinancingWorkInfoTab extends StatefulWidget {
     this.employmentType,
     this.onEmploymentTypeChanged,
     this.onBankChanged,
+    this.onBankSelected,
   });
 
   @override
@@ -314,10 +316,20 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
                                       Navigator.pop(context);
                                       _showCustomBankDialog();
                                     } else {
+                                      // Find the matching BANKSDATAModel to get bankCode
+                                      final matchedModel = homeState.banksStatus.data?.firstWhere(
+                                        (b) {
+                                          final isEn = context.locale.languageCode == 'en';
+                                          final name = (isEn ? b.bankNameEng : b.bankName) ?? b.bankName ?? b.bankNameEng;
+                                          return name?.trim() == bank;
+                                        },
+                                        orElse: () => BANKSDATAModel(bankName: bank),
+                                      );
                                       setState(() {
                                         _bankCtrl.text = bank;
                                       });
                                       widget.onBankChanged?.call(bank);
+                                      widget.onBankSelected?.call(matchedModel);
                                       Navigator.pop(context);
                                     }
                                   },
@@ -530,7 +542,30 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
                   : null,
             ),
             Gap(20.h),
-            CalculatorBanner(onTap: widget.onShowCalculator),
+            CalculatorBanner(
+              onTap: () {
+                if (_bankCtrl.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        context.locale.languageCode == 'ar'
+                            ? 'يرجى اختيار البنك المحول إليه الراتب أولاً'
+                            : 'Please select your salary transfer bank first',
+                        textAlign: TextAlign.end,
+                      ),
+                      backgroundColor: AppColor.primaryColor(context, listen: false),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                  );
+                  _showBankPicker();
+                  return;
+                }
+                widget.onShowCalculator();
+              },
+            ),
             Gap(16.h),
           ],
         ),

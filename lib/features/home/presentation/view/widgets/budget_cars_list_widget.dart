@@ -50,7 +50,11 @@ class BudgetCarsListWidget extends StatelessWidget {
         .toList();
     if (matchingOffers.isNotEmpty) {
       return matchingOffers
-          .map((offer) => offer.monthlyInstallmentForPrice(cashPrice, financingFee: _financingFee))
+          .map((offer) => offer.monthlyInstallmentForPrice(
+                cashPrice,
+                financingFee: _financingFee,
+                platesVal: car.paintingsVal ?? 0,
+              ))
           .reduce((a, b) => a < b ? a : b);
     }
 
