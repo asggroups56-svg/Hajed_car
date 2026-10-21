@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,8 +9,15 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 
 class PermissionService {
-  /// Check and request Photo Library/Gallery permission
+  /// Check and request Photo Library/Gallery permission.
+  /// On Android 13+ (API 33+), the system Photo Picker is used by image_picker
+  /// and does NOT require READ_MEDIA_IMAGES / READ_MEDIA_VIDEO permissions.
   static Future<bool> requestPhotoPermission(BuildContext context) async {
+    // On Android, the image_picker plugin uses the system's built-in Photo
+    // Picker which does NOT require READ_MEDIA_IMAGES / READ_MEDIA_VIDEO.
+    if (Platform.isAndroid) return true;
+
+    // iOS: check and request Photo Library permission
     final status = await Permission.photos.status;
     if (status.isGranted || status.isLimited) return true;
     if (status.isPermanentlyDenied) {

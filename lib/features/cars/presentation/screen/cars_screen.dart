@@ -64,25 +64,20 @@ class _CarsScreenState extends State<CarsScreen> {
                   state.programCarsStatus.data != null &&
                   state.programCarsStatus.data!.isNotEmpty;
 
-              final activeOffer = isFilteredByOffer
-                  ? state.programCarsStatus.data!.first
-                  : null;
+              final activeOffer = isFilteredByOffer ? state.programCarsStatus.data!.first : null;
               final offersByItemCode = <String, FinancingAdModel>{
                 for (final offer in state.programCarsStatus.data ?? [])
                   if (offer.itemCode != null) offer.itemCode!: offer,
               };
-              final normalOffers =
-                  state.normalFinancingStatus.data ??
-                  const <FinancingAdModel>[];
-              final sortedNormalOffers =
-                  List<FinancingAdModel>.from(normalOffers)..sort(
-                    (a, b) => (a.interestRate ?? double.infinity).compareTo(
-                      b.interestRate ?? double.infinity,
-                    ),
-                  );
+              final normalOffers = state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
+              final sortedNormalOffers = List<FinancingAdModel>.from(normalOffers)
+                ..sort(
+                  (a, b) => (a.interestRate ?? double.infinity).compareTo(
+                    b.interestRate ?? double.infinity,
+                  ),
+                );
 
-              if (state.allCarsStatus.isLoading ||
-                  state.programCarsStatus.isLoading) {
+              if (state.allCarsStatus.isLoading || state.programCarsStatus.isLoading) {
                 return const Center(child: CustomLoading());
               } else if (state.allCarsStatus.isFailure && !isFilteredByOffer) {
                 return Center(
@@ -101,30 +96,20 @@ class _CarsScreenState extends State<CarsScreen> {
                 final allCars = state.allCarsStatus.data ?? [];
                 baseCarsList = state.programCarsStatus.data!.map((ad) {
                   final offerCar = ad.toCarDataModel();
-                  final originalCar = allCars
-                      .cast<GetBrandCarsDataModel?>()
-                      .firstWhere(
-                        (car) => car?.itemCode == offerCar.itemCode,
-                        orElse: () => null,
-                      );
+                  final originalCar = allCars.cast<GetBrandCarsDataModel?>().firstWhere(
+                    (car) => car?.itemCode == offerCar.itemCode,
+                    orElse: () => null,
+                  );
                   if (originalCar != null) return offerCar.merge(originalCar);
 
-                  final nameParts = offerCar.itemName.trim().split(
-                    RegExp(r'\s+'),
-                  );
-                  if (nameParts.isEmpty || nameParts.first.isEmpty)
-                    return offerCar;
-                  return offerCar.copyWith(
-                    grName: nameParts.first,
-                    groupName: nameParts.last,
-                  );
+                  final nameParts = offerCar.itemName.trim().split(RegExp(r'\s+'));
+                  if (nameParts.isEmpty || nameParts.first.isEmpty) return offerCar;
+                  return offerCar.copyWith(grName: nameParts.first, groupName: nameParts.last);
                 }).toList();
               } else {
                 baseCarsList = (state.allCarsStatus.data ?? [])
                     .where(
-                      (car) =>
-                          car.carStatus == 1 &&
-                          !homeCubit.isCarLocallyReserved(car.itemCode),
+                      (car) => car.carStatus == 1 && !homeCubit.isCarLocallyReserved(car.itemCode),
                     )
                     .toList();
               }
@@ -140,8 +125,7 @@ class _CarsScreenState extends State<CarsScreen> {
                   : baseCarsList.where((car) {
                       final name = car.itemName.toLowerCase();
                       final brand = car.groupName.toLowerCase();
-                      return name.contains(_searchQuery) ||
-                          brand.contains(_searchQuery);
+                      return name.contains(_searchQuery) || brand.contains(_searchQuery);
                     }).toList();
 
               return RefreshIndicator(
@@ -160,17 +144,12 @@ class _CarsScreenState extends State<CarsScreen> {
                 backgroundColor: AppColor.secondAppColor(context),
                 child: ListView(
                   padding: EdgeInsets.zero,
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   children: [
                     if (isFilteredByOffer && activeOffer != null) ...[
                       if (activeOffer.displayPicUrl.isNotEmpty)
                         Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20.w,
-                            vertical: 10.h,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.network(
@@ -178,24 +157,15 @@ class _CarsScreenState extends State<CarsScreen> {
                               width: double.infinity,
                               height: 120.h,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const SizedBox.shrink(),
+                              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                             ),
                           ),
                         ),
                       Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 20.w,
-                          vertical: 8.h,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 14.w,
-                          vertical: 10.h,
-                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                         decoration: BoxDecoration(
-                          color: AppColor.primaryColor(
-                            context,
-                          ).withValues(alpha: 0.05),
+                          color: AppColor.primaryColor(context).withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
@@ -204,23 +174,17 @@ class _CarsScreenState extends State<CarsScreen> {
                             Text(
                               AppLocaleKey.CAR_OFFERS.tr(),
                               style: AppTextStyle.bodyMedium(context).copyWith(
-                                color: AppColor.blackTextColor(
-                                  context,
-                                ).withValues(alpha: 0.6),
+                                color: AppColor.blackTextColor(context).withValues(alpha: 0.6),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             InkWell(
                               onTap: () {
-                                context
-                                    .read<HomeCubit>()
-                                    .clearProgramCarsFilter();
+                                context.read<HomeCubit>().clearProgramCarsFilter();
                               },
                               child: Icon(
                                 Icons.close_rounded,
-                                color: AppColor.blackTextColor(
-                                  context,
-                                ).withValues(alpha: 0.5),
+                                color: AppColor.blackTextColor(context).withValues(alpha: 0.5),
                                 size: 18.sp,
                               ),
                             ),
@@ -235,9 +199,7 @@ class _CarsScreenState extends State<CarsScreen> {
                       localizeCarData: _localizeCarData,
                       isOffer: isFilteredByOffer,
                       offersByItemCode: offersByItemCode,
-                      normalOffer: sortedNormalOffers.isEmpty
-                          ? null
-                          : sortedNormalOffers.first,
+                      normalOffer: sortedNormalOffers.isEmpty ? null : sortedNormalOffers.first,
                       normalOffers: normalOffers,
                     ),
                   ],

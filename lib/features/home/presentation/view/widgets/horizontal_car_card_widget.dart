@@ -16,7 +16,12 @@ class HorizontalCarCardWidget extends StatelessWidget {
   final Map<String, dynamic> car;
   final VoidCallback? onTap;
   final String? heroTag;
-  const HorizontalCarCardWidget({super.key, required this.car, this.onTap, this.heroTag});
+  const HorizontalCarCardWidget({
+    super.key,
+    required this.car,
+    this.onTap,
+    this.heroTag,
+  });
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -41,7 +46,9 @@ class HorizontalCarCardWidget extends StatelessWidget {
               offset: const Offset(0, 4),
             ),
           ],
-          border: Border.all(color: AppColor.blackTextColor(context).withValues(alpha: 0.05)),
+          border: Border.all(
+            color: AppColor.blackTextColor(context).withValues(alpha: 0.05),
+          ),
         ),
         child: Column(
           children: [
@@ -50,7 +57,9 @@ class HorizontalCarCardWidget extends StatelessWidget {
               height: 100.h,
               decoration: BoxDecoration(
                 color: AppColor.blackTextColor(context).withValues(alpha: 0.02),
-                borderRadius: BorderRadius.horizontal(left: Radius.circular(20.r)),
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(20.r),
+                ),
               ),
 
               child: ClipRRect(
@@ -59,15 +68,19 @@ class HorizontalCarCardWidget extends StatelessWidget {
                   topRight: Radius.circular(20.r),
                 ),
                 child: Hero(
-                  tag: heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car)}',
-                  child: (car['image'] != null && car['image'].toString().trim().startsWith('http'))
+                  tag:
+                      heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car)}',
+                  child:
+                      (car['image'] != null &&
+                          car['image'].toString().trim().startsWith('http'))
                       ? CustomNetworkImage(
                           imageUrl: car['image'],
                           fit: BoxFit.fill,
                           width: double.infinity,
                         )
                       : Image.asset(
-                          (car['image'] != null && car['image'].toString().trim().isNotEmpty)
+                          (car['image'] != null &&
+                                  car['image'].toString().trim().isNotEmpty)
                               ? car['image']
                               : AppImages.assetsImagesCar,
                           fit: BoxFit.fill,
@@ -87,7 +100,9 @@ class HorizontalCarCardWidget extends StatelessWidget {
                   children: [
                     Text(
                       car['name'] ?? '',
-                      style: AppTextStyle.titleSmall(context).copyWith(fontWeight: FontWeight.bold),
+                      style: AppTextStyle.titleSmall(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -105,11 +120,15 @@ class HorizontalCarCardWidget extends StatelessWidget {
                         Container(
                           width: 3.w,
                           height: 30.h,
-                          color: AppColor.blackTextColor(context).withValues(alpha: 0.5),
+                          color: AppColor.blackTextColor(
+                            context,
+                          ).withValues(alpha: 0.5),
                         ),
                         Gap(4.h),
                         GestureDetector(
                           onTap: () {
+                            if (HiveMethods.isGuest()) return;
+
                             Navigator.pushNamed(
                               context,
                               RoutesName.financingScreen,

@@ -1631,6 +1631,12 @@
     "external_quote_spec_cameras": "360-degree cameras",
     "external_quote_spec_radar": "Radar and blind-spot monitoring",
     "external_quote_spec_rims": "Sport alloy wheels",
-    "external_quote_spec_remote_start": "Remote start and keyless entry"
+    "external_quote_spec_remote_start": "Remote start and keyless entry",
+    "compare":"Compare",
+    "new_update":"New update available!",
+    "new_version":"New version: ",
+    "new_update_text":"A new version of the car dealer app is available.\nPlease update the app to take advantage of the latest features and enhancements.",
+    "update_now":"Update Now",
+    "Later":"Later"
 }
 

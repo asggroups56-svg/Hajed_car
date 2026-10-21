@@ -1,6 +1,7 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/app_update_service.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/favorites/presentation/view/screen/favorites_screen.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -64,6 +65,8 @@ class _MainLayoutState extends State<MainLayout> {
         currentUserId: code,
         userType: isAgent ? 2 : 1,
       );
+
+      AppUpdateService.checkForUpdate(context);
     });
   }
 

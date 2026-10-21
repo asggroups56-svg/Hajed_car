@@ -266,6 +266,8 @@ class PremiumCarCardWidget extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
+                                if (HiveMethods.isGuest()) return;
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -474,16 +476,20 @@ class PremiumCarCardWidget extends StatelessWidget {
           children: [
             Icon(
               isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
-              color: isInCompare ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
+              color: isInCompare
+                  ? AppColor.primaryColor(context)
+                  : AppColor.blackTextColor(context),
               size: 16.sp,
             ),
             Gap(4.w),
             Text(
-              'مقارنة',
+              AppLocaleKey.compare.tr(),
               style: AppTextStyle.bodySmall(context).copyWith(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
-                color: isInCompare ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
+                color: isInCompare
+                    ? AppColor.primaryColor(context)
+                    : AppColor.blackTextColor(context),
               ),
             ),
           ],

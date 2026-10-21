@@ -1685,4 +1685,10 @@ class AppLocaleKey {
   static const String externalQuoteSpecRadar = 'external_quote_spec_radar';
   static const String externalQuoteSpecRims = 'external_quote_spec_rims';
   static const String externalQuoteSpecRemoteStart = 'external_quote_spec_remote_start';
+  static const String compare = 'compare';
+  static const String new_update = 'new_update';
+  static const String new_version = 'new_version';
+  static const String new_update_text = 'new_update_text';
+  static const String update_now = 'update_now';
+  static const String Later = 'Later';
 }

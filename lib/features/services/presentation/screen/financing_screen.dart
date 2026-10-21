@@ -53,7 +53,8 @@ class FinancingScreen extends StatefulWidget {
   State<FinancingScreen> createState() => _FinancingScreenState();
 }
 
-class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProviderStateMixin {
+class _FinancingScreenState extends State<FinancingScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   final _formKey1 = GlobalKey<FormState>();
@@ -101,13 +102,16 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     if (offer != null && userBank.isNotEmpty) {
       final offerBank = offer.displayBankName ?? offer.bankName;
       final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
-      if (!isSame && (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
+      if (!isSame &&
+          (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
         return offer.interestRateOther!;
       }
     }
     return _activeOffer?.interestRate ?? _defaultApr;
   }
-  double get _insurancePercent => double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
+
+  double get _insurancePercent =>
+      double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
 
   double get _financedAmount {
     final financed = _carPrice - _downPayment;
@@ -139,7 +143,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
 
-    _selectedOffer = widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
+    _selectedOffer =
+        widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
         if (mounted) setState(() {});
@@ -149,23 +154,30 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final basePrice =
         widget.initialCarPrice ??
         (double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000);
-    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     final double platesVal = widget.car?.paintingsVal ?? 0.0;
     final double priceWithFee = basePrice + 3000;
-    final double priceWithVat =
-        widget.initialPriceIncludesVat ? priceWithFee : priceWithFee * (1 + vatPercentage / 100);
+    final double priceWithVat = widget.initialPriceIncludesVat
+        ? priceWithFee
+        : priceWithFee * (1 + vatPercentage / 100);
     _carPrice = priceWithVat + platesVal;
 
     _downPayment =
-        widget.initialDownPayment ?? (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
-    _durationYears = (widget.initialDuration ?? ((_activeOffer?.totalMonths ?? 60) / 12).round())
-        .clamp(1, 5);
+        widget.initialDownPayment ??
+        (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
+    _durationYears =
+        (widget.initialDuration ??
+                ((_activeOffer?.totalMonths ?? 60) / 12).round())
+            .clamp(1, 5);
     _lastPayment =
-        widget.initialLastPayment ?? (_carPrice * ((_activeOffer?.lastInstallmentPct ?? 0) / 100));
+        widget.initialLastPayment ??
+        (_carPrice * ((_activeOffer?.lastInstallmentPct ?? 0) / 100));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final homeCubit = context.read<HomeCubit>();
-      if (homeCubit.state.banksStatus.data == null || homeCubit.state.banksStatus.data!.isEmpty) {
+      if (homeCubit.state.banksStatus.data == null ||
+          homeCubit.state.banksStatus.data!.isEmpty) {
         homeCubit.getBanks();
       }
       if (homeCubit.state.normalFinancingStatus.data == null ||
@@ -198,7 +210,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         initialChildSize: 0.85,
         maxChildSize: 0.95,
         minChildSize: 0.5,
-        builder: (ctx, scrollController) => const FinancingRequirementsBottomSheet(),
+        builder: (ctx, scrollController) =>
+            const FinancingRequirementsBottomSheet(),
       ),
     );
   }
@@ -211,7 +224,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       enableDrag: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.92,
@@ -259,7 +274,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     if (current == 0) {
       if (!(_formKey1.currentState?.validate() ?? false)) return;
       _phoneNumber = _phoneCtrl.text;
-      context.read<HomeCubit>().sendOtp(SendOtpModel(mobileNumber: _phoneNumber));
+      context.read<HomeCubit>().sendOtp(
+        SendOtpModel(mobileNumber: _phoneNumber),
+      );
     } else if (current == 1) {
       if (!(_formKey2.currentState?.validate() ?? false)) return;
       if (!_hasReviewedCalculator) {
@@ -274,9 +291,13 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       }
     } else if (current == 2) {
       final requiredDocs = FinancingDocumentsTab.requiredDocuments;
-      final missingDocs = requiredDocs.where((doc) => _uploadedFiles[doc] == null).toList();
+      final missingDocs = requiredDocs
+          .where((doc) => _uploadedFiles[doc] == null)
+          .toList();
       if (missingDocs.isNotEmpty) {
-        _showSnack('يرجى رفع المستندات المطلوبة للمتابعة (${missingDocs.first})');
+        _showSnack(
+          'يرجى رفع المستندات المطلوبة للمتابعة (${missingDocs.first})',
+        );
         return;
       }
       _submitLoanApplication();
@@ -290,7 +311,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
 
     final int genderValue = _selectedGender == 'female' ? 2 : 1;
 
-    final String makeYearStr = widget.car?.makeYear.toString() ?? DateTime.now().year.toString();
+    final String makeYearStr =
+        widget.car?.makeYear.toString() ?? DateTime.now().year.toString();
 
     final int customerNoVal = int.tryParse(HiveMethods.getcode() ?? '') ?? 0;
 
@@ -312,24 +334,19 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       );
       return;
     }
-    if (_idCtrl.text.trim().isEmpty) {
-      _showSnack(
-        context.locale.languageCode == 'ar'
-            ? 'يرجى إدخال رقم الهوية'
-            : 'Please enter your ID number',
-      );
-      return;
-    }
-
     final bank = _bankCtrl.text.trim();
     final baseProgramName =
-        _activeOffer?.programName ?? _activeOffer?.displayBankName ?? 'Auto Finance Premium';
+        _activeOffer?.programName ??
+        _activeOffer?.displayBankName ??
+        'Auto Finance Premium';
     final programNameWithBank = bank.isNotEmpty
         ? '$baseProgramName | البنك المحول له: $bank'
         : baseProgramName;
 
-    final int repCode = int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
-    final int bankCode = _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
+    final int repCode =
+        int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
+    final int bankCode =
+        _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
 
     final model = AddLoanApplicationModel(
       applicationId: 0,
@@ -365,7 +382,10 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
 
     final filesList = _uploadedFiles.values.whereType<File>().toList();
 
-    context.read<HomeCubit>().addLoanApplicationWithFiles(model: model, files: filesList);
+    context.read<HomeCubit>().addLoanApplicationWithFiles(
+      model: model,
+      files: filesList,
+    );
   }
 
   void _showOtpSheet() {
@@ -378,7 +398,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       backgroundColor: Colors.transparent,
       builder: (ctx) => SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
           child: OtpBottomSheet(
             phoneNumber: _phoneNumber,
             homeCubit: homeCubit,
@@ -401,7 +423,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         content: Text(msg, textAlign: TextAlign.end),
         backgroundColor: AppColor.primaryColor(context, listen: false),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
       ),
     );
   }
@@ -515,7 +539,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                 idCtrl: _idCtrl,
                 phoneCtrl: _phoneCtrl,
                 selectedGender: _selectedGender,
-                onGenderChanged: (g) => setState(() => _selectedGender = g ?? 'male'),
+                onGenderChanged: (g) =>
+                    setState(() => _selectedGender = g ?? 'male'),
               ),
               FinancingWorkInfoTab(
                 formKey: _formKey2,
@@ -525,12 +550,14 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                 salaryCtrl: _salaryCtrl,
                 bankCtrl: _bankCtrl,
                 employmentType: _employmentType,
-                onEmploymentTypeChanged: (t) => setState(() => _employmentType = t ?? 'private'),
+                onEmploymentTypeChanged: (t) =>
+                    setState(() => _employmentType = t ?? 'private'),
                 onBankSelected: (bank) => setState(() => _selectedBank = bank),
               ),
               FinancingDocumentsTab(
                 uploadedFiles: _uploadedFiles,
-                onFilesChanged: (files) => setState(() => _uploadedFiles = files),
+                onFilesChanged: (files) =>
+                    setState(() => _uploadedFiles = files),
               ),
             ],
           ),
@@ -556,18 +583,20 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       leading: const SizedBox.shrink(),
       title: Text(
         AppLocaleKey.personalInfo.tr(),
-        style: AppTextStyle.titleMedium(
-          context,
-        ).copyWith(fontWeight: FontWeight.w900, color: AppColor.primaryColor(context)),
+        style: AppTextStyle.titleMedium(context).copyWith(
+          fontWeight: FontWeight.w900,
+          color: AppColor.primaryColor(context),
+        ),
       ),
       actions: [
         TextButton(
           onPressed: _showCancelDialog,
           child: Text(
             AppLocaleKey.cancel.tr(),
-            style: AppTextStyle.bodyMedium(
-              context,
-            ).copyWith(color: AppColor.greyColor(context), fontWeight: FontWeight.bold),
+            style: AppTextStyle.bodyMedium(context).copyWith(
+              color: AppColor.greyColor(context),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],

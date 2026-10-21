@@ -33,7 +33,6 @@ class FinancingPersonalInfoTab extends StatefulWidget {
   final String? selectedCity;
   final ValueChanged<String?>? onCityChanged;
 
-
   const FinancingPersonalInfoTab({
     super.key,
     required this.formKey,
@@ -56,7 +55,8 @@ class FinancingPersonalInfoTab extends StatefulWidget {
   });
 
   @override
-  State<FinancingPersonalInfoTab> createState() => _FinancingPersonalInfoTabState();
+  State<FinancingPersonalInfoTab> createState() =>
+      _FinancingPersonalInfoTabState();
 }
 
 class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
@@ -71,7 +71,8 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
   @override
   void initState() {
     super.initState();
-    _fullNameCtrl = widget.fullNameCtrl ?? TextEditingController(text: name.toString());
+    _fullNameCtrl =
+        widget.fullNameCtrl ?? TextEditingController(text: name.toString());
     _idCtrl = widget.idCtrl ?? TextEditingController();
     _phoneCtrl = widget.phoneCtrl ?? TextEditingController(text: phone ?? '');
     _selectedGender = widget.selectedGender;
@@ -114,23 +115,28 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             Gap(20.h),
             Text(
               AppLocaleKey.agentEnterDetails.tr(),
-              style: AppTextStyle.bodyMedium(context).copyWith(fontWeight: FontWeight.w700),
+              style: AppTextStyle.bodyMedium(
+                context,
+              ).copyWith(fontWeight: FontWeight.w700),
             ),
             Gap(10.h),
             CustomFormField(
               controller: _fullNameCtrl,
               hintText: AppLocaleKey.agentFullName.tr(),
               radius: 12,
-              validator: (v) => (v == null || v.isEmpty) ? AppLocaleKey.agentFullName.tr() : null,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? AppLocaleKey.agentFullName.tr()
+                  : null,
             ),
             Gap(20.h),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
                 AppLocaleKey.agentGender.tr(),
-                style: AppTextStyle.bodyMedium(
-                  context,
-                ).copyWith(fontWeight: FontWeight.w700, color: AppColor.blackTextColor(context)),
+                style: AppTextStyle.bodyMedium(context).copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.blackTextColor(context),
+                ),
               ),
             ),
             Gap(10.h),
@@ -167,18 +173,6 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
               hintText: AppLocaleKey.agentNationalId.tr(),
               radius: 12,
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ],
-              validator: (v) {
-                if (v == null || v.isEmpty) {
-                  return AppLocaleKey.agentNationalIdRequired.tr();
-                }
-                if (v.length != 10) return AppLocaleKey.validateIdLength.tr();
-                if (!v.startsWith('2')) return AppLocaleKey.validateIdStart.tr();
-                return null;
-              },
             ),
             Gap(16.h),
             CustomFormField(

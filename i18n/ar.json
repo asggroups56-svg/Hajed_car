@@ -1633,6 +1633,12 @@
   "external_quote_spec_cameras": "كاميرات 360 درجة",
   "external_quote_spec_radar": "رادار ونقط عمياء",
   "external_quote_spec_rims": "جنوط ألمنيوم سبورت",
-  "external_quote_spec_remote_start": "تشغيل عن بعد وبصمة"
+  "external_quote_spec_remote_start": "تشغيل عن بعد وبصمة",
+  "compare":"مقارنه",
+  "new_update":"تحديث جديد متوفر!",
+  "new_version":"الإصدار الجديد: ",
+  "new_update_text":"يتوفر إصدار جديد من تطبيق بن وزير للسيارات.\nيرجى تحديث التطبيق للاستمتاع بأحدث الميزات وتحسينات الأداء والخدمات.",
+  "update_now":"تحديث الآن",
+  "Later":"لاحقاً"
 }
 

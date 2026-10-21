@@ -149,19 +149,20 @@ class CarSummaryCard extends StatelessWidget {
 
   Widget _buildBottomRow(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        GestureDetector(
-          onTap: onEdit,
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: AppColor.primaryColor(context),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Icon(Icons.edit_rounded, color: AppColor.whiteColor(context), size: 16.sp),
-          ),
-        ),
-        const Spacer(),
+        // GestureDetector(
+        //   onTap: onEdit,
+        //   child: Container(
+        //     padding: EdgeInsets.all(8.w),
+        //     decoration: BoxDecoration(
+        //       color: AppColor.primaryColor(context),
+        //       borderRadius: BorderRadius.circular(8.r),
+        //     ),
+        //     child: Icon(Icons.edit_rounded, color: AppColor.whiteColor(context), size: 16.sp),
+        //   ),
+        // ),
+        // const Spacer(),
         _buildChip(
           context,
           label: AppLocaleKey.agentLastPayment.tr(),
