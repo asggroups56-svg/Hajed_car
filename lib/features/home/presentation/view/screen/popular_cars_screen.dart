@@ -30,7 +30,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = context.read<HomeCubit>().state;
       if (state.selectedBrandId != null) {
-        context.read<HomeCubit>().getBrandCars(state.selectedBrandId.toString());
+        context.read<HomeCubit>().getBrandCars(
+          state.selectedBrandId.toString(),
+        );
       } else if (state.brands.isEmpty) {
         context.read<HomeCubit>().getCarsModels();
       }
@@ -40,7 +42,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
 
   Map<String, List<GetBrandCarsDataModel>> _filteredCarsMap(HomeState state) {
     if (state.selectedBrandId == null) {
-      return Map<String, List<GetBrandCarsDataModel>>.from(state.allPopularCarsStatus.data ?? {});
+      return Map<String, List<GetBrandCarsDataModel>>.from(
+        state.allPopularCarsStatus.data ?? {},
+      );
     }
     final brands = state.brands;
     CarModel? selectedBrand;
@@ -56,9 +60,8 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     final brandName = selectedBrand.groupName;
 
     if (state.brandCarsStatus.isSuccess && state.brandCarsStatus.data != null) {
-      final List<GetBrandCarsDataModel> brandCars = List<GetBrandCarsDataModel>.from(
-        state.brandCarsStatus.data!,
-      );
+      final List<GetBrandCarsDataModel> brandCars =
+          List<GetBrandCarsDataModel>.from(state.brandCarsStatus.data!);
       return {brandName: brandCars};
     }
 
@@ -66,10 +69,16 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     return {brandName: allCarsMap[brandName] ?? []};
   }
 
-  Map<String, dynamic> _carToMap(GetBrandCarsDataModel car, String? selectedBrandName) {
+  Map<String, dynamic> _carToMap(
+    GetBrandCarsDataModel car,
+    String? selectedBrandName,
+  ) {
     String imageUrl(String path) =>
         "${Constants.baseImage}${path.replaceAll("../../Img/Emp/", "")}";
     final brand = selectedBrandName ?? car.groupName;
+    final displayedPrice = car.SALE_PRICE != null && car.SALE_PRICE! > 0
+        ? car.SALE_PRICE.toString()
+        : car.price;
     return {
       'unique_id': '${car.itemCode}_${car.chassisNo}',
       'name': car.itemName,
@@ -79,10 +88,13 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'image': car.fullCarImage,
       'extraImages': car.extraImages.map(imageUrl).toList(),
       'brand': brand,
-      'price': car.price,
-      'PRICE': car.price,
+      'price': displayedPrice,
+      'PRICE': displayedPrice,
+      'SALE_PRICE': car.SALE_PRICE,
       'year': car.makeYear.toString(),
-      'mileage': car.kilometerReading != null ? '${car.kilometerReading} كم' : '0 كم',
+      'mileage': car.kilometerReading != null
+          ? '${car.kilometerReading} كم'
+          : '0 كم',
       'engine': '${car.cylinder} Cyl',
       'video_id': 'D7O8J5vVf-M',
       'isFavorite': false,
@@ -119,7 +131,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         final isBrandSelected = state.selectedBrandId != null;
-        final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
+        final status = isBrandSelected
+            ? state.brandCarsStatus
+            : state.allPopularCarsStatus;
         final carsMap = _filteredCarsMap(state);
         CarModel? selectedBrand;
         if (isBrandSelected) {
@@ -142,22 +156,32 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
             child: RefreshIndicator(
               onRefresh: () async {
                 if (isBrandSelected) {
-                  await context.read<HomeCubit>().getBrandCars(state.selectedBrandId.toString());
+                  await context.read<HomeCubit>().getBrandCars(
+                    state.selectedBrandId.toString(),
+                  );
                 } else {
                   await context.read<HomeCubit>().getCarsModels();
                 }
               },
               color: AppColor.primaryColor(context),
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 slivers: [
                   AppHeader(title: screenTitle),
                   if (status.isLoading)
-                    const SliverFillRemaining(child: Center(child: CustomLoading()))
+                    const SliverFillRemaining(
+                      child: Center(child: CustomLoading()),
+                    )
                   else if (_isCarsMapEmpty(carsMap))
                     EmptyState(isBrandSelected: isBrandSelected)
                   else
-                    ..._buildCarsSlivers(carsMap, isBrandSelected, selectedBrand?.groupName),
+                    ..._buildCarsSlivers(
+                      carsMap,
+                      isBrandSelected,
+                      selectedBrand?.groupName,
+                    ),
                   SliverToBoxAdapter(child: Gap(100.h)),
                 ],
               ),
@@ -179,7 +203,10 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
           (entry) => [
             if (!isBrandSelected)
               SliverToBoxAdapter(
-                child: BrandHeader(brandName: entry.key, count: entry.value.length),
+                child: BrandHeader(
+                  brandName: entry.key,
+                  count: entry.value.length,
+                ),
               ),
             SliverPadding(
               padding: EdgeInsets.symmetric(
@@ -193,7 +220,8 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
                     padding: EdgeInsets.only(bottom: 16.h),
                     child: MagazineCardWidget(
                       car: car,
-                      heroTag: 'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
+                      heroTag:
+                          'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
                     ),
                   );
                 }, childCount: entry.value.length),

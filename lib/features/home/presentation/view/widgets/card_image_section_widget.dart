@@ -1,5 +1,6 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
+import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -49,11 +50,20 @@ class _CardImageSectionState extends State<CardImageSection> {
 
   void _initializeImages() {
     _fullImagesList = [
-      widget.car['image'] as String,
-      ...List<String>.from(widget.car['extraImages'] ?? []),
+      (widget.car['image'] as String? ?? '').trim(),
+      ...List<String>.from(widget.car['extraImages'] ?? [])
+          .where((image) => image.trim().isNotEmpty),
     ];
+    _fullImagesList.removeWhere((image) => image.isEmpty);
     _displayImages = _fullImagesList.take(4).toList();
   }
+
+  Widget _logoPlaceholder() => Container(
+    color: AppColor.secondAppColor(context),
+    alignment: Alignment.center,
+    padding: EdgeInsets.all(28.w),
+    child: Image.asset(AppImages.assetsImagesLogeStatic, fit: BoxFit.contain),
+  );
 
   void _nextImage() {
     if (_displayImages.isEmpty) return;
@@ -65,7 +75,9 @@ class _CardImageSectionState extends State<CardImageSection> {
   void _previousImage() {
     if (_displayImages.isEmpty) return;
     setState(() {
-      _currentImageIndex = (_currentImageIndex - 1 + _displayImages.length) % _displayImages.length;
+      _currentImageIndex =
+          (_currentImageIndex - 1 + _displayImages.length) %
+          _displayImages.length;
     });
   }
 
@@ -112,17 +124,25 @@ class _CardImageSectionState extends State<CardImageSection> {
                     fit: StackFit.expand,
                     alignment: Alignment.center,
                     children: [
-                      CustomNetworkImage(
-                        imageUrl: _displayImages.isNotEmpty
-                            ? _displayImages[_currentImageIndex]
-                            : widget.car['image']!,
-                        fit: BoxFit.cover,
-                      ),
-                      if (widget.onTap == null && isLastDisplayImage && hasMoreImagesInFull)
+                      if (_displayImages.isEmpty)
+                        _logoPlaceholder()
+                      else
+                        CustomNetworkImage(
+                          imageUrl: _displayImages[_currentImageIndex],
+                          fit: BoxFit.cover,
+                          errorWidget: _logoPlaceholder(),
+                        ),
+                      if (widget.onTap == null &&
+                          isLastDisplayImage &&
+                          hasMoreImagesInFull)
                         Container(
                           decoration: BoxDecoration(
-                            color: AppColor.blackColor(context).withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
+                            color: AppColor.blackColor(
+                              context,
+                            ).withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(18.r),
+                            ),
                           ),
                           child: Center(
                             child: Column(
@@ -135,10 +155,11 @@ class _CardImageSectionState extends State<CardImageSection> {
                                 ),
                                 Text(
                                   AppLocaleKey.see_all.tr(),
-                                  style: AppTextStyle.bodySmall(context).copyWith(
-                                    color: AppColor.whiteColor(context),
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: AppTextStyle.bodySmall(context)
+                                      .copyWith(
+                                        color: AppColor.whiteColor(context),
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ],
                             ),
@@ -163,7 +184,9 @@ class _CardImageSectionState extends State<CardImageSection> {
                   icon: Container(
                     padding: EdgeInsets.all(4.r),
                     decoration: BoxDecoration(
-                      color: AppColor.blackColor(context).withValues(alpha: 0.3),
+                      color: AppColor.blackColor(
+                        context,
+                      ).withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -186,7 +209,9 @@ class _CardImageSectionState extends State<CardImageSection> {
                   icon: Container(
                     padding: EdgeInsets.all(4.r),
                     decoration: BoxDecoration(
-                      color: AppColor.blackColor(context).withValues(alpha: 0.3),
+                      color: AppColor.blackColor(
+                        context,
+                      ).withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(

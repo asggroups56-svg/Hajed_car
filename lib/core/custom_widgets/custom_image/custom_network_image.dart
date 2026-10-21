@@ -13,6 +13,7 @@ class CustomNetworkImage extends StatelessWidget {
   final double radius;
   final BoxFit? fit;
   final bool hasZoom;
+  final Widget? errorWidget;
 
   const CustomNetworkImage({
     super.key,
@@ -22,6 +23,7 @@ class CustomNetworkImage extends StatelessWidget {
     this.fit,
     this.radius = 0,
     this.hasZoom = false,
+    this.errorWidget,
   });
 
   @override
@@ -29,7 +31,8 @@ class CustomNetworkImage extends StatelessWidget {
     // Safety check for a known broken Unsplash URL from dummy data
     String effectiveUrl = imageUrl;
     if (imageUrl.contains('1617788131775-ddb49554618a')) {
-      effectiveUrl = 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=800';
+      effectiveUrl =
+          'https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=800';
     }
 
     // Debug log to verify fix
@@ -54,18 +57,26 @@ class CustomNetworkImage extends StatelessWidget {
           height: height,
           placeholder: (context, url) => Container(
             color: AppColor.greyColor(context).withValues(alpha: 0.05),
-            child: Center(child: CupertinoActivityIndicator(color: AppColor.primaryColor(context))),
-          ),
-          errorWidget: (context, url, error) => Container(
-            color: AppColor.greyColor(context).withValues(alpha: (0.1)),
             child: Center(
-              child: Icon(
-                Icons.image_not_supported_outlined,
-                color: AppColor.primaryColor(context).withValues(alpha: (0.4)),
-                size: 24,
+              child: CupertinoActivityIndicator(
+                color: AppColor.primaryColor(context),
               ),
             ),
           ),
+          errorWidget: (context, url, error) =>
+              errorWidget ??
+              Container(
+                color: AppColor.greyColor(context).withValues(alpha: (0.1)),
+                child: Center(
+                  child: Icon(
+                    Icons.image_not_supported_outlined,
+                    color: AppColor.primaryColor(
+                      context,
+                    ).withValues(alpha: (0.4)),
+                    size: 24,
+                  ),
+                ),
+              ),
         ),
       ),
     );

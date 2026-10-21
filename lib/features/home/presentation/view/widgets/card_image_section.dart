@@ -8,25 +8,32 @@ import 'favorite_button.dart';
 
 class CardImageSection extends StatelessWidget {
   const CardImageSection({super.key, required this.car});
-
   final Map<String, dynamic> car;
-
   @override
   Widget build(BuildContext context) {
     final imageUrl = car['image']?.toString() ?? '';
+    final logoPlaceholder = Container(
+      color: Theme.of(context).colorScheme.surface,
+      alignment: Alignment.center,
+      padding: EdgeInsets.all(28.w),
+      child: Image.asset(AppImages.assetsImagesLogeStatic, fit: BoxFit.contain),
+    );
 
     return Stack(
       fit: StackFit.expand,
       children: [
         Hero(
           tag: 'car_image_${car['itemCode'] ?? car['name']}',
-          child: imageUrl.trim().startsWith('http')
-              ? CustomNetworkImage(imageUrl: imageUrl, height: 190.h, fit: BoxFit.fill)
-              : Image.asset(
-                  imageUrl.trim().isNotEmpty ? imageUrl : AppImages.assetsImagesPlaceholder,
+          child: imageUrl.trim().isEmpty
+              ? logoPlaceholder
+              : imageUrl.trim().startsWith('http')
+              ? CustomNetworkImage(
+                  imageUrl: imageUrl,
                   height: 190.h,
                   fit: BoxFit.fill,
-                ),
+                  errorWidget: logoPlaceholder,
+                )
+              : Image.asset(imageUrl, height: 190.h, fit: BoxFit.fill),
         ),
         Positioned(
           top: 6.h,

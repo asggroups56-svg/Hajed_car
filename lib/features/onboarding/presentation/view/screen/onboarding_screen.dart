@@ -25,13 +25,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingModel> _pages = [
     OnboardingModel(
       title: AppLocaleKey.exploreLuxuryCars.tr(),
-      description: AppLocaleKey.exploreLuxuryCars.tr(),
+      description: AppLocaleKey.exploreLuxuryCarsDescription.tr(),
       image: AppImages.assetsImagesOnboardingCarSelection,
       isImage: true,
     ),
     OnboardingModel(
-      title: AppLocaleKey.expertMaintenance.tr(),
-      description: AppLocaleKey.expertMaintenance.tr(),
+      title: AppLocaleKey.carsAtDealer.tr(),
+      description: AppLocaleKey.keepCarTopCondition.tr(),
       image: AppImages.assetsImagesOnboardingCarService,
       isImage: true,
     ),
@@ -44,44 +44,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              AppColor.secondAppColor(context),
-              AppColor.gradientSecondaryColor(context),
-              AppColor.primaryColor(context).withValues(alpha: (0.2)),
+              AppColor.whiteColor(context),
+              AppColor.whiteColor(context),
+              AppColor.primaryColor(context).withValues(alpha: 0.18),
             ],
           ),
         ),
-        child: Column(
-          children: [
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.only(start: 20.w, top: 8.h),
                 child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
+                  alignment: AlignmentDirectional.topStart,
                   child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: _currentPage == _pages.length - 1 ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 250),
+                    opacity: _currentPage == _pages.length - 1 ? 0 : 1,
                     child: IgnorePointer(
                       ignoring: _currentPage == _pages.length - 1,
                       child: TextButton(
-                        onPressed: () {
-                          HiveMethods.updateFirstTime();
-                          HiveMethods.updateIsGuest(true);
-                          NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
-                        },
+                        onPressed: _finishOnboarding,
                         child: Text(
                           AppLocaleKey.skip.tr(),
                           style: AppTextStyle.bodyLarge(context).copyWith(
-                            fontWeight: FontWeight.bold,
                             color: AppColor.primaryColor(context),
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -89,101 +90,87 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return OnboardingPageItem(model: _pages[index]);
-                },
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _pages.length,
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  itemBuilder: (context, index) =>
+                      OnboardingPageItem(model: _pages[index]),
+                ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 40.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Page Indicators
-                  Row(
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: EdgeInsets.only(right: 8.w),
-                        height: 8.h,
-                        width: _currentPage == index ? 24.w : 8.w,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppColor.primaryColor(context)
-                              : AppColor.blackTextColor(context).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: _currentPage == index
-                              ? [
-                                  BoxShadow(
-                                    color: AppColor.primaryColor(context).withValues(alpha: 0.4),
-                                    blurRadius: 10,
-                                    spreadRadius: 1,
-                                  ),
-                                ]
-                              : null,
+              Padding(
+                padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 28.h),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        _pages.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: EdgeInsets.symmetric(horizontal: 4.w),
+                          height: 6.h,
+                          width: _currentPage == index ? 22.w : 6.w,
+                          decoration: BoxDecoration(
+                            color: _currentPage == index
+                                ? AppColor.primaryColor(context)
+                                : AppColor.primaryColor(
+                                    context,
+                                  ).withValues(alpha: 0.22),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColor.primaryColor(context).withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
+                    SizedBox(height: 22.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_currentPage < _pages.length - 1) {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          } else {
+                            _finishOnboarding();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.primaryColor(context),
+                          foregroundColor: AppColor.whiteColor(context),
+                          minimumSize: Size.fromHeight(54.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          elevation: 0,
                         ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage == _pages.length - 1) {
-                          HiveMethods.updateFirstTime();
-                          HiveMethods.updateIsGuest(true);
-                          NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.primaryColor(context),
-                        foregroundColor: AppColor.whiteColor(context),
-                        padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        _currentPage == _pages.length - 1
-                            ? AppLocaleKey.getStarted.tr()
-                            : AppLocaleKey.next.tr(),
-                        style: AppTextStyle.bodyLarge(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                        child: Text(
+                          _currentPage == _pages.length - 1
+                              ? AppLocaleKey.getStarted.tr()
+                              : AppLocaleKey.next.tr(),
+                          style: AppTextStyle.bodyLarge(context).copyWith(
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _finishOnboarding() {
+    HiveMethods.updateFirstTime();
+    HiveMethods.updateIsGuest(true);
+    NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
   }
 }

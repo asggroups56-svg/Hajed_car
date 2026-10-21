@@ -72,7 +72,11 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     );
   }
 
-  void _goToDetails(BuildContext context, Map<String, dynamic> car, String heroTag) {
+  void _goToDetails(
+    BuildContext context,
+    Map<String, dynamic> car,
+    String heroTag,
+  ) {
     NavigatorMethods.pushNamed(
       context,
       RoutesName.carDetailsScreen,
@@ -82,12 +86,16 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
 
   List<Map<String, dynamic>> _buildDisplayedCars(HomeState state) {
     final isBrandSelected = state.selectedBrandId != null;
-    final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
+    final status = isBrandSelected
+        ? state.brandCarsStatus
+        : state.allPopularCarsStatus;
 
     if (!status.isSuccess || status.data == null) return [];
 
     final List<GetBrandCarsDataModel> flatCars = isBrandSelected
-        ? (status.data as List<GetBrandCarsDataModel>).take(_maxDisplayedCars).toList()
+        ? (status.data as List<GetBrandCarsDataModel>)
+              .take(_maxDisplayedCars)
+              .toList()
         : (status.data as Map<String, List<GetBrandCarsDataModel>>).values
               .expand((cars) => cars.take(_maxDisplayedCars))
               .toList();
@@ -98,6 +106,9 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   Map<String, dynamic> _carToMap(GetBrandCarsDataModel car) {
     String imageUrl(String path) =>
         '${Constants.baseImage}${path.replaceAll('../../Img/Emp/', '')}';
+    final displayedPrice = car.SALE_PRICE != null && car.SALE_PRICE! > 0
+        ? car.SALE_PRICE.toString()
+        : car.price;
 
     final String uniqueId = car.chassisNo.isNotEmpty && car.chassisNo != 'null'
         ? 'chassis_${car.chassisNo}'
@@ -112,8 +123,9 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'image': '${Constants.baseImage}${car.carImage}',
       'extraImages': car.extraImages.map(imageUrl).toList(),
       'brand': car.groupName,
-      'price': car.price,
-      'PRICE': car.price,
+      'price': displayedPrice,
+      'PRICE': displayedPrice,
+      'SALE_PRICE': car.SALE_PRICE,
       'year': car.makeYear.toString(),
       'mileage': '${car.kilometerReading ?? "0"} كم',
       'engine': '${car.cylinder} Cyl',
@@ -154,7 +166,9 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         final isBrandSelected = state.selectedBrandId != null;
-        final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
+        final status = isBrandSelected
+            ? state.brandCarsStatus
+            : state.allPopularCarsStatus;
         if (status.isLoading || status.isInitial) {
           return const LoadingPlaceholder();
         }
@@ -170,7 +184,8 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
             onPageChanged: (page) => setState(() => _currentPage = page),
             itemBuilder: (context, index) {
               final carId = HiveMethods.getCarUniqueId(cars[index]);
-              final heroTag = 'popular_car_image_${carId.isNotEmpty ? carId : index}_$index';
+              final heroTag =
+                  'popular_car_image_${carId.isNotEmpty ? carId : index}_$index';
               return CarCard(
                 car: cars[index],
                 isSelected: index == _currentPage,

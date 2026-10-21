@@ -80,7 +80,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                       : Image.asset(
                           car.fullCarImage.isNotEmpty
                               ? car.fullCarImage
-                              : AppImages.assetsImagesCar,
+                              : AppImages.assetsImagesLogeStatic,
                           fit: BoxFit.fill,
                           height: 150.h,
                           width: double.infinity,

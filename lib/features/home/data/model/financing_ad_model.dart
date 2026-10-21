@@ -25,6 +25,7 @@ class FinancingAdModel extends Equatable {
   final String? modelName;
   final int? modelYear;
   final double? price;
+  final double? salePrice;
   final String? itemCode;
   final String? itemName;
   final String? storeCode;
@@ -71,6 +72,7 @@ class FinancingAdModel extends Equatable {
     this.totalMonths,
     this.modelName,
     this.price,
+    this.salePrice,
     this.itemCode,
     this.itemName,
     this.storeCode,
@@ -111,16 +113,34 @@ class FinancingAdModel extends Equatable {
   }
 
   factory FinancingAdModel.fromJson(Map<String, dynamic> json) {
+    final salePrice = _toDouble(
+      json['SALE_PRICE'] ??
+          json['SalePrice'] ??
+          json['salePrice'] ??
+          json['SALEPRICE'],
+    );
+    final regularPrice = _toDouble(
+      json['Price'] ?? json['PRICE'] ?? json['price'],
+    );
+
     return FinancingAdModel(
       programId: (json['ProgramID'] as num?)?.toInt(),
       programName: json['ProgramName']?.toString(),
       isActive: json['IsActive'] as bool?,
       bankOrProvider: json['BankOrProvider']?.toString(),
-      bankName: (json['BankName'] ?? json['BANK_NAME'] ?? json['BankOrProviderName'])?.toString(),
-      bankNameEng: (json['BankNameEng'] ?? json['BANK_NAME_ENG'] ?? json['BankOrProviderNameEng'])
-          ?.toString(),
-      bankPicturePath: (json['PICTUREPATH'] ?? json['PicturePath'] ?? json['BankPicturePath'])
-          ?.toString(),
+      bankName:
+          (json['BankName'] ?? json['BANK_NAME'] ?? json['BankOrProviderName'])
+              ?.toString(),
+      bankNameEng:
+          (json['BankNameEng'] ??
+                  json['BANK_NAME_ENG'] ??
+                  json['BankOrProviderNameEng'])
+              ?.toString(),
+      bankPicturePath:
+          (json['PICTUREPATH'] ??
+                  json['PicturePath'] ??
+                  json['BankPicturePath'])
+              ?.toString(),
       startDate: json['StartDate']?.toString(),
       endDate: json['EndDate']?.toString(),
       firstInstallmentPct: _toDouble(json['FirstInstallmentPct']),
@@ -134,10 +154,15 @@ class FinancingAdModel extends Equatable {
             json['interestRateOther'] ??
             json['INTEREST_RATE_OTHER'],
       ),
-      totalMonths: _toInt(json['TotalMonths'] ?? json['Months'] ?? json['DurationMonths']),
+      totalMonths: _toInt(
+        json['TotalMonths'] ?? json['Months'] ?? json['DurationMonths'],
+      ),
       modelName: json['modelName']?.toString(),
       modelYear: _toInt(json['ModelYear']),
-      price: _toDouble(json['Price']),
+      // Offer responses can contain only SALE_PRICE. It is the price that
+      // should be shown and used in the offer calculations.
+      price: salePrice != null && salePrice > 0 ? salePrice : regularPrice,
+      salePrice: salePrice,
       itemCode: json['ITEM_CODE']?.toString(),
       itemName: json['ITEM_NAME']?.toString(),
       storeCode: json['STORE_CODE']?.toString(),
@@ -163,26 +188,38 @@ class FinancingAdModel extends Equatable {
       carImage: json['carimage']?.toString(),
       displayBankName: json['BANK_NAME']?.toString(),
       InsurancePct: (json['InsurancePct'] as num?)?.toString(),
-      paintingsVal: (json['PaintingsVal'] as num?)?.toDouble() ??
+      paintingsVal:
+          (json['PaintingsVal'] as num?)?.toDouble() ??
           (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
           (json['paintingsVal'] as num?)?.toDouble() ??
-          _toDouble(json['PaintingsVal'] ?? json['PAINTINGS_VAL'] ?? json['paintingsVal']),
+          _toDouble(
+            json['PaintingsVal'] ??
+                json['PAINTINGS_VAL'] ??
+                json['paintingsVal'],
+          ),
     );
   }
 
   static List<FinancingAdModel> listFromResponse(dynamic data) {
     if (data == null) return [];
     final List<dynamic> jsonList = data is String ? jsonDecode(data) : data;
-    return jsonList.map((e) => FinancingAdModel.fromJson(e as Map<String, dynamic>)).toList();
+    return jsonList
+        .map((e) => FinancingAdModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   String get displayPicUrl {
     final rawPic = (programPic != null && programPic!.isNotEmpty)
         ? programPic
-        : (carImage != null && carImage!.isNotEmpty ? carImage!.split(',').first : null);
+        : (carImage != null && carImage!.isNotEmpty
+              ? carImage!.split(',').first
+              : null);
     if (rawPic == null || rawPic.isEmpty) return '';
-    if (rawPic.startsWith('http://') || rawPic.startsWith('https://')) return rawPic;
-    final cleaned = rawPic.replaceAll('../../Img/Emp/', '').replaceAll('../..', '');
+    if (rawPic.startsWith('http://') || rawPic.startsWith('https://'))
+      return rawPic;
+    final cleaned = rawPic
+        .replaceAll('../../Img/Emp/', '')
+        .replaceAll('../..', '');
     return '${Constants.baseImage}$cleaned';
   }
 
@@ -201,8 +238,11 @@ class FinancingAdModel extends Equatable {
   String? get displayBankImageUrl {
     final rawPath = bankPicturePath?.trim();
     if (rawPath == null || rawPath.isEmpty) return null;
-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) return rawPath;
-    final cleaned = rawPath.replaceAll('../../Img/Emp/', '').replaceAll('../..', '');
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://'))
+      return rawPath;
+    final cleaned = rawPath
+        .replaceAll('../../Img/Emp/', '')
+        .replaceAll('../..', '');
     return '${Constants.baseImage}$cleaned';
   }
 
@@ -256,11 +296,15 @@ class FinancingAdModel extends Equatable {
   }) {
     final months = totalMonths ?? 60;
     if (months <= 0) return 0;
-    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final carPrice = ((basePrice + financingFee) * (1 + vatPercentage / 100)) + platesVal;
+    final vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final carPrice =
+        ((basePrice + financingFee) * (1 + vatPercentage / 100)) + platesVal;
     final downPaymentPercent = firstInstallmentPct ?? 0;
     final finalPaymentPercent = lastInstallmentPct ?? 0;
-    final flatRatePercent = getEffectiveInterestRate(userSalaryBank: userSalaryBank);
+    final flatRatePercent = getEffectiveInterestRate(
+      userSalaryBank: userSalaryBank,
+    );
     final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
     final financeYears = months / 12;
 
@@ -268,10 +312,13 @@ class FinancingAdModel extends Equatable {
     final finalPaymentAmount = (carPrice * finalPaymentPercent) / 100;
     final netFinanceAmount = carPrice - downPaymentAmount;
 
-    final totalInterest = netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance = netFinanceAmount * (insurancePercent / 100) * financeYears;
+    final totalInterest =
+        netFinanceAmount * (flatRatePercent / 100) * financeYears;
+    final totalInsurance =
+        netFinanceAmount * (insurancePercent / 100) * financeYears;
 
-    final totalFinancedWithInterest = netFinanceAmount + totalInterest + totalInsurance;
+    final totalFinancedWithInterest =
+        netFinanceAmount + totalInterest + totalInsurance;
     return (totalFinancedWithInterest - finalPaymentAmount) / months;
   }
 
@@ -279,7 +326,9 @@ class FinancingAdModel extends Equatable {
     if (carImage == null || carImage!.isEmpty) return [];
     return carImage!.split(',').map((img) {
       if (img.startsWith('http://') || img.startsWith('https://')) return img;
-      final cleaned = img.replaceAll('../../Img/Emp/', '').replaceAll('../..', '');
+      final cleaned = img
+          .replaceAll('../../Img/Emp/', '')
+          .replaceAll('../..', '');
       return '${Constants.baseImage}$cleaned';
     }).toList();
   }
@@ -298,10 +347,13 @@ class FinancingAdModel extends Equatable {
     final finalPaymentAmount = (carPrice * finalPaymentPercent) / 100;
     final netFinanceAmount = carPrice - downPaymentAmount;
 
-    final totalInterest = netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance = netFinanceAmount * (insurancePercent / 100) * financeYears;
+    final totalInterest =
+        netFinanceAmount * (flatRatePercent / 100) * financeYears;
+    final totalInsurance =
+        netFinanceAmount * (insurancePercent / 100) * financeYears;
 
-    final totalFinancedWithInterest = netFinanceAmount + totalInterest + totalInsurance;
+    final totalFinancedWithInterest =
+        netFinanceAmount + totalInterest + totalInsurance;
     final monthlyInstallment = months > 0
         ? (totalFinancedWithInterest - finalPaymentAmount) / months
         : null;
@@ -313,6 +365,7 @@ class FinancingAdModel extends Equatable {
       groupParent: 0,
       groupLevel: 0,
       price: price?.toStringAsFixed(0),
+      SALE_PRICE: salePrice ?? price,
       interestRate: interestRate,
       monthlyInstallment: monthlyInstallment,
       itemCode: itemCode ?? '',
@@ -356,7 +409,8 @@ class FinancingAdModel extends Equatable {
   }
 
   double get priceWithVat {
-    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     return (price ?? 0) * (1 + vatPercentage / 100);
   }
 
@@ -370,6 +424,7 @@ class FinancingAdModel extends Equatable {
       'extraImages': allCarImages,
       'brand': programName ?? 'برنامج تمويلي',
       'price': price != null ? price!.toStringAsFixed(0) : '0',
+      'SALE_PRICE': salePrice,
       'year': (makeYear ?? modelYear ?? 2025).toString(),
       'mileage': kilometerReading != null ? '$kilometerReading كم' : '0 كم',
       'engine': cylinder != null ? '$cylinder Cyl' : 'V4',
@@ -426,6 +481,7 @@ class FinancingAdModel extends Equatable {
     modelName,
     modelYear,
     price,
+    salePrice,
     itemCode,
     itemName,
     carImage,

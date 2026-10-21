@@ -16,7 +16,9 @@
   "quality_reliability": "Quality & Reliability",
   "find_dream_car": "Find Dream Car",
   "explore_luxury_cars": "Explore our wide range of luxury cars in our futuristic showroom.",
+  "explore_luxury_cars_description": "Discover your dream car from a curated collection of new and pre-owned vehicles.",
   "expert_maintenance": "Expert Maintenance",
+  "cars_at_dealer": "Your Cars at the Dealer",
   "keep_car_top_condition": "Keep your car in top condition with our high-tech service centers.",
   "fast_secure_delivery": "Fast & Secure Delivery",
   "experience_seamless_delivery": "Experience a seamless delivery of your car right to your doorstep.",
@@ -1639,4 +1641,3 @@
     "update_now":"Update Now",
     "Later":"Later"
 }
-

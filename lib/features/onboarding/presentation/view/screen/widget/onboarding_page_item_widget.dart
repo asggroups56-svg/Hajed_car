@@ -13,45 +13,47 @@ class OnboardingPageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Spacer(flex: 2),
           FadeInDown(
-            duration: const Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 650),
             child: Container(
-              height: 300.h,
-              width: 300.h,
-              margin: EdgeInsets.all(20.w),
+              height: 280.h,
+              width: 230.w,
+              padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
-                color: AppColor.primaryColor(context).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+                color: AppColor.primaryColor(context).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.elliptical(115.w, 140.h),
+                  bottom: Radius.elliptical(115.w, 140.h),
+                ),
               ),
-              child: Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.elliptical(105.w, 130.h),
+                  bottom: Radius.elliptical(105.w, 130.h),
+                ),
                 child: model.isImage
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(150),
-                        child: Image.asset(
-                          model.image,
-                          fit: BoxFit.cover,
-                          height: 260.h,
-                          width: 260.h,
+                    ? Image.asset(model.image, fit: BoxFit.cover)
+                    : Center(
+                        child: Icon(
+                          model.image as IconData,
+                          size: 112.h,
+                          color: AppColor.primaryColor(context),
                         ),
-                      )
-                    : Icon(
-                        model.image as IconData,
-                        size: 150.h,
-                        color: AppColor.primaryColor(context),
                       ),
               ),
             ),
           ),
-          Gap(40.h),
+          Gap(32.h),
           FadeInUp(
             duration: const Duration(milliseconds: 1000),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30.w),
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
               child: Column(
                 children: [
                   Text(
@@ -62,19 +64,22 @@ class OnboardingPageItem extends StatelessWidget {
                       color: AppColor.blackTextColor(context),
                     ),
                   ),
-                  Gap(20.h),
+                  Gap(14.h),
                   Text(
                     model.description,
                     textAlign: TextAlign.center,
                     style: AppTextStyle.bodyLarge(context).copyWith(
-                      color: AppColor.blackTextColor(context).withValues(alpha: 0.8),
-                      height: 1.5,
+                      color: AppColor.blackTextColor(
+                        context,
+                      ).withValues(alpha: 0.8),
+                      height: 1.55,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+          const Spacer(flex: 3),
         ],
       ),
     );

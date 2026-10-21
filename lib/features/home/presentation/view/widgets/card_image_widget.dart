@@ -14,21 +14,28 @@ class CardImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrl = car['image'].toString();
     final actualHeroTag = heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car)}';
+    final logoPlaceholder = Padding(
+      padding: EdgeInsets.all(28.w),
+      child: Image.asset(AppImages.assetsImagesLogeStatic, fit: BoxFit.contain),
+    );
 
     return SizedBox(
       height: 180.h,
       width: double.infinity,
       child: Hero(
         tag: actualHeroTag,
-        child: imageUrl.trim().startsWith('http')
+        child: imageUrl.trim().isEmpty || imageUrl == 'null'
+            ? logoPlaceholder
+            : imageUrl.trim().startsWith('http')
             ? CustomNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.contain,
                 width: double.infinity,
                 height: 180.h,
+                errorWidget: logoPlaceholder,
               )
             : Image.asset(
-                imageUrl.isNotEmpty ? imageUrl : AppImages.assetsImagesPlaceholder,
+                imageUrl,
                 fit: BoxFit.contain,
                 width: double.infinity,
                 height: 180.h,
