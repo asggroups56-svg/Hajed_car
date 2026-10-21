@@ -10,6 +10,7 @@ import 'package:car/features/onboarding/presentation/view/screen/widget/onboardi
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -22,23 +23,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingModel> _pages = [
+  List<OnboardingModel> _getPages() => [
     OnboardingModel(
-      title: AppLocaleKey.exploreLuxuryCars.tr(),
-      description: AppLocaleKey.exploreLuxuryCarsDescription.tr(),
-      image: AppImages.assetsImagesOnboardingCarSelection,
+      pageIndex: 0,
+      title: AppLocaleKey.onboarding1Title.tr(),
+      description: AppLocaleKey.onboarding1Desc.tr(),
+      image: AppImages.assetsImagesGclass,
       isImage: true,
     ),
     OnboardingModel(
-      title: AppLocaleKey.carsAtDealer.tr(),
-      description: AppLocaleKey.keepCarTopCondition.tr(),
-      image: AppImages.assetsImagesOnboardingCarService,
-      isImage: true,
+      pageIndex: 1,
+      title: AppLocaleKey.onboarding2Title.tr(),
+      description: AppLocaleKey.onboarding2Desc.tr(),
+      image: Icons.verified_user_rounded,
+      isImage: false,
     ),
     OnboardingModel(
-      title: AppLocaleKey.fastSecureDelivery.tr(),
-      description: AppLocaleKey.experienceSeamlessDelivery.tr(),
-      image: Icons.speed_rounded,
+      pageIndex: 2,
+      title: AppLocaleKey.onboarding3Title.tr(),
+      description: AppLocaleKey.onboarding3Desc.tr(),
+      image: Icons.local_shipping_rounded,
       isImage: false,
     ),
   ];
@@ -51,6 +55,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = _getPages();
+
     return Scaffold(
       body: DecoratedBox(
         decoration: BoxDecoration(
@@ -60,105 +66,167 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             colors: [
               AppColor.whiteColor(context),
               AppColor.whiteColor(context),
-              AppColor.primaryColor(context).withValues(alpha: 0.18),
+              AppColor.whiteColor(context).withValues(alpha: 0.12),
             ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
+              // Header: Page Counter (Right in RTL) & Skip Button (Left in RTL)
               Padding(
-                padding: EdgeInsetsDirectional.only(start: 20.w, top: 8.h),
-                child: Align(
-                  alignment: AlignmentDirectional.topStart,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 250),
-                    opacity: _currentPage == _pages.length - 1 ? 0 : 1,
-                    child: IgnorePointer(
-                      ignoring: _currentPage == _pages.length - 1,
-                      child: TextButton(
-                        onPressed: _finishOnboarding,
-                        child: Text(
-                          AppLocaleKey.skip.tr(),
-                          style: AppTextStyle.bodyLarge(context).copyWith(
-                            color: AppColor.primaryColor(context),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _pages.length,
-                  onPageChanged: (index) =>
-                      setState(() => _currentPage = index),
-                  itemBuilder: (context, index) =>
-                      OnboardingPageItem(model: _pages[index]),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 28.h),
-                child: Column(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _pages.length,
-                        (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: EdgeInsets.symmetric(horizontal: 4.w),
-                          height: 6.h,
-                          width: _currentPage == index ? 22.w : 6.w,
-                          decoration: BoxDecoration(
-                            color: _currentPage == index
-                                ? AppColor.primaryColor(context)
-                                : AppColor.primaryColor(
-                                    context,
-                                  ).withValues(alpha: 0.22),
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                        ),
+                    Text(
+                      '${_currentPage + 1} ${AppLocaleKey.pageCounterOf.tr()} ${pages.length}',
+                      style: AppTextStyle.bodyMedium(context).copyWith(
+                        color: AppColor.blackTextColor(context).withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 22.h),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_currentPage < _pages.length - 1) {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                            );
-                          } else {
-                            _finishOnboarding();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColor.primaryColor(context),
-                          foregroundColor: AppColor.whiteColor(context),
-                          minimumSize: Size.fromHeight(54.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          _currentPage == _pages.length - 1
-                              ? AppLocaleKey.getStarted.tr()
-                              : AppLocaleKey.next.tr(),
-                          style: AppTextStyle.bodyLarge(context).copyWith(
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 250),
+                      opacity: _currentPage == pages.length - 1 ? 0 : 1,
+                      child: IgnorePointer(
+                        ignoring: _currentPage == pages.length - 1,
+                        child: TextButton(
+                          onPressed: _finishOnboardingAsGuest,
+                          child: Text(
+                            AppLocaleKey.skip.tr(),
+                            style: AppTextStyle.bodyMedium(context).copyWith(
+                              color: AppColor.blackTextColor(context).withValues(alpha: 0.65),
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ],
+                ),
+              ),
+
+              // Page View
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: pages.length,
+                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  itemBuilder: (context, index) => OnboardingPageItem(model: pages[index]),
+                ),
+              ),
+
+              // Bottom Actions
+              Padding(
+                padding: EdgeInsets.fromLTRB(24.w, 6.h, 24.w, 18.h),
+                child: AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 300),
+                  crossFadeState: _currentPage == pages.length - 1
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  firstChild: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryColor(context),
+                        foregroundColor: Colors.white,
+                        minimumSize: Size.fromHeight(40.h),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        AppLocaleKey.next.tr(),
+                        style: AppTextStyle.bodyLarge(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  secondChild: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Button 1: Create Account
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _finishOnboardingTo(RoutesName.registerScreen),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColor.primaryColor(context),
+                            foregroundColor: Colors.white,
+                            minimumSize: Size.fromHeight(40.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            AppLocaleKey.createAccount.tr(),
+                            style: AppTextStyle.bodyLarge(
+                              context,
+                            ).copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      Gap(10.h),
+
+                      // Button 2: Browse as Guest
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _finishOnboardingAsGuest,
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: Size.fromHeight(35.h),
+                            backgroundColor: AppColor.whiteColor(context),
+                            side: BorderSide(
+                              color: AppColor.greyColor(context).withValues(alpha: 0.44),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocaleKey.browseCarsAsGuest.tr(),
+                            style: AppTextStyle.bodyMedium(context).copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColor.blackTextColor(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Gap(10.h),
+
+                      // Link: Already have account? Login
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocaleKey.alreadyHaveAccount.tr(),
+                            style: AppTextStyle.bodySmall(context).copyWith(
+                              color: AppColor.blackTextColor(context).withValues(alpha: 0.65),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => _finishOnboardingTo(RoutesName.loginScreen),
+                            child: Text(
+                              AppLocaleKey.login.tr(),
+                              style: AppTextStyle.bodySmall(context).copyWith(
+                                color: AppColor.primaryColor(context),
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -168,7 +236,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _finishOnboarding() {
+  void _finishOnboardingTo(String routeName) {
+    HiveMethods.updateFirstTime();
+    NavigatorMethods.pushReplacementNamed(context, routeName);
+  }
+
+  void _finishOnboardingAsGuest() {
     HiveMethods.updateFirstTime();
     HiveMethods.updateIsGuest(true);
     NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);

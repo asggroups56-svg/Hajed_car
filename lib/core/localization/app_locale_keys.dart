@@ -19,6 +19,26 @@ class AppLocaleKey {
   static const String fastSecureDelivery = 'fast_secure_delivery';
   static const String experienceSeamlessDelivery =
       'experience_seamless_delivery';
+  static const String onboarding1Title = 'onboarding_1_title';
+  static const String onboarding1Desc = 'onboarding_1_desc';
+  static const String dealerWarranty = 'dealer_warranty';
+  static const String priceIncludesVat = 'price_includes_vat';
+  static const String onboarding2Title = 'onboarding_2_title';
+  static const String onboarding2Desc = 'onboarding_2_desc';
+  static const String dealerCertifiedWarranty = 'dealer_certified_warranty';
+  static const String dealerServiceKingdom = 'dealer_service_kingdom';
+  static const String inspectionReportReady = 'inspection_report_ready';
+  static const String vehicleStatusDealer = 'vehicle_status_dealer';
+  static const String onboarding3Title = 'onboarding_3_title';
+  static const String onboarding3Desc = 'onboarding_3_desc';
+  static const String carOnTheWay = 'car_on_the_way';
+  static const String expectedArrivalTime = 'expected_arrival_time';
+  static const String orderStepConfirmed = 'order_step_confirmed';
+  static const String orderStepPrep = 'order_step_prep';
+  static const String orderStepTransit = 'order_step_transit';
+  static const String orderStepDelivered = 'order_step_delivered';
+  static const String browseCarsAsGuest = 'browse_cars_as_guest';
+  static const String pageCounterOf = 'page_counter_of';
   static const String next = 'next';
   static const String skip = 'skip';
   static const String getStarted = 'get_started';
