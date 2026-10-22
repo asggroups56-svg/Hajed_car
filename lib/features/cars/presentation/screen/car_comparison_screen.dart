@@ -3,9 +3,10 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
-import 'package:car/core/routes/routes_name.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -29,29 +30,6 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
-      appBar: AppBar(
-        title: Text(
-          AppLocaleKey.compareCars.tr(),
-          style: AppTextStyle.titleMedium(context).copyWith(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColor.appBarColor(context),
-        elevation: 0,
-        actions: [
-          ValueListenableBuilder(
-            valueListenable: Hive.box('app').listenable(keys: ['comparisonList']),
-            builder: (context, box, _) {
-              final list = box.get('comparisonList', defaultValue: []);
-              if (list.isEmpty) return const SizedBox.shrink();
-              return IconButton(
-                onPressed: () => HiveMethods.clearComparisonList(),
-                icon: Icon(Icons.delete_outline_rounded, color: AppColor.redColor(context)),
-                tooltip: AppLocaleKey.clearHistory.tr(),
-              );
-            },
-          ),
-          Gap(12.w),
-        ],
-      ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box('app').listenable(keys: ['comparisonList']),
         builder: (context, box, _) {
@@ -175,85 +153,136 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
   }
 
   Widget _buildComparisonGrid(List<dynamic> list) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 40.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocaleKey.compareCars.tr(),
-            style: AppTextStyle.titleMedium(context).copyWith(
-              fontWeight: FontWeight.w900,
-              fontSize: 20.sp,
-              color: AppColor.blackTextColor(context),
+    return SafeArea(
+      bottom: false,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 40.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPageHeader(list),
+            Gap(18.h),
+            Text(
+              context.locale.languageCode == 'ar'
+                  ? 'قارن المواصفات والأسعار لاتخاذ القرار المناسب لك'
+                  : 'Compare specifications and prices side by side',
+              style: AppTextStyle.bodySmall(
+                context,
+              ).copyWith(color: AppColor.greyColor(context), fontSize: 13.sp),
             ),
-          ),
-          Gap(16.h),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ...list.map(
-                (car) => Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
-                    child: _buildCarColumn(car),
-                  ),
-                ),
-              ),
-              if (list.length < 2)
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
-                    child: _buildAddSecondCarSlot(),
-                  ),
-                ),
-            ],
-          ),
-          Gap(32.h),
-          _buildSpecsTable(list),
-          Gap(40.h),
-          FadeInUp(
-            delay: const Duration(milliseconds: 400),
-            child: Container(
+            Gap(16.h),
+            Container(
+              height: 230.h,
+              padding: EdgeInsets.symmetric(vertical: 14.h),
               decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.primaryColor(context).withValues(alpha: 0.2),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                color: AppColor.cardColor(context),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .55)),
               ),
-              child: ElevatedButton.icon(
-                onPressed: () => _generatePdf(list),
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: Text(
-                  AppLocaleKey.downloadComparison.tr(),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.sp),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.primaryColor(context),
-                  foregroundColor: AppColor.whiteColor(context),
-                  minimumSize: Size(double.infinity, 56.h),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                itemCount: list.length + (list.length < HiveMethods.maxComparisonCars ? 1 : 0),
+                separatorBuilder: (_, index) => Gap(10.w),
+                itemBuilder: (context, index) => SizedBox(
+                  width: 166.w,
+                  child: index < list.length
+                      ? _buildCarColumn(list[index], slot: index)
+                      : _buildAddSecondCarSlot(),
                 ),
               ),
             ),
-          ),
-        ],
+            Gap(24.h),
+            _buildSpecsTable(list),
+            Gap(12.h),
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 16.sp,
+                  color: AppColor.primaryColor(context),
+                ),
+                Gap(6.w),
+                Expanded(
+                  child: Text(
+                    context.locale.languageCode == 'ar'
+                        ? 'يمكنك طلب أي سيارة من المقارنة، ثم العودة لطلب السيارة الأخرى.'
+                        : 'You can request either car, then return to request the other one.',
+                    style: AppTextStyle.bodySmall(
+                      context,
+                    ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCarColumn(Map<dynamic, dynamic> car) {
+  Widget _buildPageHeader(List<dynamic> list) => Row(
+    children: [
+      Container(
+        width: 44.w,
+        height: 44.w,
+        decoration: BoxDecoration(
+          color: AppColor.primaryColor(context).withValues(alpha: .1),
+          borderRadius: BorderRadius.circular(13.r),
+        ),
+        child: Icon(
+          Icons.compare_arrows_rounded,
+          color: AppColor.primaryColor(context),
+          size: 25.sp,
+        ),
+      ),
+      Gap(11.w),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocaleKey.compareCars.tr(),
+              style: AppTextStyle.titleMedium(context).copyWith(
+                fontWeight: FontWeight.w900,
+                fontSize: 21.sp,
+                color: AppColor.blackTextColor(context),
+              ),
+            ),
+            Text(
+              context.locale.languageCode == 'ar'
+                  ? '${list.length} ${list.length == 1 ? 'سيارة مختارة' : 'سيارات مختارة'}'
+                  : '${list.length} ${list.length == 1 ? 'car selected' : 'cars selected'}',
+              style: AppTextStyle.bodySmall(context).copyWith(fontSize: 11.sp),
+            ),
+          ],
+        ),
+      ),
+      IconButton.filledTonal(
+        onPressed: () => _generatePdf(list),
+        tooltip: AppLocaleKey.downloadComparison.tr(),
+        icon: Icon(Icons.picture_as_pdf_outlined, size: 21.sp),
+      ),
+    ],
+  );
+
+  Widget _buildCarColumn(Map<dynamic, dynamic> car, {required int slot}) {
     final carId = HiveMethods.getCarUniqueId(Map<String, dynamic>.from(car));
     final heroTag = 'comparison_car_image_${carId.isNotEmpty ? carId : car['name'] ?? 'car'}';
-
     return Column(
       children: [
+        Text(
+          context.locale.languageCode == 'ar'
+              ? (slot == 0 ? 'السيارة الحالية' : 'السيارة المقارنة')
+              : (slot == 0 ? 'Current car' : 'Comparison car'),
+          style: AppTextStyle.bodySmall(context).copyWith(
+            color: AppColor.primaryColor(context),
+            fontWeight: FontWeight.w800,
+            fontSize: 11.sp,
+          ),
+        ),
+        Gap(9.h),
         Stack(
           children: [
             GestureDetector(
@@ -263,19 +292,12 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 arguments: {'car': Map<String, dynamic>.from(car), 'heroTag': heroTag},
               ),
               child: Container(
-                height: 120.h,
+                height: 88.h,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColor.cardColor(context),
-                  borderRadius: BorderRadius.circular(20.r),
-                  border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: 0.5)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.blackColor(context).withValues(alpha: 0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .5)),
                 ),
                 child: Padding(
                   padding: EdgeInsets.all(8.w),
@@ -295,24 +317,15 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
+              top: 6,
+              right: 6,
               child: GestureDetector(
-                onTap: () {
-                  HiveMethods.removeFromComparison(car);
-                },
+                onTap: () => HiveMethods.removeFromComparison(car),
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppColor.redColor(context).withValues(alpha: 0.9),
+                    color: AppColor.redColor(context),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColor.blackColor(context).withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Icon(Icons.close, color: AppColor.whiteColor(context), size: 14.sp),
                 ),
@@ -320,29 +333,48 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             ),
           ],
         ),
-        Gap(12.h),
+        Gap(10.h),
         Text(
-          car['name']?.toString() ?? '---',
+          _shortCarName(car),
           textAlign: TextAlign.center,
-          maxLines: 2,
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppTextStyle.bodyMedium(
             context,
           ).copyWith(fontWeight: FontWeight.bold, height: 1.2),
         ),
-        Gap(6.h),
+        Gap(5.h),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
           decoration: BoxDecoration(
-            color: AppColor.primaryColor(context).withValues(alpha: 0.1),
+            color: AppColor.primaryColor(context).withValues(alpha: .1),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
-            (car['price'] ?? '---').toString(),
+            _specValue(car, {'field': 'price', 'fallback': 'PRICE'}),
             style: AppTextStyle.bodySmall(context).copyWith(
               color: AppColor.primaryColor(context),
               fontWeight: FontWeight.w900,
-              fontSize: 12.sp,
+              fontSize: 11.sp,
+            ),
+          ),
+        ),
+        Gap(9.h),
+        SizedBox(
+          width: double.infinity,
+          height: 30.h,
+          child: FilledButton.icon(
+            onPressed: () => _requestCar(car),
+            icon: Icon(Icons.shopping_cart_checkout_rounded, size: 13.sp),
+            label: Text(
+              context.locale.languageCode == 'ar' ? 'اطلب السيارة' : 'Request car',
+              style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w800),
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColor.primaryColor(context),
+              foregroundColor: AppColor.whiteColor(context),
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
             ),
           ),
         ),
@@ -350,65 +382,77 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
     );
   }
 
-  Widget _buildAddSecondCarSlot() {
-    return InkWell(
-      onTap: () {
-        MainLayout.tabIndex.value = 1; // Switch to Cars tab
-        NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
-      },
-      borderRadius: BorderRadius.circular(20.r),
-      child: Column(
-        children: [
-          Container(
-            height: 120.h,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColor.cardColor(context).withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: AppColor.primaryColor(context).withValues(alpha: 0.4),
-                style: BorderStyle.solid,
-                width: 1.5,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: AppColor.primaryColor(context).withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: AppColor.primaryColor(context),
-                    size: 24.sp,
-                  ),
-                ),
-                Gap(8.h),
-                Text(
-                  'إضافة سيارة',
-                  style: AppTextStyle.bodySmall(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.bold, color: AppColor.primaryColor(context)),
-                ),
-              ],
-            ),
-          ),
-          Gap(12.h),
-          Text(
-            'اختر سيارة أخرى للمقارنة',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: AppTextStyle.bodySmall(
-              context,
-            ).copyWith(color: AppColor.greyColor(context), height: 1.2),
-          ),
-        ],
-      ),
+  void _requestCar(Map<dynamic, dynamic> car) {
+    if (HiveMethods.getToken() == null) {
+      CommonMethods.showLoginRequiredDialog(context);
+      return;
+    }
+
+    NavigatorMethods.pushNamed(
+      context,
+      RoutesName.carReservationScreen,
+      arguments: {'car': Map<String, dynamic>.from(car), 'isFromLink': false},
     );
   }
+
+  Widget _buildAddSecondCarSlot() => InkWell(
+    onTap: () {
+      MainLayout.tabIndex.value = 1;
+      NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
+    },
+    borderRadius: BorderRadius.circular(14.r),
+    child: Column(
+      children: [
+        Text(
+          context.locale.languageCode == 'ar' ? 'أضف سيارة' : 'Add a car',
+          style: AppTextStyle.bodySmall(context).copyWith(
+            color: AppColor.primaryColor(context),
+            fontWeight: FontWeight.w800,
+            fontSize: 11.sp,
+          ),
+        ),
+        Gap(9.h),
+        Container(
+          height: 100.h,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColor.cardColor(context).withValues(alpha: .4),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(
+              color: AppColor.primaryColor(context).withValues(alpha: .4),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_outline_rounded,
+                color: AppColor.primaryColor(context),
+                size: 30.sp,
+              ),
+              Gap(6.h),
+              Text(
+                context.locale.languageCode == 'ar' ? 'إضافة سيارة' : 'Add car',
+                style: AppTextStyle.bodySmall(
+                  context,
+                ).copyWith(fontWeight: FontWeight.bold, color: AppColor.primaryColor(context)),
+              ),
+            ],
+          ),
+        ),
+        Gap(10.h),
+        Text(
+          context.locale.languageCode == 'ar' ? 'اختر سيارة للمقارنة' : 'Choose a car to compare',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: AppTextStyle.bodySmall(
+            context,
+          ).copyWith(color: AppColor.greyColor(context), height: 1.2),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildSpecsTable(List<dynamic> list) {
     final specs = [
@@ -431,13 +475,13 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         'icon': Icons.calendar_today_rounded,
       },
       {
-        'key': 'Engine',
+        'key': context.locale.languageCode == 'ar' ? 'المحرك' : 'Engine',
         'field': 'engine',
         'fallback': 'CYLINDER',
         'icon': Icons.settings_input_component_rounded,
       },
       {
-        'key': 'Transmission',
+        'key': context.locale.languageCode == 'ar' ? 'ناقل الحركة' : 'Transmission',
         'field': 'transmission',
         'fallback': 'TRANSMISSION',
         'icon': Icons.settings_suggest_rounded,
@@ -455,78 +499,116 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         'icon': Icons.palette_rounded,
       },
     ];
-
+    final cars = List<dynamic>.from(list);
     return Container(
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
-        borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.blackColor(context).withValues(alpha: 0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .5)),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: specs.map((spec) {
-          final bool isLast = spec == specs.last;
-          return Container(
-            padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
-            decoration: BoxDecoration(
-              border: isLast
-                  ? null
-                  : Border(
-                      bottom: BorderSide(
-                        color: AppColor.dividerColor(context).withValues(alpha: 0.3),
-                      ),
-                    ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      spec['icon'] as IconData,
-                      size: 14.sp,
-                      color: AppColor.primaryColor(context),
-                    ),
-                    Gap(6.w),
-                    Text(
-                      spec['key'].toString(),
-                      style: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.greyColor(context),
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                Gap(8.h),
-                Row(
-                  children: list.map((car) {
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.w),
-                        child: Text(
-                          (car[spec['field']] ?? car[spec['fallback']] ?? 'N/A').toString(),
-                          style: AppTextStyle.bodyMedium(context).copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColor.blackTextColor(context),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Column(
+          children: [_buildTableHeader(cars), ...specs.map((spec) => _buildSpecRow(spec, cars))],
+        ),
       ),
     );
+  }
+
+  Widget _buildSpecRow(Map<String, dynamic> spec, List<dynamic> cars) => Container(
+    width: 118.w + (cars.length * 130.w),
+    padding: EdgeInsets.symmetric(vertical: 14.h),
+    decoration: BoxDecoration(
+      border: Border(
+        bottom: BorderSide(color: AppColor.dividerColor(context).withValues(alpha: .3)),
+      ),
+    ),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 118.w,
+          child: Row(
+            children: [
+              Icon(spec['icon'] as IconData, size: 14.sp, color: AppColor.primaryColor(context)),
+              Gap(5.w),
+              Expanded(
+                child: Text(
+                  spec['key'].toString(),
+                  style: AppTextStyle.bodySmall(context).copyWith(
+                    color: AppColor.greyColor(context),
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        ...cars.map(
+          (car) => SizedBox(
+            width: 130.w,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 3.w),
+              child: Text(
+                _specValue(car, spec),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyle.bodySmall(context).copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.blackTextColor(context),
+                  fontSize: 11.sp,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildTableHeader(List<dynamic> cars) => Container(
+    width: 118.w + (cars.length * 130.w),
+    padding: EdgeInsets.symmetric(vertical: 13.h),
+    color: AppColor.primaryColor(context).withValues(alpha: .08),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 118.w,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
+            child: Text(
+              context.locale.languageCode == 'ar' ? 'المواصفة' : 'Specification',
+              style: _tableHeaderStyle(),
+            ),
+          ),
+        ),
+        ...cars.map(
+          (car) => SizedBox(
+            width: 130.w,
+            child: Text(
+              _shortCarName(car),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _tableHeaderStyle(),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  TextStyle _tableHeaderStyle() => AppTextStyle.bodySmall(
+    context,
+  ).copyWith(fontWeight: FontWeight.w800, fontSize: 10.sp, color: AppColor.primaryColor(context));
+
+  String _shortCarName(dynamic car) =>
+      (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'] ?? '---').toString();
+
+  String _specValue(dynamic car, Map<String, dynamic> spec) {
+    final value = car[spec['field']] ?? car[spec['fallback']];
+    return value == null || value.toString().trim().isEmpty ? '—' : value.toString();
   }
 }

@@ -5,6 +5,8 @@ import 'package:hive/hive.dart';
 import '../../theme/theme_enum.dart';
 
 class HiveMethods {
+  /// Keeps the comparison readable on a phone while allowing a useful shortlist.
+  static const int maxComparisonCars = 4;
   static final _box = Hive.box('app');
 
   static String getLang() {
@@ -69,7 +71,12 @@ class HiveMethods {
     _box.put('favorites', favorites);
   }
 
-  static void removeFromFavorites(String carName, {String? itemCode, String? chassisNo, String? uniqueId}) {
+  static void removeFromFavorites(
+    String carName, {
+    String? itemCode,
+    String? chassisNo,
+    String? uniqueId,
+  }) {
     final List<dynamic> list = List.from(getFavorites());
     list.removeWhere((c) {
       if (c is! Map) return false;
@@ -77,7 +84,8 @@ class HiveMethods {
         if (getCarUniqueId(c) == uniqueId) return true;
       }
       final nameMatch = c['name']?.toString().trim() == carName.trim();
-      final chassisMatch = chassisNo != null &&
+      final chassisMatch =
+          chassisNo != null &&
           chassisNo.isNotEmpty &&
           (c['chassisNo']?.toString().trim() == chassisNo.trim() ||
               c['CHASSIS_NO']?.toString().trim() == chassisNo.trim());
@@ -145,13 +153,16 @@ class HiveMethods {
     }
 
     // 2. Chassis No (VIN) is globally unique to cars
-    final chassis = (car['chassisNo'] ?? car['CHASSIS_NO'])?.toString().trim() ?? '';
+    final chassis =
+        (car['chassisNo'] ?? car['CHASSIS_NO'])?.toString().trim() ?? '';
     if (chassis.isNotEmpty && chassis != 'null' && chassis != '0') {
       return 'chassis_$chassis';
     }
 
     // 3. Customs Card No
-    final customs = (car['customsCardNo'] ?? car['CUSTOMS_CARD_NO'])?.toString().trim() ?? '';
+    final customs =
+        (car['customsCardNo'] ?? car['CUSTOMS_CARD_NO'])?.toString().trim() ??
+        '';
     if (customs.isNotEmpty && customs != 'null' && customs != '0') {
       return 'customs_$customs';
     }
@@ -169,11 +180,27 @@ class HiveMethods {
     }
 
     // 6. Composite fallback without itemCode: name, year, color, price, image
-    final name = (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'])?.toString().trim() ?? '';
-    final year = (car['year'] ?? car['makeYear'] ?? car['MAKE_YEAR'])?.toString().trim() ?? '';
-    final color = (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'])?.toString().trim() ?? '';
+    final name =
+        (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'])
+            ?.toString()
+            .trim() ??
+        '';
+    final year =
+        (car['year'] ?? car['makeYear'] ?? car['MAKE_YEAR'])
+            ?.toString()
+            .trim() ??
+        '';
+    final color =
+        (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'])
+            ?.toString()
+            .trim() ??
+        '';
     final price = (car['price'] ?? car['PRICE'])?.toString().trim() ?? '';
-    final image = (car['image'] ?? car['carImage'] ?? car['carimage'])?.toString().trim() ?? '';
+    final image =
+        (car['image'] ?? car['carImage'] ?? car['carimage'])
+            ?.toString()
+            .trim() ??
+        '';
 
     final composite = '${name}_${year}_${color}_${price}_$image';
     if (composite.replaceAll('_', '').isNotEmpty) {
@@ -203,7 +230,7 @@ class HiveMethods {
     // If it's already in the list, remove it so it can be re-added to the top
     list.removeWhere((c) => _matchesCar(c, carToSave));
 
-    if (list.length >= 2) {
+    if (list.length >= maxComparisonCars) {
       return false;
     }
 

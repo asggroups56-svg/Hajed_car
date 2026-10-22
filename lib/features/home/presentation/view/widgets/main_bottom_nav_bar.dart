@@ -61,6 +61,14 @@ class MainBottomNavBar extends StatelessWidget {
             label: AppLocaleKey.services.tr(),
             onTap: () => onItemSelected(3),
           ),
+          MainNavItem(
+            index: 4,
+            currentIndex: currentIndex,
+            icon: Icons.compare_arrows_outlined,
+            activeIcon: Icons.compare_arrows,
+            label: AppLocaleKey.compare.tr(),
+            onTap: () => onItemSelected(4),
+          ),
         ],
       ),
     );

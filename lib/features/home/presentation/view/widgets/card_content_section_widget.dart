@@ -3,7 +3,6 @@ import 'package:car/core/custom_widgets/buttons/custom_button.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
-import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
@@ -18,11 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 class CardContentSection extends StatelessWidget {
-  const CardContentSection({
-    super.key,
-    required this.car,
-    required this.onTap,
-  });
+  const CardContentSection({super.key, required this.car, required this.onTap});
 
   final Map<String, dynamic> car;
   final VoidCallback onTap;
@@ -37,24 +32,21 @@ class CardContentSection extends StatelessWidget {
       return;
     }
 
-    final countBefore = HiveMethods.getComparisonList().length;
     final added = HiveMethods.addToComparison(car);
     if (added) {
       CommonMethods.showToast(
         message: AppLocaleKey.added_to_compare.tr(),
         type: ToastType.success,
       );
-      if (countBefore >= 1) {
-        Navigator.pushNamed(context, RoutesName.carComparisonScreen);
-      }
-    } else {
-      Navigator.pushNamed(context, RoutesName.carComparisonScreen);
     }
   }
 
   String get formattedPriceWithVat {
     final rawPrice = car['price']?.toString();
-    if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
+    if (rawPrice == null ||
+        rawPrice.isEmpty ||
+        rawPrice == 'null' ||
+        rawPrice == '---') {
       return '---';
     }
     final double paintingsVal =
@@ -80,7 +72,8 @@ class CardContentSection extends StatelessWidget {
 
     // Raw price without VAT - add VAT + paintings/plates value
     final vatNumber = HiveMethods.getVatNumber();
-    final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
+    final double vatPercentage =
+        double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
     final double priceWithVat = parsedPrice * (1 + (vatPercentage / 100));
     final double totalCashPrice = priceWithVat + paintingsVal;
     return formatter.format(totalCashPrice);
@@ -91,7 +84,8 @@ class CardContentSection extends StatelessWidget {
   /// lowest available bank offer and finally the standard 60-month estimate.
   String? _formattedMonthlyInstallment(List<FinancingAdModel> offers) {
     final rawPrice = car['price']?.toString() ?? '';
-    final price = double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    final price =
+        double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
     if (price <= 0) return null;
 
     final formatter = NumberFormat('#,##0', 'en_US');
@@ -104,9 +98,13 @@ class CardContentSection extends StatelessWidget {
 
     final interestRate = _numberValue(car['interestRate']);
     if (interestRate > 0) {
-      final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-      final priceWithVat = ((price + 3000) * (1 + vatPercentage / 100)) + paintingsVal;
-      return formatter.format((priceWithVat + priceWithVat * (interestRate / 100) * 5) / 60);
+      final vatPercentage =
+          double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+      final priceWithVat =
+          ((price + 3000) * (1 + vatPercentage / 100)) + paintingsVal;
+      return formatter.format(
+        (priceWithVat + priceWithVat * (interestRate / 100) * 5) / 60,
+      );
     }
 
     final installments = car['installments']?.toString().trim();
@@ -130,13 +128,16 @@ class CardContentSection extends StatelessWidget {
       );
     }
 
-    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final priceWithVat = ((price + 3000) * (1 + vatPercentage / 100)) + paintingsVal;
+    final vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final priceWithVat =
+        ((price + 3000) * (1 + vatPercentage / 100)) + paintingsVal;
     return formatter.format((priceWithVat * 1.225) / 60);
   }
 
-  double _numberValue(dynamic value) =>
-      value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
+  double _numberValue(dynamic value) => value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '') ?? 0;
 
   List<Color> _parseCarColors(BuildContext context, String colorName) {
     final name = colorName.trim().toLowerCase();
@@ -238,16 +239,25 @@ class CardContentSection extends StatelessWidget {
     }
 
     // الحالة الافتراضية
-    return Icon(Icons.palette_outlined, color: AppColor.greyColor(context), size: 14.w);
+    return Icon(
+      Icons.palette_outlined,
+      color: AppColor.greyColor(context),
+      size: 14.w,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final String rawColor =
-        (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'] ?? '')
+        (car['color'] ??
+                car['Color'] ??
+                car['bodyColor'] ??
+                car['BODY_COLOR'] ??
+                '')
             .toString()
             .trim();
-    final String displayColor = rawColor.isNotEmpty && rawColor.toLowerCase() != 'null'
+    final String displayColor =
+        rawColor.isNotEmpty && rawColor.toLowerCase() != 'null'
         ? rawColor
         : '—';
 
@@ -259,16 +269,20 @@ class CardContentSection extends StatelessWidget {
           Gap(5.h),
           Text(
             car['name']!,
-            style: AppTextStyle.bodyMedium(
-              context,
-            ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.bold),
+            style: AppTextStyle.bodyMedium(context).copyWith(
+              color: AppColor.blackTextColor(context),
+              fontWeight: FontWeight.bold,
+            ),
             maxLines: 3,
           ),
           Gap(5.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              MiniDetailWidget(icon: Icons.calendar_today_outlined, label: car['year'] ?? '—'),
+              MiniDetailWidget(
+                icon: Icons.calendar_today_outlined,
+                label: car['year'] ?? '—',
+              ),
               MiniDetailWidget(
                 customIcon: _buildColorIcon(context, displayColor),
                 label: displayColor,
@@ -281,7 +295,9 @@ class CardContentSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColor.greyColor(context).withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: AppColor.primaryColor(context).withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColor.primaryColor(context).withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -291,9 +307,10 @@ class CardContentSection extends StatelessWidget {
                   children: [
                     Text(
                       AppLocaleKey.cash.tr(),
-                      style: AppTextStyle.bodySmall(
-                        context,
-                      ).copyWith(color: AppColor.greyColor(context), fontWeight: FontWeight.w900),
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        color: AppColor.greyColor(context),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     Gap(4.h),
                     RichText(
@@ -323,7 +340,9 @@ class CardContentSection extends StatelessWidget {
                 Gap(8.w),
                 Container(
                   width: 2.w,
-                  color: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                  color: AppColor.blackTextColor(
+                    context,
+                  ).withValues(alpha: 0.1),
                   height: 40.h,
                 ),
                 Gap(8.w),
@@ -332,9 +351,10 @@ class CardContentSection extends StatelessWidget {
                   children: [
                     Text(
                       AppLocaleKey.agentInstallments.tr(),
-                      style: AppTextStyle.bodySmall(
-                        context,
-                      ).copyWith(color: AppColor.greyColor(context), fontWeight: FontWeight.w900),
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        color: AppColor.greyColor(context),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     Gap(4.h),
                     BlocBuilder<HomeCubit, HomeState>(
@@ -367,10 +387,13 @@ class CardContentSection extends StatelessWidget {
                                     Gap(4.w),
                                     Text(
                                       '/ ${AppLocaleKey.month.tr()}',
-                                      style: AppTextStyle.bodySmall(context).copyWith(
-                                        color: AppColor.primaryColor(context),
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                      style: AppTextStyle.bodySmall(context)
+                                          .copyWith(
+                                            color: AppColor.primaryColor(
+                                              context,
+                                            ),
+                                            fontWeight: FontWeight.w900,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -388,7 +411,11 @@ class CardContentSection extends StatelessWidget {
           Gap(10.h),
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColor.greyColor(context), size: 16.w),
+              Icon(
+                Icons.info_outline,
+                color: AppColor.greyColor(context),
+                size: 16.w,
+              ),
               Gap(4.w),
               Text(
                 'شامل الضريبه واللوحات . والقسط مبدئي60 شهر ا بدون دفعه اولي ',
@@ -409,12 +436,15 @@ class CardContentSection extends StatelessWidget {
                   height: 30.h,
                   color: AppColor.primaryColor(context),
                   radius: 12.r,
-                  borderColor: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                  borderColor: AppColor.blackTextColor(
+                    context,
+                  ).withValues(alpha: 0.1),
                   child: Text(
                     AppLocaleKey.details.tr(),
-                    style: AppTextStyle.bodySmall(
-                      context,
-                    ).copyWith(color: AppColor.whiteColor(context), fontWeight: FontWeight.bold),
+                    style: AppTextStyle.bodySmall(context).copyWith(
+                      color: AppColor.whiteColor(context),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -424,12 +454,18 @@ class CardContentSection extends StatelessWidget {
                   radius: 12.r,
                   onPressed: () => _toggleComparison(context),
                   color: AppColor.whiteColor(context).withValues(alpha: 0.1),
-                  borderColor: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                  borderColor: AppColor.blackTextColor(
+                    context,
+                  ).withValues(alpha: 0.1),
                   height: 30.h,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, color: AppColor.blackTextColor(context), size: 16.w),
+                      Icon(
+                        Icons.add,
+                        color: AppColor.blackTextColor(context),
+                        size: 16.w,
+                      ),
                       Gap(4.w),
                       Text(
                         AppLocaleKey.compare.tr(),

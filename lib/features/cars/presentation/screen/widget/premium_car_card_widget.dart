@@ -494,7 +494,6 @@ class PremiumCarCardWidget extends StatelessWidget {
           );
           (context as Element).markNeedsBuild();
         } else {
-          final int countBefore = HiveMethods.getComparisonList().length;
           bool added = HiveMethods.addToComparison(carMap);
           if (added) {
             CommonMethods.showToast(
@@ -502,13 +501,6 @@ class PremiumCarCardWidget extends StatelessWidget {
               type: ToastType.success,
             );
             (context as Element).markNeedsBuild();
-            // If this was the 2nd car → go directly to comparison screen
-            if (countBefore >= 1) {
-              Navigator.pushNamed(context, RoutesName.carComparisonScreen);
-            }
-          } else {
-            // List is full → go directly to comparison screen
-            Navigator.pushNamed(context, RoutesName.carComparisonScreen);
           }
         }
       },

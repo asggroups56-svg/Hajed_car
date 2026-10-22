@@ -1,13 +1,15 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/services/app_update_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/navigator_methods.dart';
+import 'package:car/features/cars/presentation/screen/car_comparison_screen.dart';
 import 'package:car/features/favorites/presentation/view/screen/favorites_screen.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/widgets/notification_icon_widget.dart';
-import 'package:car/features/home/presentation/view/widgets/support_icon_widget.dart';
 import 'package:car/features/notifications/presentation/view/cubit/notifications_cubit.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -81,9 +83,10 @@ class _MainLayoutState extends State<MainLayout> {
       CarsScreen(key: ValueKey('cars_${context.locale.languageCode}')),
       FavoritesScreen(key: ValueKey('favorites_${context.locale.languageCode}')),
       ServicesScreen(key: ValueKey('services_${context.locale.languageCode}')),
+      const CarComparisonScreen(),
     ];
     return Scaffold(
-      appBar: _currentIndex == 3
+      appBar: _currentIndex == 3 || _currentIndex == 4
           ? null
           : CustomAppBar(
               context,
@@ -141,7 +144,7 @@ class _MainLayoutState extends State<MainLayout> {
         child: Stack(
           children: [
             screens[_currentIndex.clamp(0, screens.length - 1)],
-            Positioned(bottom: 20.h, left: 20.w, child: const SupportIconWidget()),
+            //   Positioned(bottom: 20.h, left: 20.w, child: const SupportIconWidget()),
           ],
         ),
       ),
@@ -152,5 +155,10 @@ class _MainLayoutState extends State<MainLayout> {
         },
       ),
     );
+  }
+
+  void _goToCars() {
+    MainLayout.tabIndex.value = 1;
+    NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
   }
 }
