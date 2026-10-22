@@ -19,6 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class PremiumCarCardWidget extends StatelessWidget {
   final GetBrandCarsDataModel car;
@@ -40,9 +41,7 @@ class PremiumCarCardWidget extends StatelessWidget {
     final String rawColor =
         (car.bodyColor.isNotEmpty && car.bodyColor.toLowerCase() != 'null'
                 ? car.bodyColor
-                : (car.color.isNotEmpty && car.color.toLowerCase() != 'null'
-                      ? car.color
-                      : ''))
+                : (car.color.isNotEmpty && car.color.toLowerCase() != 'null' ? car.color : ''))
             .trim();
     final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
     final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
@@ -59,31 +58,20 @@ class PremiumCarCardWidget extends StatelessWidget {
         NavigatorMethods.pushNamed(
           context,
           RoutesName.carDetailsScreen,
-          arguments: {
-            'car': car,
-            'heroTag': heroTag,
-            'offer': offer,
-            'offers': financingOffers,
-          },
+          arguments: {'car': car, 'heroTag': heroTag, 'offer': offer, 'offers': financingOffers},
         );
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
         color: AppColor.secondAppColor(context),
         child: Column(
           children: [
             Stack(
               children: [
                 Hero(
-                  tag:
-                      heroTag ??
-                      'car_image_${HiveMethods.getCarUniqueId(car.toMap())}',
-                  child:
-                      car.fullCarImage.isNotEmpty &&
-                          car.fullCarImage.startsWith('http')
+                  tag: heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car.toMap())}',
+                  child: car.fullCarImage.isNotEmpty && car.fullCarImage.startsWith('http')
                       ? CustomNetworkImage(
                           imageUrl: car.fullCarImage,
                           fit: BoxFit.fill,
@@ -99,64 +87,26 @@ class PremiumCarCardWidget extends StatelessWidget {
                           width: double.infinity,
                         ),
                 ),
-
                 Positioned(
                   top: 10.h,
-                  left: -5.w,
-                  child: Container(
-                    height: 25.h,
-                    width: 60.w,
-                    alignment: Alignment.center,
-                    margin: EdgeInsets.only(left: 15.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColor.blackColor(
-                        context,
-                      ).withValues(alpha: 0.1),
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Text(
-                      car.makeYear.toString(),
-                      style: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.blackTextColor(context),
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10.h,
-                  right: 10.w,
+                  left: 10.w,
                   child: Row(
                     children: [
                       BlocBuilder<FavoritesCubit, FavoritesState>(
                         builder: (context, state) {
-                          final isFav = context
-                              .read<FavoritesCubit>()
-                              .isFavorite(car.toMap());
+                          final isFav = context.read<FavoritesCubit>().isFavorite(car.toMap());
                           return Container(
                             height: 30.h,
                             decoration: BoxDecoration(
-                              color: AppColor.blackColor(
-                                context,
-                              ).withValues(alpha: 0.1),
+                              color: AppColor.whiteColor(context),
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
                               onPressed: () {
-                                context.read<FavoritesCubit>().toggleFavorite(
-                                  car.toMap(),
-                                );
+                                context.read<FavoritesCubit>().toggleFavorite(car.toMap());
                               },
                               icon: Icon(
-                                isFav
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
+                                isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                                 color: isFav
                                     ? AppColor.redColor(context)
                                     : AppColor.blackTextColor(context),
@@ -173,10 +123,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                   Positioned(
                     left: 70.w,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 6.h,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: AppColor.primaryColor(context),
                         borderRadius: BorderRadius.only(
@@ -204,13 +151,10 @@ class PremiumCarCardWidget extends StatelessWidget {
                           ),
 
                           Text(
-                            context.locale.languageCode == 'ar'
-                                ? 'عرض'
-                                : 'Offer',
-                            style: AppTextStyle.bodySmall(context).copyWith(
-                              color: AppColor.whiteColor(context),
-                              fontSize: 14.sp,
-                            ),
+                            context.locale.languageCode == 'ar' ? 'عرض' : 'Offer',
+                            style: AppTextStyle.bodySmall(
+                              context,
+                            ).copyWith(color: AppColor.whiteColor(context), fontSize: 14.sp),
                           ),
                         ],
                       ),
@@ -250,13 +194,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                           label: displayYear,
                         ),
                       ),
-                      Gap(6.w),
-                      Expanded(
-                        child: MiniDetailWidget(
-                          icon: Icons.speed_outlined,
-                          label: displayMileage,
-                        ),
-                      ),
+
                       Gap(6.w),
                       Expanded(
                         child: MiniDetailWidget(
@@ -266,7 +204,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Gap(14.h),
+                  Gap(10.h),
                   IntrinsicHeight(
                     child: Row(
                       children: [
@@ -275,9 +213,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOffer
-                                    ? AppLocaleKey.price.tr()
-                                    : AppLocaleKey.cash.tr(),
+                                isOffer ? AppLocaleKey.price.tr() : AppLocaleKey.cash.tr(),
                                 style: AppTextStyle.bodySmall(context).copyWith(
                                   color: AppColor.blackTextColor(context),
                                   fontWeight: FontWeight.bold,
@@ -292,13 +228,10 @@ class PremiumCarCardWidget extends StatelessWidget {
                                       fit: BoxFit.scaleDown,
                                       child: Text(
                                         car.formattedPriceWithVat,
-                                        style: AppTextStyle.titleMedium(context)
-                                            .copyWith(
-                                              color: AppColor.greenColor(
-                                                context,
-                                              ),
-                                              fontWeight: FontWeight.w900,
-                                            ),
+                                        style: AppTextStyle.titleMedium(context).copyWith(
+                                          color: AppColor.greenColor(context),
+                                          fontWeight: FontWeight.w900,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -315,24 +248,16 @@ class PremiumCarCardWidget extends StatelessWidget {
                                 ],
                               ),
                               Gap(4.h),
-                              Text(
-                                AppLocaleKey.agentIncludesVat.tr(),
-                                style: AppTextStyle.bodySmall(context),
-                              ),
                             ],
                           ),
                         ),
+
                         if (isOffer ||
                             (offer != null) ||
                             financingOffers.isNotEmpty ||
                             car.hasFinancing ||
-                            (car.price != null &&
-                                car.price!.isNotEmpty &&
-                                car.price != '0')) ...[
-                          VerticalDivider(
-                            color: AppColor.greyColor(context),
-                            width: 32.w,
-                          ),
+                            (car.price != null && car.price!.isNotEmpty && car.price != '0')) ...[
+                          //  VerticalDivider(color: AppColor.greyColor(context), width: 32.w),
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -341,13 +266,12 @@ class PremiumCarCardWidget extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        BankInstallmentsBannerWidget(
-                                          car: car,
-                                          isOffer: isOffer,
-                                          offer: offer,
-                                          offers: financingOffers,
-                                        ),
+                                    builder: (_) => BankInstallmentsBannerWidget(
+                                      car: car,
+                                      isOffer: isOffer,
+                                      offer: offer,
+                                      offers: financingOffers,
+                                    ),
                                   ),
                                 );
                               },
@@ -364,9 +288,24 @@ class PremiumCarCardWidget extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  Gap(14.h),
-                  Row(children: [const Spacer(), _buildCompareButton(context)]),
+                  Gap(5.h),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 14.sp,
+                        color: AppColor.greyColor(context),
+                      ),
+                      Gap(4.w),
+                      Text(
+                        AppLocaleKey.agentIncludesVat.tr(),
+                        style: AppTextStyle.bodySmall(context),
+                      ),
+                    ],
+                  ),
+                  Divider(color: AppColor.greyColor(context), height: 24.h),
+                  Gap(10.h),
+                  _buildCardActions(context),
                 ],
               ),
             ),
@@ -473,79 +412,82 @@ class PremiumCarCardWidget extends StatelessWidget {
       );
     }
 
-    return Icon(
-      Icons.palette_outlined,
-      color: AppColor.greyColor(context),
-      size: 14.w,
-    );
+    return Icon(Icons.palette_outlined, color: AppColor.greyColor(context), size: 14.w);
   }
 
-  Widget _buildCompareButton(BuildContext context) {
+  Widget _buildCardActions(BuildContext context) {
     final carMap = car.toMap();
-    final isInCompare = HiveMethods.isInComparison(carMap);
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => NavigatorMethods.pushNamed(
+              context,
+              RoutesName.financingScreen,
+              arguments: {'car': car},
+            ),
+            icon: Icon(Icons.calculate_outlined, size: 18.sp),
+            label: Text(
+              context.locale.languageCode == 'ar' ? 'احسب قسطك' : 'Calculate installment',
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColor.primaryColor(context),
+              backgroundColor: AppColor.primaryColor(context).withValues(alpha: 0.15),
 
-    return InkWell(
-      onTap: () {
-        if (HiveMethods.isInComparison(carMap)) {
-          HiveMethods.removeFromComparison(carMap);
-          CommonMethods.showToast(
-            message: AppLocaleKey.removeFromCompare.tr(),
-            type: ToastType.success,
-          );
-          (context as Element).markNeedsBuild();
-        } else {
-          bool added = HiveMethods.addToComparison(carMap);
-          if (added) {
-            CommonMethods.showToast(
-              message: AppLocaleKey.added_to_compare.tr(),
-              type: ToastType.success,
-            );
-            (context as Element).markNeedsBuild();
-          }
-        }
-      },
-      borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        height: 30.h,
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
-        decoration: BoxDecoration(
-          color: isInCompare
-              ? AppColor.primaryColor(context).withValues(alpha: 0.15)
-              : AppColor.blackTextColor(context).withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16.r),
-          border: isInCompare
-              ? Border.all(
-                  color: AppColor.primaryColor(context).withValues(alpha: 0.4),
-                  width: 1,
-                )
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isInCompare
-                  ? Icons.compare_arrows_rounded
-                  : Icons.add_chart_rounded,
-              color: isInCompare
-                  ? AppColor.primaryColor(context)
-                  : AppColor.blackTextColor(context),
-              size: 16.sp,
+              minimumSize: Size.fromHeight(38.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
             ),
-            Gap(4.w),
-            Text(
-              AppLocaleKey.compare.tr(),
-              style: AppTextStyle.bodySmall(context).copyWith(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.bold,
-                color: isInCompare
-                    ? AppColor.primaryColor(context)
-                    : AppColor.blackTextColor(context),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        Gap(10.w),
+        Expanded(
+          child: ValueListenableBuilder<Box>(
+            valueListenable: Hive.box('app').listenable(keys: const ['comparisonList']),
+            builder: (context, _, child) {
+              final isInCompare = HiveMethods.isInComparison(carMap);
+              final color = isInCompare
+                  ? AppColor.greenColor(context)
+                  : AppColor.whiteColor(context);
+              final textColor = isInCompare
+                  ? AppColor.whiteColor(context)
+                  : AppColor.blackColor(context);
+              return ElevatedButton.icon(
+                onPressed: () {
+                  if (isInCompare) {
+                    HiveMethods.removeFromComparison(carMap);
+                    CommonMethods.showToast(
+                      message: AppLocaleKey.removeFromCompare.tr(),
+                      type: ToastType.success,
+                    );
+                    return;
+                  }
+
+                  final added = HiveMethods.addToComparison(carMap);
+                  if (added) {
+                    CommonMethods.showToast(
+                      message: AppLocaleKey.added_to_compare.tr(),
+                      type: ToastType.success,
+                    );
+                  }
+                },
+                icon: Icon(isInCompare ? Icons.check_circle_rounded : Icons.add, size: 18.sp),
+                label: Text(
+                  context.locale.languageCode == 'ar'
+                      ? (isInCompare ? 'في المقارنة' : 'أضف للمقارنة')
+                      : (isInCompare ? 'In comparison' : 'Add to comparison'),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: textColor,
+                  minimumSize: Size.fromHeight(38.h),
+                  side: BorderSide(color: AppColor.greyColor(context), width: .2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

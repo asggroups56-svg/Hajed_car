@@ -12,11 +12,7 @@ class CarSearchHeaderWidget extends StatelessWidget {
   final TextEditingController? controller;
   final void Function(String)? onChanged;
 
-  const CarSearchHeaderWidget({
-    super.key,
-    this.controller,
-    this.onChanged,
-  });
+  const CarSearchHeaderWidget({super.key, this.controller, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +26,7 @@ class CarSearchHeaderWidget extends StatelessWidget {
               onChanged: onChanged,
               hintText: AppLocaleKey.searchForYourDreamCar.tr(),
               prefixIcon: const Icon(Icons.search_rounded),
+              radius: 12.r,
             ),
           ),
           Gap(12.w),
@@ -38,7 +35,7 @@ class CarSearchHeaderWidget extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColor.primaryColor(context),
+                color: AppColor.blackColor(context),
                 borderRadius: BorderRadius.circular(16.r),
               ),
               child: Icon(Icons.tune_rounded, color: AppColor.whiteColor(context)),
