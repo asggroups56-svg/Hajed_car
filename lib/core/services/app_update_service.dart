@@ -91,14 +91,15 @@ class AppUpdateService {
     _lastCheckTime = DateTime.now();
 
     final updateInfo = await checkUpdate(forceUpdate: isForceUpdate);
-    if (updateInfo != null && updateInfo.hasUpdate && context.mounted) {
-      // Skip if user already acted on this exact store version
-      final dismissed = _getDismissedVersion();
-      if (dismissed != null && dismissed == updateInfo.storeVersion) {
-        return;
-      }
-      showUpdateDialog(context, updateInfo);
-    }
+    // Only show dialog when there is ACTUALLY a newer version available
+    if (updateInfo == null || !updateInfo.hasUpdate) return;
+    if (!context.mounted) return;
+
+    // Skip if user already dismissed/acted on this exact store version
+    final dismissed = _getDismissedVersion();
+    if (dismissed != null && dismissed == updateInfo.storeVersion) return;
+
+    showUpdateDialog(context, updateInfo);
   }
 
   static Future<AppUpdateInfo?> _checkIosUpdate(
@@ -185,6 +186,13 @@ class AppUpdateService {
       barrierDismissible: !info.isForceUpdate,
       builder: (ctx) => PopScope(
         canPop: !info.isForceUpdate,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) {
+            // User dismissed the dialog — remember this version
+            _saveDismissedVersion(info.storeVersion);
+            _isDialogShowing = false;
+          }
+        },
         child: Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
           backgroundColor: AppColor.scaffoldColor(ctx),
@@ -264,10 +272,8 @@ class AppUpdateService {
                     onPressed: () async {
                       final uri = Uri.parse(info.updateUrl);
                       // Remember this version so the dialog won't reappear
-                      // when the user returns from the store.
                       _saveDismissedVersion(info.storeVersion);
-                      // Dismiss immediately so a failed store handoff never
-                      // leaves the update dialog blocking the app.
+                      _isDialogShowing = false;
                       if (ctx.mounted) {
                         Navigator.of(ctx).pop();
                       }
@@ -290,27 +296,6 @@ class AppUpdateService {
                     ),
                   ),
                 ),
-
-                // Later Button (only shown if update is not mandatory)
-                if (!info.isForceUpdate) ...[
-                  Gap(10.h),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 42.h,
-                    child: TextButton(
-                      onPressed: () {
-                        _isDialogShowing = false;
-                        Navigator.of(ctx).pop();
-                      },
-                      child: Text(
-                        AppLocaleKey.Later.tr(),
-                        style: AppTextStyle.bodyMedium(
-                          ctx,
-                        ).copyWith(color: AppColor.greyColor(ctx), fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

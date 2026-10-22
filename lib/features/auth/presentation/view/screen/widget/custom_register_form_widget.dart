@@ -6,7 +6,9 @@ import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/utils/common_methods.dart';
+import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/auth/presentation/view/cubit/auth_cubit.dart';
 import 'package:car/features/auth/presentation/view/screen/widget/password_hint_chip_widget.dart';
 import 'package:car/features/cars/presentation/widget/otp_bottom_sheet.dart';
@@ -527,7 +529,12 @@ class _CustomRegisterFormWidgetState extends State<CustomRegisterFormWidget> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      NavigatorMethods.pushReplacementNamed(
+                        context,
+                        RoutesName.loginScreen,
+                      );
+                    },
                     child: Text(
                       AppLocaleKey.login.tr(),
                       style: AppTextStyle.bodyLarge(

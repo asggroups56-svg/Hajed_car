@@ -146,8 +146,10 @@ class _CarsScreenState extends State<CarsScreen> {
                   : baseCarsList.where((car) {
                       final name = car.itemName.toLowerCase();
                       final brand = car.groupName.toLowerCase();
+                      final year = car.makeYear.toString();
                       return name.contains(_searchQuery) ||
-                          brand.contains(_searchQuery);
+                          brand.contains(_searchQuery) ||
+                          year.contains(_searchQuery);
                     }).toList();
 
               return Column(

@@ -58,49 +58,83 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Gap(20.h),
-                  TextField(
-                    controller: _searchController,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: _searchCars,
-                    decoration: InputDecoration(
-                      hintText: AppLocaleKey.searchForYourDreamCar.tr(),
-                      hintStyle: AppTextStyle.bodySmall(
-                        context,
-                      ).copyWith(color: AppColor.greyColor(context)),
-                      prefixIcon: Icon(
-                        Icons.search_rounded,
-                        color: AppColor.primaryColor(context),
-                      ),
-                      suffixIcon: _searchController.text.isEmpty
-                          ? null
-                          : IconButton(
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                              icon: const Icon(Icons.close_rounded),
+                  // ── Search bar + Filter button ─────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            // Navigate immediately to cars tab on tap
+                            MainLayout.tabIndex.value = 1;
+                          },
+                          child: AbsorbPointer(
+                            child: TextField(
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                hintText: AppLocaleKey.searchForYourDreamCar.tr(),
+                                hintStyle: AppTextStyle.bodySmall(
+                                  context,
+                                ).copyWith(color: AppColor.greyColor(context)),
+                                prefixIcon: Icon(
+                                  Icons.search_rounded,
+                                  color: AppColor.primaryColor(context),
+                                ),
+                                filled: true,
+                                fillColor: AppColor.secondAppColor(context),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 14.h,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  borderSide: BorderSide(
+                                    color: AppColor.dividerColor(
+                                      context,
+                                    ).withValues(alpha: .5),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  borderSide: BorderSide(
+                                    color: AppColor.primaryColor(context),
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
                             ),
-                      filled: true,
-                      fillColor: AppColor.secondAppColor(context),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14.r),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14.r),
-                        borderSide: BorderSide(
-                          color: AppColor.dividerColor(
-                            context,
-                          ).withValues(alpha: .5),
+                          ),
                         ),
                       ),
-                    ),
-                    onChanged: (_) => setState(() {}),
+                      Gap(10.w),
+                      // ── Filter button ──────────────────────────────────
+                      GestureDetector(
+                        onTap: () => NavigatorMethods.pushNamed(
+                          context,
+                          RoutesName.filterScreen,
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.all(14.w),
+                          decoration: BoxDecoration(
+                            color: AppColor.blackColor(context),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(
+                            Icons.tune_rounded,
+                            color: AppColor.whiteColor(context),
+                            size: 22.sp,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Gap(15.h),
                   const AdsSliderWidget(),
@@ -126,47 +160,6 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
                   Gap(15.h),
                   const PopularCarsSlider(),
                   Gap(20.h),
-                  // ValueListenableBuilder(
-                  //   valueListenable: Hive.box('app').listenable(keys: ['recentlyViewed']),
-                  //   builder: (context, box, _) {
-                  //     final list = box.get('recentlyViewed', defaultValue: []) as List<dynamic>;
-                  //     if (list.isEmpty) return const SizedBox.shrink();
-                  //     final displayList = list.take(3).toList();
-                  //     return Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         SectionTitleWidget(
-                  //           title: AppLocaleKey.recentlyViewed.tr(),
-                  //           onSeeAll: () {
-                  //             NavigatorMethods.pushNamed(context, RoutesName.recentlyViewedScreen);
-                  //           },
-                  //         ),
-                  //         Gap(15.h),
-                  //         RecentlyViewedWidget(cars: displayList),
-                  //         Gap(20.h),
-                  //       ],
-                  //     );
-                  //   },
-                  // ),
-                  // SectionTitleWidget(title: AppLocaleKey.searchByBudget.tr(), onSeeAll: null),
-                  // Gap(15.h),
-                  // const BanksSliderWidget(),
-                  // Gap(15.h),
-                  // BudgetSearchWidget(
-                  //   initialIndex: _selectedBudgetIndex,
-                  //   onChanged: (index) {
-                  //     setState(() {
-                  //       _selectedBudgetIndex = index;
-                  //     });
-                  //   },
-                  // ),
-                  // Gap(20.h),
-                  // BudgetCarsListWidget(selectedBudgetIndex: _selectedBudgetIndex),
-                  // Gap(30.h),
-                  // SectionTitleWidget(title: AppLocaleKey.trendingNow.tr()),
-                  // Gap(15.h),
-                  // const OffersGridWidget(),
-                  // Gap(40.h),
                 ],
               ),
             ),
@@ -174,12 +167,5 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
         ),
       ),
     );
-  }
-
-  void _searchCars(String query) {
-    final normalizedQuery = query.trim();
-    if (normalizedQuery.isEmpty) return;
-    MainLayout.carsSearchQuery.value = normalizedQuery;
-    MainLayout.tabIndex.value = 1;
   }
 }

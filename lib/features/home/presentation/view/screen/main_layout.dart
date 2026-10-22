@@ -88,127 +88,139 @@ class _MainLayoutState extends State<MainLayout> {
       const CarComparisonScreen(),
       const AccountScreen(),
     ];
-    return Scaffold(
-      appBar: _currentIndex == 3 || _currentIndex == 4
-          ? null
-          : CustomAppBar(
-              context,
-              centerTitle: false,
-              automaticallyImplyLeading: false,
-              appBarColor: Colors.transparent,
-              //  leading: const ProfileIconWidget(),
-              title: ValueListenableBuilder(
-                valueListenable: Hive.box(
-                  'app',
-                ).listenable(keys: ['userName', 'isGuest']),
-                builder: (context, box, _) {
-                  final isGuest = box.get('isGuest', defaultValue: false);
-                  final userName = HiveMethods.getUserName() ?? '';
-                  final welcomeText = AppLocaleKey.welcomeToCarGroup.tr();
-                  final separator = context.locale.languageCode == 'ar'
-                      ? '،'
-                      : ',';
+    return PopScope(
+      // Prevent default back navigation (which exits the app)
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          // If not on home tab, go to home tab
+          MainLayout.tabIndex.value = 0;
+        }
+        // If already on home tab, do nothing (don't exit)
+      },
+      child: Scaffold(
+        appBar: _currentIndex == 3 || _currentIndex == 4
+            ? null
+            : CustomAppBar(
+                context,
+                centerTitle: false,
+                automaticallyImplyLeading: false,
+                appBarColor: Colors.transparent,
+                //  leading: const ProfileIconWidget(),
+                title: ValueListenableBuilder(
+                  valueListenable: Hive.box(
+                    'app',
+                  ).listenable(keys: ['userName', 'isGuest']),
+                  builder: (context, box, _) {
+                    final isGuest = box.get('isGuest', defaultValue: false);
+                    final userName = HiveMethods.getUserName() ?? '';
+                    final welcomeText = AppLocaleKey.welcomeToCarGroup.tr();
+                    final separator = context.locale.languageCode == 'ar'
+                        ? '،'
+                        : ',';
 
-                  if (_currentIndex == 1) {
-                    return BlocBuilder<HomeCubit, HomeState>(
-                      builder: (context, state) {
-                        final isFilteredByOffer =
-                            state.programCarsStatus.isSuccess &&
-                            state.programCarsStatus.data != null &&
-                            state.programCarsStatus.data!.isNotEmpty;
-                        final homeCubit = context.read<HomeCubit>();
-                        final availableCarsCount = isFilteredByOffer
-                            ? state.programCarsStatus.data!
-                                  .where(
-                                    (car) => !homeCubit.isCarLocallyReserved(
-                                      car.itemCode ?? '',
-                                    ),
-                                  )
-                                  .length
-                            : (state.allCarsStatus.data ?? [])
-                                  .where(
-                                    (car) =>
-                                        car.carStatus == 1 &&
-                                        !homeCubit.isCarLocallyReserved(
-                                          car.itemCode,
-                                        ),
-                                  )
-                                  .length;
+                    if (_currentIndex == 1) {
+                      return BlocBuilder<HomeCubit, HomeState>(
+                        builder: (context, state) {
+                          final isFilteredByOffer =
+                              state.programCarsStatus.isSuccess &&
+                              state.programCarsStatus.data != null &&
+                              state.programCarsStatus.data!.isNotEmpty;
+                          final homeCubit = context.read<HomeCubit>();
+                          final availableCarsCount = isFilteredByOffer
+                              ? state.programCarsStatus.data!
+                                    .where(
+                                      (car) => !homeCubit.isCarLocallyReserved(
+                                        car.itemCode ?? '',
+                                      ),
+                                    )
+                                    .length
+                              : (state.allCarsStatus.data ?? [])
+                                    .where(
+                                      (car) =>
+                                          car.carStatus == 1 &&
+                                          !homeCubit.isCarLocallyReserved(
+                                            car.itemCode,
+                                          ),
+                                    )
+                                    .length;
 
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocaleKey.cars.tr(),
-                              style: AppTextStyle.bodyLarge(context).copyWith(
-                                color: AppColor.blackTextColor(context),
-                                fontWeight: FontWeight.w900,
-                                fontStyle: FontStyle.normal,
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocaleKey.cars.tr(),
+                                style: AppTextStyle.bodyLarge(context).copyWith(
+                                  color: AppColor.blackTextColor(context),
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.normal,
+                                ),
                               ),
-                            ),
-                            Text(
-                              context.locale.languageCode == 'ar'
-                                  ? '$availableCarsCount سيارة متاحة'
-                                  : '$availableCarsCount cars available',
-                              style: AppTextStyle.bodySmall(context).copyWith(
-                                color: Theme.of(context).hintColor,
-                                fontWeight: FontWeight.w600,
+                              Text(
+                                context.locale.languageCode == 'ar'
+                                    ? '$availableCarsCount سيارة متاحة'
+                                    : '$availableCarsCount cars available',
+                                style: AppTextStyle.bodySmall(context).copyWith(
+                                  color: Theme.of(context).hintColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
+                            ],
+                          );
+                        },
+                      );
+                    }
 
-                  return FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      _currentIndex == 2
-                          ? AppLocaleKey.favorites.tr()
-                          : isGuest || userName.isEmpty
-                          ? welcomeText
-                          : '$welcomeText$separator $userName',
-                      style: AppTextStyle.bodyLarge(context).copyWith(
-                        color: AppColor.blackTextColor(context),
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FontStyle.normal,
+                    return FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        _currentIndex == 2
+                            ? AppLocaleKey.favorites.tr()
+                            : isGuest || userName.isEmpty
+                            ? welcomeText
+                            : '$welcomeText$separator $userName',
+                        style: AppTextStyle.bodyLarge(context).copyWith(
+                          color: AppColor.blackTextColor(context),
+                          fontWeight: FontWeight.w900,
+                          fontStyle: FontStyle.normal,
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
+                actions: [
+                  const NotificationIconWidget(),
+                  Gap(10.w),
+                  //  const CartIconWidget(),
+                  // Gap(10.w),
+                  // const TranslateIconWidget(),
+                  //  Gap(5.w),
+                ],
               ),
-              actions: [
-                const NotificationIconWidget(),
-                Gap(10.w),
-                //  const CartIconWidget(),
-                // Gap(10.w),
-                // const TranslateIconWidget(),
-                //  Gap(5.w),
-              ],
-            ),
-      body: BlocListener<HomeCubit, HomeState>(
-        listenWhen: (prev, curr) =>
-            prev.notificationsStatus != curr.notificationsStatus,
-        listener: (context, state) {
-          if (state.notificationsStatus.isSuccess) {
-            final list = state.notificationsStatus.data ?? [];
-            context.read<NotificationsCubit>().loadFromApi(
-              list.map((n) => n.toMap()).toList(),
-            );
-          } else if (state.notificationsStatus.isFailure) {
-            context.read<NotificationsCubit>().loadFromApi([]);
-          }
-        },
-        child: screens[_currentIndex.clamp(0, screens.length - 1)],
-      ),
-      bottomNavigationBar: MainBottomNavBar(
-        currentIndex: _currentIndex,
-        onItemSelected: (index) {
-          MainLayout.tabIndex.value = index;
-        },
+        body: BlocListener<HomeCubit, HomeState>(
+          listenWhen: (prev, curr) =>
+              prev.notificationsStatus != curr.notificationsStatus,
+          listener: (context, state) {
+            if (state.notificationsStatus.isSuccess) {
+              final list = state.notificationsStatus.data ?? [];
+              context.read<NotificationsCubit>().loadFromApi(
+                list.map((n) => n.toMap()).toList(),
+              );
+            } else if (state.notificationsStatus.isFailure) {
+              context.read<NotificationsCubit>().loadFromApi([]);
+            }
+          },
+          child: screens[_currentIndex.clamp(0, screens.length - 1)],
+        ),
+        bottomNavigationBar: MainBottomNavBar(
+          currentIndex: _currentIndex,
+          onItemSelected: (index) {
+            MainLayout.tabIndex.value = index;
+          },
+        ),
       ),
     );
   }

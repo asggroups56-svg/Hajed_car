@@ -239,7 +239,10 @@ class CustomFormLoginWidget extends StatelessWidget {
                   style: AppTextStyle.bodyMedium(context, color: AppColor.blackTextColor(context)),
                 ),
                 TextButton(
-                  onPressed: () => NavigatorMethods.pushNamed(context, RoutesName.registerScreen),
+                  onPressed: () => NavigatorMethods.pushReplacementNamed(
+                    context,
+                    RoutesName.registerScreen,
+                  ),
                   child: Text(
                     AppLocaleKey.signUp.tr(),
                     style: AppTextStyle.bodyLarge(

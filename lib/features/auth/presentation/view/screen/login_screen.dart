@@ -18,70 +18,86 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
   final _formKey = GlobalKey<FormState>();
+  void _onClose(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      HiveMethods.updateIsGuest(true);
+      NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<AuthCubit>();
-    return Scaffold(
-      backgroundColor: AppColor.scaffoldColor(context),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              AppColor.secondAppColor(context),
-              AppColor.gradientSecondaryColor(context),
-              AppColor.primaryColor(context).withValues(alpha: 0.1),
-            ],
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _onClose(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColor.scaffoldColor(context),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                AppColor.secondAppColor(context),
+                AppColor.gradientSecondaryColor(context),
+                AppColor.primaryColor(context).withValues(alpha: 0.1),
+              ],
+            ),
           ),
-        ),
-        child: BlocConsumer<AuthCubit, AuthState>(
-          listener: (context, state) {
-            if (state.loginStatus.isSuccess) {
-              CommonMethods.showToast(
-                message: AppLocaleKey.loginSuccess.tr(),
-                type: ToastType.success,
-              );
-              if (HiveMethods.isUserRole()) {
-                MainLayout.tabIndex.value = 0;
-                NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
-              } else if (HiveMethods.isAgentRole()) {
-                NavigatorMethods.pushReplacementNamed(context, RoutesName.agentDashboard);
-              } else {
-                NavigatorMethods.pushReplacementNamed(context, RoutesName.adminDashboard);
+          child: BlocConsumer<AuthCubit, AuthState>(
+            listener: (context, state) {
+              if (state.loginStatus.isSuccess) {
+                CommonMethods.showToast(
+                  message: AppLocaleKey.loginSuccess.tr(),
+                  type: ToastType.success,
+                );
+                if (HiveMethods.isUserRole()) {
+                  MainLayout.tabIndex.value = 0;
+                  NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
+                } else if (HiveMethods.isAgentRole()) {
+                  NavigatorMethods.pushReplacementNamed(context, RoutesName.agentDashboard);
+                } else {
+                  NavigatorMethods.pushReplacementNamed(context, RoutesName.adminDashboard);
+                }
               }
-            }
-            if (state.loginStatus.isFailure) {
-              log(state.loginStatus.error?.toString() ?? 'Login failed');
-              final error = state.loginStatus.error ?? 'Login failed';
-              CommonMethods.showToast(message: error, type: ToastType.error);
-            }
-          },
-          builder: (context, state) {
-            return SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (Navigator.canPop(context))
+              if (state.loginStatus.isFailure) {
+                log(state.loginStatus.error?.toString() ?? 'Login failed');
+                final error = state.loginStatus.error ?? 'Login failed';
+                CommonMethods.showToast(message: error, type: ToastType.error);
+              }
+            },
+            builder: (context, state) {
+              return SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Align(
                           alignment: AlignmentDirectional.topStart,
                           child: IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => _onClose(context),
                           ),
                         ),
-                      CustomFormLoginWidget(formKey: _formKey, cubit: cubit),
-                    ],
+                        CustomFormLoginWidget(formKey: _formKey, cubit: cubit),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
