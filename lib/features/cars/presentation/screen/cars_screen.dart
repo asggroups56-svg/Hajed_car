@@ -7,6 +7,7 @@ import 'package:car/features/cars/presentation/screen/widget/cars_list_widget.da
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +28,9 @@ class _CarsScreenState extends State<CarsScreen> {
   @override
   void initState() {
     super.initState();
+    _searchQuery = MainLayout.carsSearchQuery.value.trim().toLowerCase();
+    _searchController.text = _searchQuery;
+    MainLayout.carsSearchQuery.addListener(_applyHomeSearchQuery);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeCubit>().fetchAllCars();
       context.read<HomeCubit>().getNormalFinancing();
@@ -35,8 +39,18 @@ class _CarsScreenState extends State<CarsScreen> {
 
   @override
   void dispose() {
+    MainLayout.carsSearchQuery.removeListener(_applyHomeSearchQuery);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _applyHomeSearchQuery() {
+    final query = MainLayout.carsSearchQuery.value.trim().toLowerCase();
+    if (_searchQuery == query) return;
+    setState(() {
+      _searchQuery = query;
+      _searchController.text = query;
+    });
   }
 
   GetBrandCarsDataModel _localizeCarData(GetBrandCarsDataModel car) {

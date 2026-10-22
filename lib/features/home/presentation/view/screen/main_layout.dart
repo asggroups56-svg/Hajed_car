@@ -11,6 +11,7 @@ import 'package:car/features/favorites/presentation/view/screen/favorites_screen
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/widgets/notification_icon_widget.dart';
 import 'package:car/features/notifications/presentation/view/cubit/notifications_cubit.dart';
+import 'package:car/features/profile/presentation/screen/account_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,13 +20,13 @@ import 'package:gap/gap.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../cars/presentation/screen/cars_screen.dart';
-import '../../../../services/presentation/screen/services_screen.dart';
 import '../widgets/main_bottom_nav_bar.dart';
 import 'guest_home_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
   static final ValueNotifier<int> tabIndex = ValueNotifier(0);
+  static final ValueNotifier<String> carsSearchQuery = ValueNotifier('');
   @override
   State<MainLayout> createState() => _MainLayoutState();
 }
@@ -84,8 +85,8 @@ class _MainLayoutState extends State<MainLayout> {
       FavoritesScreen(
         key: ValueKey('favorites_${context.locale.languageCode}'),
       ),
-      ServicesScreen(key: ValueKey('services_${context.locale.languageCode}')),
       const CarComparisonScreen(),
+      const AccountScreen(),
     ];
     return Scaffold(
       appBar: _currentIndex == 3 || _currentIndex == 4

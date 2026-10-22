@@ -51,21 +51,80 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
 
     final specs = [
       {'key': AppLocaleKey.price.tr(), 'field': 'price', 'fallback': 'PRICE'},
-      {'key': AppLocaleKey.brand.tr(), 'field': 'brand', 'fallback': 'MAKE_NAME'},
-      {'key': AppLocaleKey.modelYear.tr(), 'field': 'year', 'fallback': 'MAKE_YEAR'},
-      {'key': AppLocaleKey.engine.tr(), 'field': 'engine', 'fallback': 'CYLINDER'},
-      {'key': AppLocaleKey.transmission.tr(), 'field': 'transmission', 'fallback': 'TRANSMISSION'},
-      {'key': AppLocaleKey.fuelTypeLabel.tr(), 'field': 'FUEL_TYPE', 'fallback': 'fuel_type'},
-      {'key': AppLocaleKey.color.tr(), 'field': 'Color', 'fallback': 'BODY_COLOR'},
+      {
+        'key': AppLocaleKey.monthlyInstallment.tr(),
+        'field': 'monthlyInstallment',
+        'fallback': 'MonthlyInstallment',
+      },
+      {
+        'key': AppLocaleKey.brand.tr(),
+        'field': 'brand',
+        'fallback': 'MAKE_NAME',
+      },
+      {
+        'key': AppLocaleKey.modelYear.tr(),
+        'field': 'year',
+        'fallback': 'MAKE_YEAR',
+      },
+      {
+        'key': AppLocaleKey.engine.tr(),
+        'field': 'engine',
+        'fallback': 'CYLINDER',
+      },
+      {
+        'key': AppLocaleKey.transmission.tr(),
+        'field': 'TRANSMISSION',
+        'fallback': 'transmission',
+      },
+      {
+        'key': AppLocaleKey.fuelTypeLabel.tr(),
+        'field': 'FUEL_TYPE',
+        'fallback': 'fuel_type',
+      },
+      {
+        'key': AppLocaleKey.color.tr(),
+        'field': 'Color',
+        'fallback': 'BODY_COLOR',
+      },
+      {
+        'key': AppLocaleKey.info_tab_interior_color.tr(),
+        'field': 'BODY_COLOR',
+        'fallback': 'bodyColor',
+      },
+      {
+        'key': isArabic ? 'القوة' : 'Power',
+        'field': 'POWER_HOURSE',
+        'fallback': 'powerHourse',
+      },
+      {
+        'key': isArabic ? 'سعة المحرك' : 'Engine Capacity',
+        'field': 'FUEL_CAPACITY',
+        'fallback': 'fuelCapacity',
+      },
+      {
+        'key': isArabic ? 'المقاعد' : 'Seats',
+        'field': 'SEAT_NO',
+        'fallback': 'seatNo',
+      },
+      {
+        'key': isArabic ? 'الأبواب' : 'Doors',
+        'field': 'DOOR_NO',
+        'fallback': 'doorNo',
+      },
     ];
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        theme: pw.ThemeData.withFont(base: isArabic ? arabicFont : regularFont, bold: arabicFont),
+        theme: pw.ThemeData.withFont(
+          base: isArabic ? arabicFont : regularFont,
+          bold: arabicFont,
+        ),
         build: (pw.Context context) => [
           pw.Directionality(
-            textDirection: isArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+            textDirection: isArabic
+                ? pw.TextDirection.rtl
+                : pw.TextDirection.ltr,
             child: pw.Column(
               children: [
                 pw.Header(
@@ -75,9 +134,14 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                     children: [
                       pw.Text(
                         AppLocaleKey.compareCars.tr(),
-                        style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                        style: pw.TextStyle(
+                          fontSize: 24,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
                       ),
-                      pw.Text(DateFormat('yyyy-MM-dd', 'en').format(DateTime.now())),
+                      pw.Text(
+                        DateFormat('yyyy-MM-dd', 'en').format(DateTime.now()),
+                      ),
                     ],
                   ),
                 ),
@@ -91,14 +155,14 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                       .map(
                         (spec) => [
                           spec['key']!,
-                          ...list.map(
-                            (c) => (c[spec['field']] ?? c[spec['fallback']] ?? 'N/A').toString(),
-                          ),
+                          ...list.map((car) => _specValue(car, spec)),
                         ],
                       )
                       .toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  headerDecoration: const pw.BoxDecoration(
+                    color: PdfColors.grey300,
+                  ),
                   cellAlignment: pw.Alignment.centerLeft,
                 ),
                 pw.SizedBox(height: 40),
@@ -115,7 +179,10 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
       ),
     );
 
-    await Printing.sharePdf(bytes: await pdf.save(), filename: 'car_comparison.pdf');
+    await Printing.sharePdf(
+      bytes: await pdf.save(),
+      filename: 'car_comparison.pdf',
+    );
   }
 
   Widget _buildEmptyState() {
@@ -124,22 +191,33 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.compare_arrows_rounded, size: 80.sp, color: AppColor.hintColor(context)),
+            Icon(
+              Icons.compare_arrows_rounded,
+              size: 80.sp,
+              color: AppColor.hintColor(context),
+            ),
             Gap(16.h),
             Text(
               AppLocaleKey.comparisonEmpty.tr(),
-              style: AppTextStyle.bodyLarge(context).copyWith(color: AppColor.greyColor(context)),
+              style: AppTextStyle.bodyLarge(
+                context,
+              ).copyWith(color: AppColor.greyColor(context)),
             ),
             Gap(24.h),
             ElevatedButton(
               onPressed: () {
                 MainLayout.tabIndex.value = 1; // Switch to Cars tab
-                NavigatorMethods.pushNamedAndRemoveUntil(context, RoutesName.mainLayout);
+                NavigatorMethods.pushNamedAndRemoveUntil(
+                  context,
+                  RoutesName.mainLayout,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.primaryColor(context),
                 foregroundColor: AppColor.whiteColor(context),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               child: Text(
                 AppLocaleKey.compareCars.tr(),
@@ -173,17 +251,21 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             ),
             Gap(16.h),
             Container(
-              height: 230.h,
+              height: 240.h,
               padding: EdgeInsets.symmetric(vertical: 14.h),
               decoration: BoxDecoration(
                 color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .55)),
+                border: Border.all(
+                  color: AppColor.dividerColor(context).withValues(alpha: .55),
+                ),
               ),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: 10.w),
-                itemCount: list.length + (list.length < HiveMethods.maxComparisonCars ? 1 : 0),
+                itemCount:
+                    list.length +
+                    (list.length < HiveMethods.maxComparisonCars ? 1 : 0),
                 separatorBuilder: (_, index) => Gap(10.w),
                 itemBuilder: (context, index) => SizedBox(
                   width: 166.w,
@@ -209,9 +291,10 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                     context.locale.languageCode == 'ar'
                         ? 'يمكنك طلب أي سيارة من المقارنة، ثم العودة لطلب السيارة الأخرى.'
                         : 'You can request either car, then return to request the other one.',
-                    style: AppTextStyle.bodySmall(
-                      context,
-                    ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
+                    style: AppTextStyle.bodySmall(context).copyWith(
+                      color: AppColor.greyColor(context),
+                      fontSize: 11.sp,
+                    ),
                   ),
                 ),
               ],
@@ -269,7 +352,8 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
 
   Widget _buildCarColumn(Map<dynamic, dynamic> car, {required int slot}) {
     final carId = HiveMethods.getCarUniqueId(Map<String, dynamic>.from(car));
-    final heroTag = 'comparison_car_image_${carId.isNotEmpty ? carId : car['name'] ?? 'car'}';
+    final heroTag =
+        'comparison_car_image_${carId.isNotEmpty ? carId : car['name'] ?? 'car'}';
     return Column(
       children: [
         Text(
@@ -289,7 +373,10 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
               onTap: () => NavigatorMethods.pushNamed(
                 context,
                 RoutesName.carDetailsScreen,
-                arguments: {'car': Map<String, dynamic>.from(car), 'heroTag': heroTag},
+                arguments: {
+                  'car': Map<String, dynamic>.from(car),
+                  'heroTag': heroTag,
+                },
               ),
               child: Container(
                 height: 88.h,
@@ -297,18 +384,23 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                 decoration: BoxDecoration(
                   color: AppColor.cardColor(context),
                   borderRadius: BorderRadius.circular(14.r),
-                  border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .5)),
+                  border: Border.all(
+                    color: AppColor.dividerColor(context).withValues(alpha: .5),
+                  ),
                 ),
                 child: Padding(
                   padding: EdgeInsets.all(8.w),
-                  child: (car['image'] != null && car['image'].toString().startsWith('http'))
+                  child:
+                      (car['image'] != null &&
+                          car['image'].toString().startsWith('http'))
                       ? CustomNetworkImage(
                           imageUrl: car['image'].toString(),
                           fit: BoxFit.contain,
                           width: double.infinity,
                         )
                       : Image.asset(
-                          (car['image'] != null && car['image'].toString().trim().isNotEmpty)
+                          (car['image'] != null &&
+                                  car['image'].toString().trim().isNotEmpty)
                               ? car['image'].toString()
                               : AppImages.assetsImagesPlaceholder,
                           fit: BoxFit.contain,
@@ -327,7 +419,11 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
                     color: AppColor.redColor(context),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, color: AppColor.whiteColor(context), size: 14.sp),
+                  child: Icon(
+                    Icons.close,
+                    color: AppColor.whiteColor(context),
+                    size: 14.sp,
+                  ),
                 ),
               ),
             ),
@@ -351,7 +447,7 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
-            _specValue(car, {'field': 'price', 'fallback': 'PRICE'}),
+            _priceWithVat(car),
             style: AppTextStyle.bodySmall(context).copyWith(
               color: AppColor.primaryColor(context),
               fontWeight: FontWeight.w900,
@@ -367,14 +463,18 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
             onPressed: () => _requestCar(car),
             icon: Icon(Icons.shopping_cart_checkout_rounded, size: 13.sp),
             label: Text(
-              context.locale.languageCode == 'ar' ? 'اطلب السيارة' : 'Request car',
+              context.locale.languageCode == 'ar'
+                  ? 'اطلب السيارة'
+                  : 'Request car',
               style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w800),
             ),
             style: FilledButton.styleFrom(
               backgroundColor: AppColor.primaryColor(context),
               foregroundColor: AppColor.whiteColor(context),
               padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
             ),
           ),
         ),
@@ -434,16 +534,19 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
               Gap(6.h),
               Text(
                 context.locale.languageCode == 'ar' ? 'إضافة سيارة' : 'Add car',
-                style: AppTextStyle.bodySmall(
-                  context,
-                ).copyWith(fontWeight: FontWeight.bold, color: AppColor.primaryColor(context)),
+                style: AppTextStyle.bodySmall(context).copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.primaryColor(context),
+                ),
               ),
             ],
           ),
         ),
         Gap(10.h),
         Text(
-          context.locale.languageCode == 'ar' ? 'اختر سيارة للمقارنة' : 'Choose a car to compare',
+          context.locale.languageCode == 'ar'
+              ? 'اختر سيارة للمقارنة'
+              : 'Choose a car to compare',
           textAlign: TextAlign.center,
           maxLines: 2,
           style: AppTextStyle.bodySmall(
@@ -463,13 +566,19 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         'icon': Icons.payments_rounded,
       },
       {
+        'key': AppLocaleKey.monthlyInstallment.tr(),
+        'field': 'monthlyInstallment',
+        'fallback': 'MonthlyInstallment',
+        'icon': Icons.calendar_month_rounded,
+      },
+      {
         'key': AppLocaleKey.info_tab_brand.tr(),
         'field': 'brand',
         'fallback': 'MAKE_NAME',
         'icon': Icons.stars_rounded,
       },
       {
-        'key': AppLocaleKey.info_tab_model.tr(),
+        'key': AppLocaleKey.modelYear.tr(),
         'field': 'year',
         'fallback': 'MAKE_YEAR',
         'icon': Icons.calendar_today_rounded,
@@ -481,9 +590,11 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         'icon': Icons.settings_input_component_rounded,
       },
       {
-        'key': context.locale.languageCode == 'ar' ? 'ناقل الحركة' : 'Transmission',
-        'field': 'transmission',
-        'fallback': 'TRANSMISSION',
+        'key': context.locale.languageCode == 'ar'
+            ? 'ناقل الحركة'
+            : 'Transmission',
+        'field': 'TRANSMISSION',
+        'fallback': 'transmission',
         'icon': Icons.settings_suggest_rounded,
       },
       {
@@ -498,75 +609,129 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
         'fallback': 'BODY_COLOR',
         'icon': Icons.palette_rounded,
       },
+      {
+        'key': AppLocaleKey.info_tab_interior_color.tr(),
+        'field': 'BODY_COLOR',
+        'fallback': 'bodyColor',
+        'icon': Icons.event_seat_rounded,
+      },
+      {
+        'key': context.locale.languageCode == 'ar' ? 'القوة' : 'Power',
+        'field': 'POWER_HOURSE',
+        'fallback': 'powerHourse',
+        'icon': Icons.bolt_rounded,
+      },
+      {
+        'key': context.locale.languageCode == 'ar'
+            ? 'سعة المحرك'
+            : 'Engine capacity',
+        'field': 'FUEL_CAPACITY',
+        'fallback': 'fuelCapacity',
+        'icon': Icons.speed_rounded,
+      },
+      {
+        'key': context.locale.languageCode == 'ar' ? 'المقاعد' : 'Seats',
+        'field': 'SEAT_NO',
+        'fallback': 'seatNo',
+        'icon': Icons.airline_seat_recline_extra_rounded,
+      },
+      {
+        'key': context.locale.languageCode == 'ar' ? 'الأبواب' : 'Doors',
+        'field': 'DOOR_NO',
+        'fallback': 'doorNo',
+        'icon': Icons.door_front_door_outlined,
+      },
     ];
     final cars = List<dynamic>.from(list);
     return Container(
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColor.dividerColor(context).withValues(alpha: .5)),
+        border: Border.all(
+          color: AppColor.dividerColor(context).withValues(alpha: .5),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Column(
-          children: [_buildTableHeader(cars), ...specs.map((spec) => _buildSpecRow(spec, cars))],
+          children: [
+            _buildTableHeader(cars),
+            ...specs.map((spec) => _buildSpecRow(spec, cars)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSpecRow(Map<String, dynamic> spec, List<dynamic> cars) => Container(
-    width: 118.w + (cars.length * 130.w),
-    padding: EdgeInsets.symmetric(vertical: 14.h),
-    decoration: BoxDecoration(
-      border: Border(
-        bottom: BorderSide(color: AppColor.dividerColor(context).withValues(alpha: .3)),
-      ),
-    ),
-    child: Row(
-      children: [
-        SizedBox(
-          width: 118.w,
-          child: Row(
-            children: [
-              Icon(spec['icon'] as IconData, size: 14.sp, color: AppColor.primaryColor(context)),
-              Gap(5.w),
-              Expanded(
-                child: Text(
-                  spec['key'].toString(),
-                  style: AppTextStyle.bodySmall(context).copyWith(
-                    color: AppColor.greyColor(context),
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        ...cars.map(
-          (car) => SizedBox(
-            width: 130.w,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 3.w),
-              child: Text(
-                _specValue(car, spec),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyle.bodySmall(context).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColor.blackTextColor(context),
-                  fontSize: 11.sp,
-                ),
-              ),
+  Widget _buildSpecRow(Map<String, dynamic> spec, List<dynamic> cars) =>
+      Container(
+        width: 118.w + (cars.length * 130.w),
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: AppColor.dividerColor(context).withValues(alpha: .3),
             ),
           ),
         ),
-      ],
-    ),
-  );
+        child: Row(
+          children: [
+            SizedBox(
+              width: 118.w,
+              child: Row(
+                children: [
+                  Icon(
+                    spec['icon'] as IconData,
+                    size: 14.sp,
+                    color: AppColor.primaryColor(context),
+                  ),
+                  Gap(5.w),
+                  Expanded(
+                    child: Text(
+                      spec['key'].toString(),
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        color: AppColor.greyColor(context),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...cars.map((car) {
+              final isDifferent = _isDifferentSpecValue(car, spec, cars);
+              return SizedBox(
+                width: 130.w,
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 3.w),
+                  padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: isDifferent
+                        ? AppColor.primaryColor(context).withValues(alpha: .10)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    _specValue(car, spec),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyle.bodySmall(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: isDifferent
+                          ? AppColor.primaryColor(context)
+                          : AppColor.blackTextColor(context),
+                      fontSize: 10.sp,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      );
 
   Widget _buildTableHeader(List<dynamic> cars) => Container(
     width: 118.w + (cars.length * 130.w),
@@ -579,7 +744,9 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 12.w),
             child: Text(
-              context.locale.languageCode == 'ar' ? 'المواصفة' : 'Specification',
+              context.locale.languageCode == 'ar'
+                  ? 'المواصفات'
+                  : 'Specifications',
               style: _tableHeaderStyle(),
             ),
           ),
@@ -600,15 +767,118 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
     ),
   );
 
-  TextStyle _tableHeaderStyle() => AppTextStyle.bodySmall(
-    context,
-  ).copyWith(fontWeight: FontWeight.w800, fontSize: 10.sp, color: AppColor.primaryColor(context));
+  TextStyle _tableHeaderStyle() => AppTextStyle.bodySmall(context).copyWith(
+    fontWeight: FontWeight.w800,
+    fontSize: 9.sp,
+    color: AppColor.primaryColor(context),
+  );
 
   String _shortCarName(dynamic car) =>
       (car['name'] ?? car['itemName'] ?? car['ITEM_NAME'] ?? '---').toString();
 
+  bool _isDifferentSpecValue(
+    dynamic car,
+    Map<String, dynamic> spec,
+    List<dynamic> cars,
+  ) {
+    final values = cars.map((item) => _specValue(item, spec)).toSet();
+    return values.length > 1 && _specValue(car, spec) != '—';
+  }
+
   String _specValue(dynamic car, Map<String, dynamic> spec) {
+    if (spec['field'] == 'price') return _priceWithVat(car);
+    if (spec['field'] == 'monthlyInstallment') {
+      return _monthlyInstallment(car);
+    }
+
     final value = car[spec['field']] ?? car[spec['fallback']];
-    return value == null || value.toString().trim().isEmpty ? '—' : value.toString();
+    if (value == null || value.toString().trim().isEmpty) return '—';
+
+    if (spec['field'] == 'TRANSMISSION') {
+      return value.toString() == '1'
+          ? AppLocaleKey.agentAutomatic.tr()
+          : AppLocaleKey.agentManual.tr();
+    }
+    if (spec['field'] == 'monthlyInstallment' ||
+        spec['field'] == 'installments') {
+      final amount = double.tryParse(
+        value.toString().replaceAll(RegExp(r'[^0-9.]'), ''),
+      );
+      if (amount != null && amount > 0) {
+        return '${NumberFormat('#,##0', 'en_US').format(amount)} ${AppLocaleKey.sar.tr()}';
+      }
+    }
+    return value.toString();
+  }
+
+  /// Comparison entries may have been stored before the API returned a
+  /// pre-calculated installment. Use the same fallback formula used on the
+  /// car details card so the monthly payment is still available.
+  String _monthlyInstallment(dynamic car) {
+    final rawPrice = car['SALE_PRICE'] ?? car['price'] ?? car['PRICE'];
+    final price =
+        double.tryParse(
+          rawPrice?.toString().replaceAll(RegExp(r'[^0-9.]'), '') ?? '',
+        ) ??
+        0;
+    if (price <= 0) return '—';
+
+    final formatter = NumberFormat('#,##0', 'en_US');
+    final explicitMonthly = _numberValue(
+      car['monthlyInstallment'] ?? car['MonthlyInstallment'],
+    );
+    if (explicitMonthly > 0) {
+      return '${formatter.format(explicitMonthly)} ${AppLocaleKey.sar.tr()}';
+    }
+
+    final installments = car['installments']?.toString().trim();
+    if (installments != null &&
+        installments.isNotEmpty &&
+        installments != '0' &&
+        installments.toLowerCase() != 'null') {
+      return '$installments ${AppLocaleKey.sar.tr()}';
+    }
+
+    final plates = _numberValue(
+      car['paintingsVal'] ?? car['PaintingsVal'] ?? car['PAINTINGS_VAL'],
+    );
+    final vat =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15;
+    final financingPrice = ((price + 3000) * (1 + vat / 100)) + plates;
+    final interestRate = _numberValue(
+      car['interestRate'] ?? car['InterestRate'],
+    );
+    final monthly = interestRate > 0
+        ? (financingPrice + financingPrice * (interestRate / 100) * 5) / 60
+        : (financingPrice * 1.225) / 60;
+    return '${formatter.format(monthly)} ${AppLocaleKey.sar.tr()}';
+  }
+
+  double _numberValue(dynamic value) => value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '') ?? 0;
+
+  String _priceWithVat(dynamic car) {
+    final rawPrice = car['SALE_PRICE'] ?? car['price'] ?? car['PRICE'];
+    final price = double.tryParse(
+      rawPrice?.toString().replaceAll(RegExp(r'[^0-9.]'), '') ?? '',
+    );
+    if (price == null || price <= 0) return '—';
+
+    final plates =
+        double.tryParse(
+          (car['paintingsVal'] ??
+                  car['PaintingsVal'] ??
+                  car['PAINTINGS_VAL'] ??
+                  0)
+              .toString(),
+        ) ??
+        0;
+    final vat =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15;
+    final isAlreadyVatInclusive = rawPrice.toString().contains(',');
+    final total =
+        (isAlreadyVatInclusive ? price : price * (1 + vat / 100)) + plates;
+    return '${NumberFormat('#,##0', 'en_US').format(total)} ${AppLocaleKey.sar.tr()}';
   }
 }

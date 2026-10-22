@@ -1,7 +1,10 @@
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
+import 'package:car/core/theme/app_colors.dart';
+import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
@@ -18,7 +21,10 @@ class HomeGuestScreen extends StatefulWidget {
   State<HomeGuestScreen> createState() => _HomeGuestScreenState();
 }
 
-class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingObserver {
+class _HomeGuestScreenState extends State<HomeGuestScreen>
+    with WidgetsBindingObserver {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +35,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -44,7 +51,9 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
     return RefreshIndicator(
       onRefresh: () => context.read<HomeCubit>().refreshHomeData(),
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -54,6 +63,46 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Gap(20.h),
+                  TextField(
+                    controller: _searchController,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: _searchCars,
+                    decoration: InputDecoration(
+                      hintText: AppLocaleKey.searchForYourDreamCar.tr(),
+                      hintStyle: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.greyColor(context)),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: AppColor.primaryColor(context),
+                      ),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                      filled: true,
+                      fillColor: AppColor.secondAppColor(context),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14.r),
+                        borderSide: BorderSide(
+                          color: AppColor.dividerColor(
+                            context,
+                          ).withValues(alpha: .5),
+                        ),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  Gap(15.h),
                   const AdsSliderWidget(),
                   Gap(15.h),
                   SectionTitleWidget(
@@ -68,7 +117,10 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
                   SectionTitleWidget(
                     title: AppLocaleKey.recent.tr(),
                     onSeeAll: () {
-                      NavigatorMethods.pushNamed(context, RoutesName.popularCarsScreen);
+                      NavigatorMethods.pushNamed(
+                        context,
+                        RoutesName.popularCarsScreen,
+                      );
                     },
                   ),
                   Gap(15.h),
@@ -122,5 +174,12 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
         ),
       ),
     );
+  }
+
+  void _searchCars(String query) {
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) return;
+    MainLayout.carsSearchQuery.value = normalizedQuery;
+    MainLayout.tabIndex.value = 1;
   }
 }

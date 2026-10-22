@@ -32,18 +32,15 @@ class BankInstallmentsBannerWidget extends StatefulWidget {
   });
 
   @override
-  State<BankInstallmentsBannerWidget> createState() =>
-      _BankInstallmentsBannerWidgetState();
+  State<BankInstallmentsBannerWidget> createState() => _BankInstallmentsBannerWidgetState();
 }
 
-class _BankInstallmentsBannerWidgetState
-    extends State<BankInstallmentsBannerWidget> {
+class _BankInstallmentsBannerWidgetState extends State<BankInstallmentsBannerWidget> {
   static const double _financingFee = 3000;
 
   /// Matches the pre-VAT amount used by [FinancingScreen].
   double get _financingBasePrice {
-    final priceString =
-        widget.car.price?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '';
+    final priceString = widget.car.price?.replaceAll(RegExp(r'[^0-9.]'), '') ?? '';
     final rawPrice = double.tryParse(priceString) ?? 0;
     return rawPrice;
   }
@@ -65,9 +62,7 @@ class _BankInstallmentsBannerWidgetState
   FinancingAdModel? _getLowestOffer(List<FinancingAdModel> cubitOffers) {
     final List<FinancingAdModel> candidates = widget.offers.isNotEmpty
         ? widget.offers
-        : (widget.offer != null
-              ? <FinancingAdModel>[widget.offer!]
-              : cubitOffers);
+        : (widget.offer != null ? <FinancingAdModel>[widget.offer!] : cubitOffers);
 
     if (candidates.isEmpty) return null;
 
@@ -75,19 +70,12 @@ class _BankInstallmentsBannerWidgetState
     if (price > 0) {
       return candidates.reduce(
         (a, b) =>
-            a.monthlyInstallmentForPrice(price) <=
-                b.monthlyInstallmentForPrice(price)
-            ? a
-            : b,
+            a.monthlyInstallmentForPrice(price) <= b.monthlyInstallmentForPrice(price) ? a : b,
       );
     }
 
     return candidates.reduce(
-      (a, b) =>
-          (a.interestRate ?? double.infinity) <=
-              (b.interestRate ?? double.infinity)
-          ? a
-          : b,
+      (a, b) => (a.interestRate ?? double.infinity) <= (b.interestRate ?? double.infinity) ? a : b,
     );
   }
 
@@ -104,31 +92,25 @@ class _BankInstallmentsBannerWidgetState
     if (widget.offers.isNotEmpty || widget.offer != null) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
-        return NumberFormat('#,##0', 'en_US').format(
-          lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal),
-        );
+        return NumberFormat(
+          '#,##0',
+          'en_US',
+        ).format(lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal));
       }
     }
 
     // 2. Explicit monthly installment from API
-    if (widget.car.monthlyInstallment != null &&
-        widget.car.monthlyInstallment! > 0) {
-      return NumberFormat(
-        '#,##0',
-        'en_US',
-      ).format(widget.car.monthlyInstallment);
+    if (widget.car.monthlyInstallment != null && widget.car.monthlyInstallment! > 0) {
+      return NumberFormat('#,##0', 'en_US').format(widget.car.monthlyInstallment);
     }
 
     // 3. Explicit interest rate from API
     if (widget.car.interestRate != null && widget.car.interestRate! > 0) {
-      final vatPercentage =
-          double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-      final priceWithVat =
-          ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
+      final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+      final priceWithVat = ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
       const years = 5;
       const months = 60;
-      final totalInterest =
-          priceWithVat * (widget.car.interestRate! / 100) * years;
+      final totalInterest = priceWithVat * (widget.car.interestRate! / 100) * years;
       final monthly = (priceWithVat + totalInterest) / months;
       return NumberFormat('#,##0', 'en_US').format(monthly);
     }
@@ -145,17 +127,16 @@ class _BankInstallmentsBannerWidgetState
     if (cubitOffers.isNotEmpty) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
-        return NumberFormat('#,##0', 'en_US').format(
-          lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal),
-        );
+        return NumberFormat(
+          '#,##0',
+          'en_US',
+        ).format(lowestOffer.monthlyInstallmentForPrice(price, platesVal: platesVal));
       }
     }
 
     // 6. Generic calculation fallback if price is present
-    final vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final priceWithVat =
-        ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
+    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final priceWithVat = ((price + _financingFee) * (1 + vatPercentage / 100)) + platesVal;
     final estimatedMonthly = (priceWithVat * 1.225) / 60;
     if (estimatedMonthly > 0) {
       return NumberFormat('#,##0', 'en_US').format(estimatedMonthly);
@@ -169,8 +150,7 @@ class _BankInstallmentsBannerWidgetState
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
-        final cubitOffers =
-            state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
+        final cubitOffers = state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
         final installmentPrice = _getInstallmentPrice(cubitOffers);
 
         // Hide financing widget entirely when price is zero or unavailable
@@ -188,19 +168,15 @@ class _BankInstallmentsBannerWidgetState
               final homeCubit = context.read<HomeCubit>();
               await homeCubit.getNormalFinancing();
               if (!context.mounted) return;
-              selectedOffers =
-                  homeCubit.state.normalFinancingStatus.data ?? const [];
+              selectedOffers = homeCubit.state.normalFinancingStatus.data ?? const [];
               selectedOffer = _getLowestOffer(selectedOffers);
             }
 
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => FinancingScreen(
-                  car: widget.car,
-                  offer: selectedOffer,
-                  offers: selectedOffers,
-                ),
+                builder: (_) =>
+                    FinancingScreen(car: widget.car, offer: selectedOffer, offers: selectedOffers),
               ),
             );
           },
@@ -208,13 +184,10 @@ class _BankInstallmentsBannerWidgetState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.locale.languageCode == 'ar'
-                    ? 'القسط الشهري'
-                    : 'Monthly installment',
-                style: AppTextStyle.bodySmall(context).copyWith(
-                  color: AppColor.blueColor(context),
-                  fontWeight: FontWeight.bold,
-                ),
+                context.locale.languageCode == 'ar' ? 'القسط الشهري' : 'Monthly installment',
+                style: AppTextStyle.bodySmall(
+                  context,
+                ).copyWith(color: AppColor.blueColor(context), fontWeight: FontWeight.bold),
               ),
               Gap(6.h),
               Row(
@@ -223,11 +196,9 @@ class _BankInstallmentsBannerWidgetState
                   Flexible(
                     child: Text(
                       installmentPrice,
-                      style: AppTextStyle.titleMedium(context).copyWith(
-                        color: AppColor.blueColor(context),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18.sp,
-                      ),
+                      style: AppTextStyle.bodyMedium(
+                        context,
+                      ).copyWith(color: AppColor.blueColor(context), fontWeight: FontWeight.w900),
                     ),
                   ),
                   Gap(4.w),
@@ -235,10 +206,9 @@ class _BankInstallmentsBannerWidgetState
                     child: ValueWithCurrencyIcon(
                       text:
                           '${AppLocaleKey.aed.tr()} / ${AppLocaleKey.agentAppointment.tr() == context.locale.languageCode || context.locale.languageCode == "en" ? "Month" : "شهرياً"}',
-                      textStyle: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.blueColor(context),
-                        fontSize: 10.sp,
-                      ),
+                      textStyle: AppTextStyle.bodySmall(
+                        context,
+                      ).copyWith(color: AppColor.blueColor(context), fontSize: 10.sp),
                     ),
                   ),
                 ],
@@ -249,9 +219,7 @@ class _BankInstallmentsBannerWidgetState
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 2.w),
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColor.blueColor(context).withValues(alpha: 0.2),
-                    ),
+                    border: Border.all(color: AppColor.blueColor(context).withValues(alpha: 0.2)),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Row(

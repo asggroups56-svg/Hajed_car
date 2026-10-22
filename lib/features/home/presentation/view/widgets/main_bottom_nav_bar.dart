@@ -9,13 +9,22 @@ class MainBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
 
-  const MainBottomNavBar({super.key, required this.currentIndex, required this.onItemSelected});
+  const MainBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onItemSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Container(
-      padding: EdgeInsets.only(left: 8.w, right: 8.w, top: 8.h, bottom: 6.h + bottomPadding),
+      padding: EdgeInsets.only(
+        left: 8.w,
+        right: 8.w,
+        top: 8.h,
+        bottom: 6.h + bottomPadding,
+      ),
       decoration: BoxDecoration(
         color: AppColor.secondAppColor(context),
         boxShadow: [
@@ -56,17 +65,17 @@ class MainBottomNavBar extends StatelessWidget {
           MainNavItem(
             index: 3,
             currentIndex: currentIndex,
-            icon: Icons.miscellaneous_services_outlined,
-            activeIcon: Icons.miscellaneous_services,
-            label: AppLocaleKey.services.tr(),
+            icon: Icons.compare_arrows_outlined,
+            activeIcon: Icons.compare_arrows,
+            label: AppLocaleKey.compare.tr(),
             onTap: () => onItemSelected(3),
           ),
           MainNavItem(
             index: 4,
             currentIndex: currentIndex,
-            icon: Icons.compare_arrows_outlined,
-            activeIcon: Icons.compare_arrows,
-            label: AppLocaleKey.compare.tr(),
+            icon: Icons.person_outline_rounded,
+            activeIcon: Icons.person_rounded,
+            label: AppLocaleKey.myAccount.tr(),
             onTap: () => onItemSelected(4),
           ),
         ],
@@ -111,10 +120,14 @@ class MainNavItem extends StatelessWidget {
                 width: 36.w,
                 height: 32.h,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(16.r)),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
                 child: Icon(
                   isSelected ? activeIcon : icon,
-                  color: isSelected ? AppColor.primaryColor(context) : AppColor.greyColor(context),
+                  color: isSelected
+                      ? AppColor.primaryColor(context)
+                      : AppColor.greyColor(context),
                   size: 21.sp,
                 ),
               ),
@@ -124,7 +137,9 @@ class MainNavItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyle.bodySmall(context).copyWith(
-                  color: isSelected ? AppColor.primaryColor(context) : AppColor.greyColor(context),
+                  color: isSelected
+                      ? AppColor.primaryColor(context)
+                      : AppColor.greyColor(context),
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 10.sp,
                 ),
