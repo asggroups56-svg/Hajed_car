@@ -45,13 +45,7 @@ class PremiumCarCardWidget extends StatelessWidget {
             .trim();
     final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
     final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
-    final String displayMileage =
-        (car.kilometerReading != null &&
-            car.kilometerReading!.isNotEmpty &&
-            car.kilometerReading != 'null' &&
-            car.kilometerReading != '0')
-        ? '${car.kilometerReading} كم'
-        : (car.kilometerReading == '0' ? '0 كم' : '—');
+
 
     return GestureDetector(
       onTap: () {

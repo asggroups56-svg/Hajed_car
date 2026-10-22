@@ -1,9 +1,11 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/screen/widget/car_search_header_widget.dart';
-import 'package:car/features/cars/presentation/screen/widget/cars_list_widget.dart';
+import 'package:car/features/cars/presentation/screen/widget/premium_car_card_widget.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -32,8 +34,15 @@ class _CarsScreenState extends State<CarsScreen> {
     _searchController.text = _searchQuery;
     MainLayout.carsSearchQuery.addListener(_applyHomeSearchQuery);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeCubit>().fetchAllCars();
-      context.read<HomeCubit>().getNormalFinancing();
+      final homeState = context.read<HomeCubit>().state;
+      if (homeState.allCarsStatus.data == null ||
+          homeState.allCarsStatus.data!.isEmpty) {
+        context.read<HomeCubit>().fetchAllCars();
+      }
+      if (homeState.normalFinancingStatus.data == null ||
+          homeState.normalFinancingStatus.data!.isEmpty) {
+        context.read<HomeCubit>().getNormalFinancing();
+      }
     });
   }
 
@@ -85,6 +94,9 @@ class _CarsScreenState extends State<CarsScreen> {
                       b.interestRate ?? double.infinity,
                     ),
                   );
+              final normalOffer = sortedNormalOffers.isEmpty
+                  ? null
+                  : sortedNormalOffers.first;
 
               if (state.allCarsStatus.isLoading ||
                   state.programCarsStatus.isLoading) {
@@ -180,90 +192,142 @@ class _CarsScreenState extends State<CarsScreen> {
                       },
                       color: AppColor.primaryColor(context),
                       backgroundColor: AppColor.secondAppColor(context),
-                      child: ListView(
-                        padding: EdgeInsets.zero,
+                      child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        children: [
+                        slivers: [
                           if (isFilteredByOffer && activeOffer != null) ...[
-                            if (activeOffer.displayPicUrl.isNotEmpty)
-                              Padding(
+                            SliverToBoxAdapter(
+                              child: Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 20.w,
                                   vertical: 10.h,
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  child: Image.network(
-                                    activeOffer.displayPicUrl,
-                                    width: double.infinity,
-                                    height: 120.h,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const SizedBox.shrink(),
-                                  ),
-                                ),
-                              ),
-                            Container(
-                              margin: EdgeInsets.symmetric(
-                                horizontal: 20.w,
-                                vertical: 8.h,
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14.w,
-                                vertical: 10.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColor.primaryColor(
-                                  context,
-                                ).withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    AppLocaleKey.CAR_OFFERS.tr(),
-                                    style: AppTextStyle.bodyMedium(context)
-                                        .copyWith(
-                                          color: AppColor.blackTextColor(
-                                            context,
-                                          ).withValues(alpha: 0.6),
-                                          fontWeight: FontWeight.bold,
+                                child: activeOffer.displayPicUrl.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12.r),
+                                        child: CustomNetworkImage(
+                                          imageUrl: activeOffer.displayPicUrl,
+                                          width: double.infinity,
+                                          height: 120.h,
+                                          fit: BoxFit.cover,
                                         ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      context
-                                          .read<HomeCubit>()
-                                          .clearProgramCarsFilter();
-                                    },
-                                    child: Icon(
-                                      Icons.close_rounded,
-                                      color: AppColor.blackTextColor(
-                                        context,
-                                      ).withValues(alpha: 0.5),
-                                      size: 18.sp,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ),
+                            SliverToBoxAdapter(
+                              child: Container(
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: 20.w,
+                                  vertical: 8.h,
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 14.w,
+                                  vertical: 10.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColor.primaryColor(
+                                    context,
+                                  ).withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      AppLocaleKey.CAR_OFFERS.tr(),
+                                      style: AppTextStyle.bodyMedium(context)
+                                          .copyWith(
+                                            color: AppColor.blackTextColor(
+                                              context,
+                                            ).withValues(alpha: 0.6),
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                  ),
-                                ],
+                                    InkWell(
+                                      onTap: () {
+                                        context
+                                            .read<HomeCubit>()
+                                            .clearProgramCarsFilter();
+                                      },
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        color: AppColor.blackTextColor(
+                                          context,
+                                        ).withValues(alpha: 0.5),
+                                        size: 18.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
-                          Gap(16.h),
-                          CarsList(
-                            cars: availableCars,
-                            localizeCarData: _localizeCarData,
-                            isOffer: isFilteredByOffer,
-                            offersByItemCode: offersByItemCode,
-                            normalOffer: sortedNormalOffers.isEmpty
-                                ? null
-                                : sortedNormalOffers.first,
-                            normalOffers: normalOffers,
-                          ),
+                          SliverToBoxAdapter(child: Gap(16.h)),
+                          if (availableCars.isEmpty)
+                            SliverToBoxAdapter(
+                              child: SizedBox(
+                                height: 200.h,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Gap(20),
+                                      Icon(
+                                        Icons.directions_car_outlined,
+                                        size: 80.sp,
+                                        color: AppColor.hintColor(context)
+                                            .withValues(alpha: 0.4),
+                                      ),
+                                      const Gap(12),
+                                      Text(
+                                        AppLocaleKey.noCars.tr(),
+                                        style: AppTextStyle.bodyLarge(
+                                          context,
+                                        ).copyWith(
+                                          color: AppColor.blackTextColor(
+                                            context,
+                                          ).withValues(alpha: 0.4),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            SliverPadding(
+                              padding:
+                                  EdgeInsets.fromLTRB(20.w, 0, 20.w, 100.h),
+                              sliver: SliverList.separated(
+                                itemCount: availableCars.length,
+                                separatorBuilder: (context, index) => Gap(16.h),
+                                itemBuilder: (context, index) {
+                                  final car = _localizeCarData(
+                                    availableCars[index],
+                                  );
+                                  final carId =
+                                      HiveMethods.getCarUniqueId(car.toMap());
+                                  return PremiumCarCardWidget(
+                                    car: car,
+                                    heroTag:
+                                        'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
+                                    isOffer: isFilteredByOffer,
+                                    offer: (car.itemCode.isNotEmpty
+                                            ? offersByItemCode[car.itemCode]
+                                            : null) ??
+                                        normalOffer,
+                                    financingOffers: isFilteredByOffer
+                                        ? const []
+                                        : normalOffers,
+                                  );
+                                },
+                              ),
+                            ),
                         ],
                       ),
                     ),

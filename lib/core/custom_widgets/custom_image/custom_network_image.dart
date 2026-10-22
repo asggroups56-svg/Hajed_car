@@ -35,9 +35,6 @@ class CustomNetworkImage extends StatelessWidget {
           'https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=800';
     }
 
-    // Debug log to verify fix
-    debugPrint('CustomNetworkImage loading: $effectiveUrl');
-
     return GestureDetector(
       onTap: hasZoom
           ? () {
@@ -55,6 +52,14 @@ class CustomNetworkImage extends StatelessWidget {
           fit: fit,
           width: width,
           height: height,
+          memCacheWidth: (width != null && width!.isFinite && width! > 0)
+              ? (width! * 2.5).round().clamp(100, 1200)
+              : 800,
+          memCacheHeight: (height != null && height!.isFinite && height! > 0)
+              ? (height! * 2.5).round().clamp(100, 1200)
+              : 600,
+          maxWidthDiskCache: 1200,
+          maxHeightDiskCache: 1200,
           placeholder: (context, url) => Container(
             color: AppColor.greyColor(context).withValues(alpha: 0.05),
             child: Center(
