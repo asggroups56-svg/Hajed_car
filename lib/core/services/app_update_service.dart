@@ -37,6 +37,8 @@ class AppUpdateService {
   static const String _iosAppId = '6816629989';
   static const String _androidPackageName = 'com.Hajed.car';
   static const String _dismissedVersionKey = 'dismissed_update_version';
+  /// Current base version matching pubspec.yaml (3.0.0)
+  static const String defaultAppVersion = '3.0.0';
 
   static DateTime? _lastCheckTime;
   static bool _isDialogShowing = false;
@@ -61,8 +63,17 @@ class AppUpdateService {
   /// Checks if a new version is available on App Store / Play Store.
   static Future<AppUpdateInfo?> checkUpdate({bool forceUpdate = false}) async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
+      String currentVersion = defaultAppVersion;
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        final platVer = packageInfo.version.trim();
+        if (platVer.isNotEmpty) {
+          // Use platform version if it is >= defaultAppVersion
+          if (!_isVersionGreater(defaultAppVersion, platVer)) {
+            currentVersion = platVer;
+          }
+        }
+      } catch (_) {}
 
       if (Platform.isIOS) {
         return await _checkIosUpdate(currentVersion, forceUpdate: forceUpdate);
@@ -143,8 +154,47 @@ class AppUpdateService {
     String currentVersion, {
     bool forceUpdate = false,
   }) async {
-    // Default Android store URL
     const storeUrl = 'https://play.google.com/store/apps/details?id=$_androidPackageName';
+    try {
+      final url = Uri.parse('$storeUrl&hl=en');
+      final response = await http.get(
+        url,
+        headers: {
+          'User-Agent':
+              'Mozilla/5.0 (Linux; Android 10; SM-G975F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cache-Control': 'no-cache',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final body = response.body;
+        final regExp = RegExp(r'\[\[\["([0-9]+(\.[0-9]+)+)"\]\]');
+        final match = regExp.firstMatch(body);
+        String? storeVersion = match?.group(1);
+
+        if (storeVersion == null || storeVersion.isEmpty) {
+          final regExp2 = RegExp(r'\["([0-9]+\.[0-9]+(\.[0-9]+)?)"\]');
+          final match2 = regExp2.firstMatch(body);
+          storeVersion = match2?.group(1);
+        }
+
+        if (storeVersion != null && storeVersion.isNotEmpty) {
+          final hasUpdate = _isVersionGreater(storeVersion, currentVersion);
+          return AppUpdateInfo(
+            hasUpdate: hasUpdate,
+            currentVersion: currentVersion,
+            storeVersion: storeVersion,
+            updateUrl: storeUrl,
+            isForceUpdate: forceUpdate,
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('[AppUpdateService] Error checking Android update: $e');
+      }
+    }
+
     return AppUpdateInfo(
       hasUpdate: false,
       currentVersion: currentVersion,
@@ -154,14 +204,17 @@ class AppUpdateService {
     );
   }
 
-  /// Compares semantic versions (e.g. "1.9.33" > "1.9.32")
+  /// Compares semantic versions (e.g. "3.0.1" > "3.0.0")
+  /// Returns true ONLY if newVersion is strictly higher than currentVersion.
   static bool _isVersionGreater(String newVersion, String currentVersion) {
     if (newVersion.isEmpty || currentVersion.isEmpty) return false;
-    // Clean versions of any build suffixes like +30
-    final cleanNew = newVersion.split('+').first.trim();
-    final cleanCurrent = currentVersion.split('+').first.trim();
-    final newParts = cleanNew.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final currentParts = cleanCurrent.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+    // Clean versions of any leading 'v' and build suffixes like +35
+    final cleanNew = newVersion.trim().replaceFirst(RegExp(r'^[vV]'), '').split('+').first.trim();
+    final cleanCurrent = currentVersion.trim().replaceFirst(RegExp(r'^[vV]'), '').split('+').first.trim();
+
+    final newParts = cleanNew.split('.').map((e) => int.tryParse(RegExp(r'\d+').stringMatch(e) ?? '0') ?? 0).toList();
+    final currentParts = cleanCurrent.split('.').map((e) => int.tryParse(RegExp(r'\d+').stringMatch(e) ?? '0') ?? 0).toList();
 
     final maxLength = newParts.length > currentParts.length ? newParts.length : currentParts.length;
 
