@@ -108,8 +108,9 @@
   "buy": "Buy",
   "sell": "Sell",
   "notifications": "Notifications",
-  "welcome_to_car_group": "Welcome",
+  "welcome_to_car_group": "Hi",
   "popular_cars": "Popular Cars",
+  "loading_latest_cars": "Loading the latest cars...",
   "order_now": "Order Now",
   "agent_details": "Details",
   "brands": "Brands",
@@ -149,6 +150,7 @@
   "services": "Services",
   "cars": "Cars",
   "all_brands": "All Brands",
+  "more": "More",
   "favorites": "Favorites",
   "no_favorites_yet": "No Favorites Yet",
   "add_cars_to_favorites": "Add cars to favorites to find them easily",
@@ -757,6 +759,7 @@
   "titanium_plan": "Titanium Plan",
   "show_less": "Show Less",
   "show_more": "Show More",
+  "view_more": "View more",
   "application_details": "Application Details",
   "full_legal_name": "Full Legal Name",
   "enter_full_name": "Enter full name",
@@ -1659,5 +1662,6 @@
     "new_version":"New version: ",
     "new_update_text":"A new version of the car dealer app is available.\nPlease update the app to take advantage of the latest features and enhancements.",
     "update_now":"Update Now",
-    "Later":"Later"
+    "Later":"Later",
+    "recent":"Most requested"
 }

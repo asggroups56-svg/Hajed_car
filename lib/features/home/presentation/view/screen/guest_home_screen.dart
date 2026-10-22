@@ -18,8 +18,7 @@ class HomeGuestScreen extends StatefulWidget {
   State<HomeGuestScreen> createState() => _HomeGuestScreenState();
 }
 
-class _HomeGuestScreenState extends State<HomeGuestScreen>
-    with WidgetsBindingObserver {
+class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -45,9 +44,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
     return RefreshIndicator(
       onRefresh: () => context.read<HomeCubit>().refreshHomeData(),
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -69,12 +66,9 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
                   const CategoriesWidget(),
                   Gap(15.h),
                   SectionTitleWidget(
-                    title: AppLocaleKey.popularCars.tr(),
+                    title: AppLocaleKey.recent.tr(),
                     onSeeAll: () {
-                      NavigatorMethods.pushNamed(
-                        context,
-                        RoutesName.popularCarsScreen,
-                      );
+                      NavigatorMethods.pushNamed(context, RoutesName.popularCarsScreen);
                     },
                   ),
                   Gap(15.h),

@@ -18,12 +18,26 @@ class NotificationIconWidget extends StatelessWidget {
         return Stack(
           alignment: Alignment.center,
           children: [
-            CircleAvatar(
-              backgroundColor: AppColor.greyColor(context).withValues(alpha: 0.1),
+            Container(
+              height: 35.h,
+              width: 35.h,
+              decoration: BoxDecoration(
+                color: AppColor.whiteColor(context),
+                borderRadius: BorderRadius.circular(10.r),
+                shape: BoxShape.rectangle,
+                border: Border.all(color: AppColor.blackTextColor(context).withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.blackTextColor(context).withValues(alpha: (0.1)),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: IconButton(
                 onPressed: () => Navigator.pushNamed(context, RoutesName.notificationsScreen),
                 icon: Icon(
-                  Icons.notifications_none_rounded,
+                  Icons.notifications_none_outlined,
                   color: AppColor.blackTextColor(context),
                 ),
               ),

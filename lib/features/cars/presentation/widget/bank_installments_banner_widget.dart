@@ -19,12 +19,16 @@ class BankInstallmentsBannerWidget extends StatefulWidget {
   final FinancingAdModel? offer;
   final List<FinancingAdModel> offers;
 
+  /// Uses the small, side-by-side price treatment used on vehicle cards.
+  final bool compact;
+
   const BankInstallmentsBannerWidget({
     super.key,
     required this.car,
     this.isOffer = false,
     this.offer,
     this.offers = const [],
+    this.compact = false,
   });
 
   @override
@@ -204,7 +208,9 @@ class _BankInstallmentsBannerWidgetState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocaleKey.agentInstallments.tr(),
+                context.locale.languageCode == 'ar'
+                    ? 'القسط الشهري'
+                    : 'Monthly installment',
                 style: AppTextStyle.bodySmall(context).copyWith(
                   color: AppColor.blueColor(context),
                   fontWeight: FontWeight.bold,
@@ -238,31 +244,33 @@ class _BankInstallmentsBannerWidgetState
                 ],
               ),
 
-              Gap(20.h),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 2.w),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColor.blueColor(context).withValues(alpha: 0.2),
-                  ),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppLocaleKey.agentCalculateFinancing.tr(),
-                      style: AppTextStyle.bodySmall(context).copyWith(
-                        color: AppColor.blueColor(context),
-                        decoration: TextDecoration.underline,
-                        fontWeight: FontWeight.bold,
-                      ),
+              if (!widget.compact) ...[
+                Gap(20.h),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 2.w),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColor.blueColor(context).withValues(alpha: 0.2),
                     ),
-                  ],
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        AppLocaleKey.agentCalculateFinancing.tr(),
+                        style: AppTextStyle.bodySmall(context).copyWith(
+                          color: AppColor.blueColor(context),
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );

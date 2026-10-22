@@ -1,6 +1,5 @@
 class AppLocaleKey {
-  static const String pleaseCheckYourConnectionAndTryAgain =
-      'PleaseCheckYourConnectionAndTryAgain';
+  static const String pleaseCheckYourConnectionAndTryAgain = 'PleaseCheckYourConnectionAndTryAgain';
   static const String noInternetConnection = 'no_internet_connection';
   static const String pleaseCheckYourInternet = 'please_check_your_internet';
   static const String tryAgain = 'try_again';
@@ -11,14 +10,12 @@ class AppLocaleKey {
   static const String qualityReliability = 'quality_reliability';
   static const String findDreamCar = 'find_dream_car';
   static const String exploreLuxuryCars = 'explore_luxury_cars';
-  static const String exploreLuxuryCarsDescription =
-      'explore_luxury_cars_description';
+  static const String exploreLuxuryCarsDescription = 'explore_luxury_cars_description';
   static const String expertMaintenance = 'expert_maintenance';
   static const String carsAtDealer = 'cars_at_dealer';
   static const String keepCarTopCondition = 'keep_car_top_condition';
   static const String fastSecureDelivery = 'fast_secure_delivery';
-  static const String experienceSeamlessDelivery =
-      'experience_seamless_delivery';
+  static const String experienceSeamlessDelivery = 'experience_seamless_delivery';
   static const String onboarding1Title = 'onboarding_1_title';
   static const String onboarding1Desc = 'onboarding_1_desc';
   static const String dealerWarranty = 'dealer_warranty';
@@ -109,8 +106,7 @@ class AppLocaleKey {
   static const String porsche = 'porsche';
   static const String bugatti = 'bugatti';
   static const String jaguar = 'jaguar';
-  static const String loginToContinueYourPremiumExperience =
-      'login_continue_premium';
+  static const String loginToContinueYourPremiumExperience = 'login_continue_premium';
   static const String loginContinue = 'login_continue';
   static const String findCar = 'find_car';
   static const String searchByBodyType = 'search_by_body_type';
@@ -129,6 +125,7 @@ class AppLocaleKey {
   static const String notifications = 'notifications';
   static const String welcomeToCarGroup = 'welcome_to_car_group';
   static const String popularCars = 'popular_cars';
+  static const String loadingLatestCars = 'loading_latest_cars';
   static const String orderNow = 'order_now';
   static const String details = 'details';
   static const String agentDetails = 'agent_details';
@@ -136,6 +133,7 @@ class AppLocaleKey {
   static const String services = 'services';
   static const String cars = 'cars';
   static const String allBrands = 'all_brands';
+  static const String more = 'more';
   static const String favorites = 'favorites';
   static const String noFavoritesYet = 'no_favorites_yet';
   static const String addCarsToFavorites = 'add_cars_to_favorites';
@@ -294,22 +292,16 @@ class AppLocaleKey {
   static const String paymentCardNumberLabel = 'payment_card_number_label';
   static const String paymentCardHolderLabel = 'payment_card_holder_label';
   static const String paymentExpiryLabel = 'payment_expiry_label';
-  static const String paymentCardNumberInvalidMessage =
-      'payment_card_number_invalid_message';
-  static const String paymentCardHolderInvalidMessage =
-      'payment_card_holder_invalid_message';
-  static const String paymentExpiryInvalidMessage =
-      'payment_expiry_invalid_message';
+  static const String paymentCardNumberInvalidMessage = 'payment_card_number_invalid_message';
+  static const String paymentCardHolderInvalidMessage = 'payment_card_holder_invalid_message';
+  static const String paymentExpiryInvalidMessage = 'payment_expiry_invalid_message';
   static const String paymentCvvInvalidMessage = 'payment_cvv_invalid_message';
   static const String paymentSslNote = 'payment_ssl_note';
   static const String paymentCarsTotalLabel = 'payment_cars_total_label';
   static const String paymentServiceFeeLabel = 'payment_service_fee_label';
-  static const String paymentCardHolderPlaceholder =
-      'payment_card_holder_placeholder';
-  static const String paymentCardPreviewHolderTitle =
-      'payment_card_preview_holder_title';
-  static const String paymentCardPreviewExpiryTitle =
-      'payment_card_preview_expiry_title';
+  static const String paymentCardHolderPlaceholder = 'payment_card_holder_placeholder';
+  static const String paymentCardPreviewHolderTitle = 'payment_card_preview_holder_title';
+  static const String paymentCardPreviewExpiryTitle = 'payment_card_preview_expiry_title';
   static const String paymentMethodCardLabel = 'payment_method_card_label';
   static const String paymentMethodMadaLabel = 'payment_method_mada_label';
 
@@ -344,20 +336,16 @@ class AppLocaleKey {
   static const String language = 'language';
   static const String changePassword = 'change_password';
   static const String changeYourPassword = 'change_your_password';
-  static const String enterYourCurrentAndNewPassword =
-      'enter_your_current_and_new_password';
+  static const String enterYourCurrentAndNewPassword = 'enter_your_current_and_new_password';
   static const String currentPassword = 'current_password';
   static const String newPassword = 'new_password';
   static const String confirmNewPassword = 'confirm_new_password';
-  static const String pleaseEnterCurrentPassword =
-      'please_enter_current_password';
+  static const String pleaseEnterCurrentPassword = 'please_enter_current_password';
   static const String pleaseEnterNewPassword = 'please_enter_new_password';
-  static const String passwordMustBeAtLeast6Characters =
-      'password_must_be_at_least_6_characters';
+  static const String passwordMustBeAtLeast6Characters = 'password_must_be_at_least_6_characters';
   static const String pleaseConfirmNewPassword = 'please_confirm_new_password';
   static const String passwordsDoNotMatch = 'passwords_do_not_match';
-  static const String passwordChangedSuccessfully =
-      'password_changed_successfully';
+  static const String passwordChangedSuccessfully = 'password_changed_successfully';
   static const String logout = 'logout';
   static const String arabic = 'arabic';
   static const String english = 'english';
@@ -416,10 +404,8 @@ class AppLocaleKey {
   static const String carBrandModelHint = 'carBrandModelHint';
   static const String expressShippingTitle = 'expressShippingTitle';
   static const String expressShippingSubtitle = 'expressShippingSubtitle';
-  static const String comprehensiveInsuranceTitle =
-      'comprehensiveInsuranceTitle';
-  static const String comprehensiveInsuranceSubtitle =
-      'comprehensiveInsuranceSubtitle';
+  static const String comprehensiveInsuranceTitle = 'comprehensiveInsuranceTitle';
+  static const String comprehensiveInsuranceSubtitle = 'comprehensiveInsuranceSubtitle';
   static const String estimatedShippingCost = 'estimatedShippingCost';
   static const String shippingCostNote = 'shippingCostNote';
   static const String bespokeSearchSuccessTitle = 'bespokeSearchSuccessTitle';
@@ -502,8 +488,7 @@ class AppLocaleKey {
   static const String submitFinancingRequest = 'submit_financing_request';
   static const String carePolishingServices = 'care_polishing_services';
   static const String requestedServiceType = 'requested_service_type';
-  static const String comprehensiveExteriorPolishing =
-      'comprehensive_exterior_polishing';
+  static const String comprehensiveExteriorPolishing = 'comprehensive_exterior_polishing';
   static const String interiorCleaningPolishing = 'interior_cleaning_polishing';
   static const String nanoCeramicProtection = 'nano_ceramic_protection';
   static const String carSizeHint = 'car_size_hint';
@@ -525,8 +510,7 @@ class AppLocaleKey {
   static const String startBespokeSearch = 'start_bespoke_search';
   static const String carValuationInfo = 'car_valuation_info';
   static const String generalConditionHint = 'general_condition_hint';
-  static const String accidentMaintenanceHistory =
-      'accident_maintenance_history';
+  static const String accidentMaintenanceHistory = 'accident_maintenance_history';
   static const String requestValuationNow = 'request_valuation_now';
   static const String downloadQuotation = 'download_quotation';
   static const String sellYourCarTitle = 'sell_your_car_title';
@@ -562,8 +546,7 @@ class AppLocaleKey {
   static const String whatsappFastAccess = 'whatsapp_fast_access';
   static const String callUs = 'call_us';
   static const String customerService247 = 'customer_service_24_7';
-  static const String officialInquiriesComplaints =
-      'official_inquiries_complaints';
+  static const String officialInquiriesComplaints = 'official_inquiries_complaints';
   static const String faqs = 'faqs';
   static const String faqOrderStatus = 'faq_order_status';
   static const String faqPaymentMethods = 'faq_payment_methods';
@@ -583,8 +566,7 @@ class AppLocaleKey {
   static const String capacity = 'capacity';
   static const String fivePassengers = 'five_passengers';
   static const String excellentRating = 'excellent_rating';
-  static const String engineTransmissionCondition =
-      'engine_transmission_condition';
+  static const String engineTransmissionCondition = 'engine_transmission_condition';
   static const String chassisPaintCondition = 'chassis_paint_condition';
   static const String interiorCleanliness = 'interior_cleanliness';
   static const String tiresBrakes = 'tires_brakes';
@@ -637,8 +619,7 @@ class AppLocaleKey {
   static const String adminSettings = 'admin_settings';
   static const String systemSettings = 'system_settings';
   static const String securityAndPrivacy = 'security_and_privacy';
-  static const String managePasswordsPermissions =
-      'manage_passwords_permissions';
+  static const String managePasswordsPermissions = 'manage_passwords_permissions';
   static const String appLanguageDesc = 'app_language_desc';
   static const String systemNotificationsDesc = 'system_notifications_desc';
   static const String contentManagement = 'content_management';
@@ -800,8 +781,7 @@ class AppLocaleKey {
   static const String viewOffers = 'viewOffers';
   static const String noOffersFound = 'noOffersFound';
   static const String compareBankInstallments = 'compareBankInstallments';
-  static const String compareBankInstallmentsDesc =
-      'compareBankInstallmentsDesc';
+  static const String compareBankInstallmentsDesc = 'compareBankInstallmentsDesc';
 
   // BNPL
   static const String splitPayment = 'splitPayment';
@@ -866,8 +846,7 @@ class AppLocaleKey {
   static const String paymentSuccessTitle = 'payment_success_title';
   static const String paymentSuccessSubtitle = 'payment_success_subtitle';
   static const String orderNumberLabel = 'order_number_label';
-  static const String paymentSuccessOrderPrefix =
-      'payment_success_order_prefix';
+  static const String paymentSuccessOrderPrefix = 'payment_success_order_prefix';
   static const String backToHome = 'back_to_home';
 
   // FAQ Keys
@@ -891,29 +870,23 @@ class AppLocaleKey {
   static const String statusShipped = 'status_shipped';
   static const String statusDelivered = 'status_delivered';
   static const String viewTimeline = 'view_timeline';
-  static const String trackOrderProgressTimeline =
-      'track_order_progress_timeline';
+  static const String trackOrderProgressTimeline = 'track_order_progress_timeline';
   static const String trackOrderContactSupport = 'track_order_contact_support';
   static const String trackOrderCancelOrder = 'track_order_cancel_order';
   static const String trackOrderNoDetails = 'track_order_no_details';
   static const String trackOrderRetry = 'track_order_retry';
   static const String trackOrderCancelling = 'track_order_cancelling';
-  static const String trackOrderCancelOrderTitle =
-      'track_order_cancel_order_title';
-  static const String trackOrderCancelOrderMessage =
-      'track_order_cancel_order_message';
+  static const String trackOrderCancelOrderTitle = 'track_order_cancel_order_title';
+  static const String trackOrderCancelOrderMessage = 'track_order_cancel_order_message';
   static const String trackOrderNo = 'track_order_no';
   static const String trackOrderYesCancel = 'track_order_yes_cancel';
   static const String trackOrderFinancing = 'track_order_financing';
   static const String trackOrderPurchase = 'track_order_purchase';
   static const String trackOrderService = 'track_order_service';
   static const String trackOrderReady = 'track_order_ready';
-  static const String trackOrderPlacedDescription =
-      'track_order_placed_description';
-  static const String trackOrderProcessingDescription =
-      'track_order_processing_description';
-  static const String trackOrderReadyDescription =
-      'track_order_ready_description';
+  static const String trackOrderPlacedDescription = 'track_order_placed_description';
+  static const String trackOrderProcessingDescription = 'track_order_processing_description';
+  static const String trackOrderReadyDescription = 'track_order_ready_description';
 
   // Financing Overhaul
   static const String selectBrand = 'select_brand';
@@ -925,6 +898,7 @@ class AppLocaleKey {
   static const String titaniumPlan = 'titanium_plan';
   static const String showLess = 'show_less';
   static const String showMore = 'show_more';
+  static const String viewMore = 'view_more';
   static const String applicationDetails = 'application_details';
   static const String fullLegalName = 'full_legal_name';
   static const String enterFullName = 'enter_full_name';
@@ -1084,8 +1058,7 @@ class AppLocaleKey {
   static const String agentExpectedBudget = 'agent_expected_budget';
   static const String agentEnterEstimatedValue = 'agent_enter_estimated_value';
   static const String agentSaveAndStart = 'agent_save_and_start';
-  static const String agentScheduleNewAppointment =
-      'agent_schedule_new_appointment';
+  static const String agentScheduleNewAppointment = 'agent_schedule_new_appointment';
   static const String agentScheduleApptDesc = 'agent_schedule_appt_desc';
   static const String agentSearchCustomer = 'agent_search_customer';
   static const String agentEnterRegisteredName = 'agent_enter_registered_name';
@@ -1100,8 +1073,7 @@ class AppLocaleKey {
   static const String agentAddProfessionalNote = 'agent_add_professional_note';
   static const String agentAddNoteDesc = 'agent_add_note_desc';
   static const String agentTargetCustomer = 'agent_target_customer';
-  static const String agentSearchRelevantCustomer =
-      'agent_search_relevant_customer';
+  static const String agentSearchRelevantCustomer = 'agent_search_relevant_customer';
   static const String agentNoteText = 'agent_note_text';
   static const String agentWriteNoteHint = 'agent_write_note_hint';
   static const String agentNoteClassification = 'agent_note_classification';
@@ -1124,22 +1096,18 @@ class AppLocaleKey {
 
   // Agent UI Text Keys
   static const String agentMeetingPurposeLabel = 'agent_meeting_purpose_label';
-  static const String agentExampleMeetingPurpose =
-      'agent_example_meeting_purpose';
-  static const String agentConfirmAppointmentScheduling =
-      'agent_confirm_appointment_scheduling';
+  static const String agentExampleMeetingPurpose = 'agent_example_meeting_purpose';
+  static const String agentConfirmAppointmentScheduling = 'agent_confirm_appointment_scheduling';
   static const String agentBudgetDisplay = 'agent_budget_display';
   static const String agentCall = 'agent_call';
   static const String agentWhatsapp = 'agent_whatsapp';
-  static const String agentAppointmentButtonLabel =
-      'agent_appointment_button_label';
+  static const String agentAppointmentButtonLabel = 'agent_appointment_button_label';
   static const String agentMainSpecifications = 'agent_main_specifications';
   static const String agentYearOfManufacture = 'agent_year_of_manufacture';
   static const String agentMileage = 'agent_mileage';
   static const String agentMileageKm = 'agent_mileage_km';
   static const String agentCarAboutDescription = 'agent_car_about_description';
-  static const String agentReserveForCustomerButton =
-      'agent_reserve_for_customer_button';
+  static const String agentReserveForCustomerButton = 'agent_reserve_for_customer_button';
   static const String agentNavHome = 'agent_nav_home';
   static const String agentNavCustomers = 'agent_nav_customers';
   static const String agentNavInventory = 'agent_nav_inventory';
@@ -1177,8 +1145,7 @@ class AppLocaleKey {
   static const String agentUserName = 'agent_user_name';
   static const String agentUserInitials = 'agent_user_initials';
   static const String agentSaveCustomerAndStart = 'agentSaveCustomerAndStart';
-  static const String agentSearchCustomerCarNumber =
-      'agent_confirm_appointment_scheduling';
+  static const String agentSearchCustomerCarNumber = 'agent_confirm_appointment_scheduling';
   static const String loginSuccess = 'loginSuccess';
   static const String agentNoCars = 'agent_no_cars';
   static const String agentNoCarsAvailable = 'agent_no_cars_available';
@@ -1279,8 +1246,7 @@ class AppLocaleKey {
 
   // Financing Screen Localization Keys
   static const String agentSelectGenderRequired = 'agentSelectGenderRequired';
-  static const String agentSelectEmploymentTypeRequired =
-      'agentSelectEmploymentTypeRequired';
+  static const String agentSelectEmploymentTypeRequired = 'agentSelectEmploymentTypeRequired';
   static const String agentCarFallback = 'agentCarFallback';
   static const String agentEmploymentType = 'agentEmploymentType';
   static const String agentPrivateSector = 'agentPrivateSector';
@@ -1292,10 +1258,8 @@ class AppLocaleKey {
   static const String agentJobTitleRequired = 'agentJobTitleRequired';
   static const String agentMonthlySalary = 'agentMonthlySalary';
   static const String agentSalaryRequired = 'agentSalaryRequired';
-  static const String agentCalculateFinancingAmount =
-      'agentCalculateFinancingAmount';
-  static const String agentKnowMonthlyInstallment =
-      'agentKnowMonthlyInstallment';
+  static const String agentCalculateFinancingAmount = 'agentCalculateFinancingAmount';
+  static const String agentKnowMonthlyInstallment = 'agentKnowMonthlyInstallment';
   static const String agentFinancingRequirements = 'agentFinancingRequirements';
   static const String agentCustomerAge = 'agentCustomerAge';
   static const String agentCustomerAgeLimit = 'agentCustomerAgeLimit';
@@ -1573,8 +1537,7 @@ class AppLocaleKey {
   static const String representative = 'representative';
   static const String cancelReservation = 'cancelReservation';
   static const String cancelReservationMsg = 'cancelReservationMsg';
-  static const String cancelReservationAboutToExpire =
-      'cancelReservationAboutToExpire';
+  static const String cancelReservationAboutToExpire = 'cancelReservationAboutToExpire';
   static const String vat_inclusive = 'vat_inclusive';
   static const String baseCarPriceWithVat = 'base_car_price_with_vat';
   static const String extraPackageValueWithVat = 'extra_package_value_with_vat';
@@ -1695,90 +1658,63 @@ class AppLocaleKey {
   static const String quoteTerms = 'quote_terms';
   static const String createExternalQuoteBtn = 'create_external_quote_btn';
   static const String externalQuoteSuccess = 'external_quote_success';
-  static const String externalQuoteRequiredFields =
-      'external_quote_required_fields';
-  static const String externalQuoteSelectCustomer =
-      'external_quote_select_customer';
+  static const String externalQuoteRequiredFields = 'external_quote_required_fields';
+  static const String externalQuoteSelectCustomer = 'external_quote_select_customer';
   static const String externalQuoteSelectColor = 'external_quote_select_color';
-  static const String externalQuotePriceRequired =
-      'external_quote_price_required';
-  static const String externalQuoteValidityError =
-      'external_quote_validity_error';
+  static const String externalQuotePriceRequired = 'external_quote_price_required';
+  static const String externalQuoteValidityError = 'external_quote_validity_error';
   static const String externalQuoteSaveError = 'external_quote_save_error';
-  static const String externalQuoteCustomerSection =
-      'external_quote_customer_section';
-  static const String externalQuoteCustomerHint =
-      'external_quote_customer_hint';
-  static const String externalQuoteCustomerFallback =
-      'external_quote_customer_fallback';
+  static const String externalQuoteCustomerSection = 'external_quote_customer_section';
+  static const String externalQuoteCustomerHint = 'external_quote_customer_hint';
+  static const String externalQuoteCustomerFallback = 'external_quote_customer_fallback';
   static const String externalQuoteCode = 'external_quote_code';
   static const String externalQuoteCarNameHint = 'external_quote_car_name_hint';
-  static const String externalQuoteCarNameRequired =
-      'external_quote_car_name_required';
-  static const String externalQuoteYearRequired =
-      'external_quote_year_required';
+  static const String externalQuoteCarNameRequired = 'external_quote_car_name_required';
+  static const String externalQuoteYearRequired = 'external_quote_year_required';
   static const String externalQuoteChassisHint = 'external_quote_chassis_hint';
-  static const String externalQuoteChassisRequired =
-      'external_quote_chassis_required';
+  static const String externalQuoteChassisRequired = 'external_quote_chassis_required';
   static const String externalQuoteColorHint = 'external_quote_color_hint';
   static const String externalQuoteSpecsHint = 'external_quote_specs_hint';
-  static const String externalQuotePricingSection =
-      'external_quote_pricing_section';
+  static const String externalQuotePricingSection = 'external_quote_pricing_section';
   static const String externalQuotePriceHint = 'external_quote_price_hint';
-  static const String externalQuotePaymentMethod =
-      'external_quote_payment_method';
+  static const String externalQuotePaymentMethod = 'external_quote_payment_method';
   static const String externalQuoteCash = 'external_quote_cash';
   static const String externalQuoteCredit = 'external_quote_credit';
-  static const String externalQuoteReceivePlaceHint =
-      'external_quote_receive_place_hint';
+  static const String externalQuoteReceivePlaceHint = 'external_quote_receive_place_hint';
   static const String externalQuoteTermsHint = 'external_quote_terms_hint';
   static const String externalQuoteNotesLabel = 'external_quote_notes_label';
   static const String externalQuoteNotesHint = 'external_quote_notes_hint';
-  static const String externalQuoteCarPriceSummary =
-      'external_quote_car_price_summary';
+  static const String externalQuoteCarPriceSummary = 'external_quote_car_price_summary';
   static const String externalQuoteTaxSummary = 'external_quote_tax_summary';
-  static const String externalQuoteQuantitySummary =
-      'external_quote_quantity_summary';
+  static const String externalQuoteQuantitySummary = 'external_quote_quantity_summary';
   static const String externalQuoteFinalTotal = 'external_quote_final_total';
-  static const String externalQuoteCreatedTitle =
-      'external_quote_created_title';
+  static const String externalQuoteCreatedTitle = 'external_quote_created_title';
   static const String externalQuoteNewAction = 'external_quote_new_action';
   static const String externalQuoteDoneAction = 'external_quote_done_action';
-  static const String externalQuoteCustomerPickerTitle =
-      'external_quote_customer_picker_title';
-  static const String externalQuoteCustomerSearchHint =
-      'external_quote_customer_search_hint';
-  static const String externalQuoteCustomerPickerEmpty =
-      'external_quote_customer_picker_empty';
-  static const String externalQuoteColorPickerTitle =
-      'external_quote_color_picker_title';
-  static const String externalQuoteColorSearchHint =
-      'external_quote_color_search_hint';
-  static const String externalQuoteColorPickerEmpty =
-      'external_quote_color_picker_empty';
+  static const String externalQuoteCustomerPickerTitle = 'external_quote_customer_picker_title';
+  static const String externalQuoteCustomerSearchHint = 'external_quote_customer_search_hint';
+  static const String externalQuoteCustomerPickerEmpty = 'external_quote_customer_picker_empty';
+  static const String externalQuoteColorPickerTitle = 'external_quote_color_picker_title';
+  static const String externalQuoteColorSearchHint = 'external_quote_color_search_hint';
+  static const String externalQuoteColorPickerEmpty = 'external_quote_color_picker_empty';
   static const String externalQuoteColorCode = 'external_quote_color_code';
   static const String externalQuoteTermPlates = 'external_quote_term_plates';
   static const String externalQuoteTermVat = 'external_quote_term_vat';
-  static const String externalQuoteTermWarranty =
-      'external_quote_term_warranty';
-  static const String externalQuoteTermImmediateDelivery =
-      'external_quote_term_immediate_delivery';
-  static const String externalQuoteTermShipping =
-      'external_quote_term_shipping';
+  static const String externalQuoteTermWarranty = 'external_quote_term_warranty';
+  static const String externalQuoteTermImmediateDelivery = 'external_quote_term_immediate_delivery';
+  static const String externalQuoteTermShipping = 'external_quote_term_shipping';
   static const String externalQuoteSpecSunroof = 'external_quote_spec_sunroof';
-  static const String externalQuoteSpecLeatherSeats =
-      'external_quote_spec_leather_seats';
-  static const String externalQuoteSpecNavigation =
-      'external_quote_spec_navigation';
+  static const String externalQuoteSpecLeatherSeats = 'external_quote_spec_leather_seats';
+  static const String externalQuoteSpecNavigation = 'external_quote_spec_navigation';
   static const String externalQuoteSpecCameras = 'external_quote_spec_cameras';
   static const String externalQuoteSpecRadar = 'external_quote_spec_radar';
   static const String externalQuoteSpecRims = 'external_quote_spec_rims';
-  static const String externalQuoteSpecRemoteStart =
-      'external_quote_spec_remote_start';
+  static const String externalQuoteSpecRemoteStart = 'external_quote_spec_remote_start';
   static const String compare = 'compare';
   static const String new_update = 'new_update';
   static const String new_version = 'new_version';
   static const String new_update_text = 'new_update_text';
   static const String update_now = 'update_now';
   static const String Later = 'Later';
+  static const String recent = 'recent';
 }

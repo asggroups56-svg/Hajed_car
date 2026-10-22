@@ -1,6 +1,5 @@
 part of 'home_cubit.dart';
 
-
 class HomeState extends Equatable {
   final StatusState carsModelsStatus;
   final StatusState brandCarsStatus;
@@ -11,8 +10,10 @@ class HomeState extends Equatable {
   final int selectedIndex;
   final List<CarModel> brands;
   final String searchQuery;
-  final StatusState<AddBookingPermissionResponseModel> addBookingPermissionResponseModel;
-  final StatusState<CancelReservedCarResponseModel> cancelReservedCarResponseModel;
+  final StatusState<AddBookingPermissionResponseModel>
+  addBookingPermissionResponseModel;
+  final StatusState<CancelReservedCarResponseModel>
+  cancelReservedCarResponseModel;
   final int? brandId;
   final String? fromMakeYear;
   final String? toMakeYear;
@@ -25,7 +26,8 @@ class HomeState extends Equatable {
   final StatusState<List<FinancingAdModel>> programCarsStatus;
   final StatusState<List<FinancingAdModel>> normalFinancingStatus;
   final StatusState<AddLoanApplicationResponseModel> addLoanApplicationStatus;
-  final StatusState<List<CustomerLoanApplicationModel>> custLoanApplicationsStatus;
+  final StatusState<List<CustomerLoanApplicationModel>>
+  custLoanApplicationsStatus;
   final StatusState<List<NotificationModel>> notificationsStatus;
   final StatusState<SendWhatsAppResponseModel> sendWhatsAppStatus;
   final StatusState<SendWhatsAppResponseModel> sendWhatsAppPdfStatus;
@@ -68,10 +70,12 @@ class HomeState extends Equatable {
     StatusState? allPopularCarsStatus,
     StatusState<List<BANKSDATAModel>>? banksStatus,
     int? selectedBrandId,
+    bool clearSelectedBrandId = false,
     int? selectedIndex,
     List<CarModel>? brands,
     String? searchQuery,
-    StatusState<AddBookingPermissionResponseModel>? addBookingPermissionResponseModel,
+    StatusState<AddBookingPermissionResponseModel>?
+    addBookingPermissionResponseModel,
     int? brandId,
     String? fromMakeYear,
     String? toMakeYear,
@@ -96,12 +100,15 @@ class HomeState extends Equatable {
       allCarsStatus: allCarsStatus ?? this.allCarsStatus,
       allPopularCarsStatus: allPopularCarsStatus ?? this.allPopularCarsStatus,
       banksStatus: banksStatus ?? this.banksStatus,
-      selectedBrandId: selectedBrandId ?? this.selectedBrandId,
+      selectedBrandId: clearSelectedBrandId
+          ? null
+          : selectedBrandId ?? this.selectedBrandId,
       selectedIndex: selectedIndex ?? this.selectedIndex,
       brands: brands ?? this.brands,
       searchQuery: searchQuery ?? this.searchQuery,
       addBookingPermissionResponseModel:
-          addBookingPermissionResponseModel ?? this.addBookingPermissionResponseModel,
+          addBookingPermissionResponseModel ??
+          this.addBookingPermissionResponseModel,
       brandId: brandId ?? this.brandId,
       fromMakeYear: fromMakeYear ?? this.fromMakeYear,
       toMakeYear: toMakeYear ?? this.toMakeYear,
@@ -113,13 +120,16 @@ class HomeState extends Equatable {
       sendOtpStatus: sendOtpStatus ?? this.sendOtpStatus,
       financingAdsStatus: financingAdsStatus ?? this.financingAdsStatus,
       programCarsStatus: programCarsStatus ?? this.programCarsStatus,
-      normalFinancingStatus: normalFinancingStatus ?? this.normalFinancingStatus,
-      addLoanApplicationStatus: addLoanApplicationStatus ?? this.addLoanApplicationStatus,
+      normalFinancingStatus:
+          normalFinancingStatus ?? this.normalFinancingStatus,
+      addLoanApplicationStatus:
+          addLoanApplicationStatus ?? this.addLoanApplicationStatus,
       custLoanApplicationsStatus:
           custLoanApplicationsStatus ?? this.custLoanApplicationsStatus,
       notificationsStatus: notificationsStatus ?? this.notificationsStatus,
       sendWhatsAppStatus: sendWhatsAppStatus ?? this.sendWhatsAppStatus,
-      sendWhatsAppPdfStatus: sendWhatsAppPdfStatus ?? this.sendWhatsAppPdfStatus,
+      sendWhatsAppPdfStatus:
+          sendWhatsAppPdfStatus ?? this.sendWhatsAppPdfStatus,
     );
   }
 

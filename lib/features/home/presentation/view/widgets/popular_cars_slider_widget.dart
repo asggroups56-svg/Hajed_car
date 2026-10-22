@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/network/contants.dart';
 import 'package:car/core/routes/routes_name.dart';
-import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -72,11 +71,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     );
   }
 
-  void _goToDetails(
-    BuildContext context,
-    Map<String, dynamic> car,
-    String heroTag,
-  ) {
+  void _goToDetails(BuildContext context, Map<String, dynamic> car, String heroTag) {
     NavigatorMethods.pushNamed(
       context,
       RoutesName.carDetailsScreen,
@@ -86,16 +81,12 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
 
   List<Map<String, dynamic>> _buildDisplayedCars(HomeState state) {
     final isBrandSelected = state.selectedBrandId != null;
-    final status = isBrandSelected
-        ? state.brandCarsStatus
-        : state.allPopularCarsStatus;
+    final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
 
     if (!status.isSuccess || status.data == null) return [];
 
     final List<GetBrandCarsDataModel> flatCars = isBrandSelected
-        ? (status.data as List<GetBrandCarsDataModel>)
-              .take(_maxDisplayedCars)
-              .toList()
+        ? (status.data as List<GetBrandCarsDataModel>).take(_maxDisplayedCars).toList()
         : (status.data as Map<String, List<GetBrandCarsDataModel>>).values
               .expand((cars) => cars.take(_maxDisplayedCars))
               .toList();
@@ -166,9 +157,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
         final isBrandSelected = state.selectedBrandId != null;
-        final status = isBrandSelected
-            ? state.brandCarsStatus
-            : state.allPopularCarsStatus;
+        final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
         if (status.isLoading || status.isInitial) {
           return const LoadingPlaceholder();
         }
@@ -177,31 +166,19 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
         if (_currentPage >= cars.length) _currentPage = 0;
         final displayCount = cars.length.clamp(0, _maxDisplayedCars);
         return SizedBox(
-          height: MediaQuery.of(context).size.height / 2.1,
+          height: MediaQuery.of(context).size.height / 1.9,
           child: PageView.builder(
             controller: _pageController,
             itemCount: displayCount,
             onPageChanged: (page) => setState(() => _currentPage = page),
             itemBuilder: (context, index) {
               final carId = HiveMethods.getCarUniqueId(cars[index]);
-              final heroTag =
-                  'popular_car_image_${carId.isNotEmpty ? carId : index}_$index';
+              final heroTag = 'popular_car_image_${carId.isNotEmpty ? carId : index}_$index';
               return CarCard(
                 car: cars[index],
                 isSelected: index == _currentPage,
                 onTap: () => _goToDetails(context, cars[index], heroTag),
                 onImageTap: () => _goToDetails(context, cars[index], heroTag),
-                onOrderNow: () {
-                  if (HiveMethods.getToken() == null) {
-                    CommonMethods.showLoginRequiredDialog(context);
-                  } else {
-                    Navigator.pushNamed(
-                      context,
-                      RoutesName.carReservationScreen,
-                      arguments: {'car': cars[index], 'isFromLink': false},
-                    );
-                  }
-                },
                 heroTag: heroTag,
               );
             },

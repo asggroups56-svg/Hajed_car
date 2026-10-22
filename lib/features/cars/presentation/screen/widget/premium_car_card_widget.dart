@@ -40,7 +40,9 @@ class PremiumCarCardWidget extends StatelessWidget {
     final String rawColor =
         (car.bodyColor.isNotEmpty && car.bodyColor.toLowerCase() != 'null'
                 ? car.bodyColor
-                : (car.color.isNotEmpty && car.color.toLowerCase() != 'null' ? car.color : ''))
+                : (car.color.isNotEmpty && car.color.toLowerCase() != 'null'
+                      ? car.color
+                      : ''))
             .trim();
     final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
     final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
@@ -57,20 +59,31 @@ class PremiumCarCardWidget extends StatelessWidget {
         NavigatorMethods.pushNamed(
           context,
           RoutesName.carDetailsScreen,
-          arguments: {'car': car, 'heroTag': heroTag, 'offer': offer, 'offers': financingOffers},
+          arguments: {
+            'car': car,
+            'heroTag': heroTag,
+            'offer': offer,
+            'offers': financingOffers,
+          },
         );
       },
       child: Card(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
         color: AppColor.secondAppColor(context),
         child: Column(
           children: [
             Stack(
               children: [
                 Hero(
-                  tag: heroTag ?? 'car_image_${HiveMethods.getCarUniqueId(car.toMap())}',
-                  child: car.fullCarImage.isNotEmpty && car.fullCarImage.startsWith('http')
+                  tag:
+                      heroTag ??
+                      'car_image_${HiveMethods.getCarUniqueId(car.toMap())}',
+                  child:
+                      car.fullCarImage.isNotEmpty &&
+                          car.fullCarImage.startsWith('http')
                       ? CustomNetworkImage(
                           imageUrl: car.fullCarImage,
                           fit: BoxFit.fill,
@@ -95,9 +108,14 @@ class PremiumCarCardWidget extends StatelessWidget {
                     width: 60.w,
                     alignment: Alignment.center,
                     margin: EdgeInsets.only(left: 15.w),
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppColor.blackColor(context).withValues(alpha: 0.1),
+                      color: AppColor.blackColor(
+                        context,
+                      ).withValues(alpha: 0.1),
                       shape: BoxShape.rectangle,
                       borderRadius: BorderRadius.circular(8.r),
                     ),
@@ -118,19 +136,27 @@ class PremiumCarCardWidget extends StatelessWidget {
                     children: [
                       BlocBuilder<FavoritesCubit, FavoritesState>(
                         builder: (context, state) {
-                          final isFav = context.read<FavoritesCubit>().isFavorite(car.toMap());
+                          final isFav = context
+                              .read<FavoritesCubit>()
+                              .isFavorite(car.toMap());
                           return Container(
                             height: 30.h,
                             decoration: BoxDecoration(
-                              color: AppColor.blackColor(context).withValues(alpha: 0.1),
+                              color: AppColor.blackColor(
+                                context,
+                              ).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: IconButton(
                               onPressed: () {
-                                context.read<FavoritesCubit>().toggleFavorite(car.toMap());
+                                context.read<FavoritesCubit>().toggleFavorite(
+                                  car.toMap(),
+                                );
                               },
                               icon: Icon(
-                                isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                isFav
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
                                 color: isFav
                                     ? AppColor.redColor(context)
                                     : AppColor.blackTextColor(context),
@@ -147,7 +173,10 @@ class PremiumCarCardWidget extends StatelessWidget {
                   Positioned(
                     left: 70.w,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColor.primaryColor(context),
                         borderRadius: BorderRadius.only(
@@ -175,10 +204,13 @@ class PremiumCarCardWidget extends StatelessWidget {
                           ),
 
                           Text(
-                            context.locale.languageCode == 'ar' ? 'عرض' : 'Offer',
-                            style: AppTextStyle.bodySmall(
-                              context,
-                            ).copyWith(color: AppColor.whiteColor(context), fontSize: 14.sp),
+                            context.locale.languageCode == 'ar'
+                                ? 'عرض'
+                                : 'Offer',
+                            style: AppTextStyle.bodySmall(context).copyWith(
+                              color: AppColor.whiteColor(context),
+                              fontSize: 14.sp,
+                            ),
                           ),
                         ],
                       ),
@@ -207,6 +239,34 @@ class PremiumCarCardWidget extends StatelessWidget {
                     ],
                   ),
                   Gap(10.w),
+                  // The car details stay together above the prices, as in the
+                  // supplied card reference. This makes the cash and monthly
+                  // installment amounts easy to compare at a glance.
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MiniDetailWidget(
+                          icon: Icons.calendar_today_outlined,
+                          label: displayYear,
+                        ),
+                      ),
+                      Gap(6.w),
+                      Expanded(
+                        child: MiniDetailWidget(
+                          icon: Icons.speed_outlined,
+                          label: displayMileage,
+                        ),
+                      ),
+                      Gap(6.w),
+                      Expanded(
+                        child: MiniDetailWidget(
+                          customIcon: _buildColorIcon(context, displayColor),
+                          label: displayColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Gap(14.h),
                   IntrinsicHeight(
                     child: Row(
                       children: [
@@ -215,7 +275,9 @@ class PremiumCarCardWidget extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOffer ? AppLocaleKey.price.tr() : AppLocaleKey.cash.tr(),
+                                isOffer
+                                    ? AppLocaleKey.price.tr()
+                                    : AppLocaleKey.cash.tr(),
                                 style: AppTextStyle.bodySmall(context).copyWith(
                                   color: AppColor.blackTextColor(context),
                                   fontWeight: FontWeight.bold,
@@ -230,10 +292,13 @@ class PremiumCarCardWidget extends StatelessWidget {
                                       fit: BoxFit.scaleDown,
                                       child: Text(
                                         car.formattedPriceWithVat,
-                                        style: AppTextStyle.titleMedium(context).copyWith(
-                                          color: AppColor.greenColor(context),
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                                        style: AppTextStyle.titleMedium(context)
+                                            .copyWith(
+                                              color: AppColor.greenColor(
+                                                context,
+                                              ),
+                                              fontWeight: FontWeight.w900,
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -249,7 +314,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              const Spacer(),
+                              Gap(4.h),
                               Text(
                                 AppLocaleKey.agentIncludesVat.tr(),
                                 style: AppTextStyle.bodySmall(context),
@@ -261,8 +326,13 @@ class PremiumCarCardWidget extends StatelessWidget {
                             (offer != null) ||
                             financingOffers.isNotEmpty ||
                             car.hasFinancing ||
-                            (car.price != null && car.price!.isNotEmpty && car.price != '0')) ...[
-                          VerticalDivider(color: AppColor.greyColor(context), width: 32.w),
+                            (car.price != null &&
+                                car.price!.isNotEmpty &&
+                                car.price != '0')) ...[
+                          VerticalDivider(
+                            color: AppColor.greyColor(context),
+                            width: 32.w,
+                          ),
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -271,12 +341,13 @@ class PremiumCarCardWidget extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => BankInstallmentsBannerWidget(
-                                      car: car,
-                                      isOffer: isOffer,
-                                      offer: offer,
-                                      offers: financingOffers,
-                                    ),
+                                    builder: (_) =>
+                                        BankInstallmentsBannerWidget(
+                                          car: car,
+                                          isOffer: isOffer,
+                                          offer: offer,
+                                          offers: financingOffers,
+                                        ),
                                   ),
                                 );
                               },
@@ -285,6 +356,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                                 isOffer: isOffer,
                                 offer: offer,
                                 offers: financingOffers,
+                                compact: true,
                               ),
                             ),
                           ),
@@ -293,30 +365,8 @@ class PremiumCarCardWidget extends StatelessWidget {
                     ),
                   ),
 
-                  Gap(12.h),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: MiniDetailWidget(
-                          icon: Icons.calendar_today_outlined,
-                          label: displayYear,
-                        ),
-                      ),
-                      Gap(6.w),
-                      Expanded(
-                        child: MiniDetailWidget(icon: Icons.speed_outlined, label: displayMileage),
-                      ),
-                      Gap(6.w),
-                      Expanded(
-                        child: MiniDetailWidget(
-                          customIcon: _buildColorIcon(context, displayColor),
-                          label: displayColor,
-                        ),
-                      ),
-                      Gap(6.w),
-                      _buildCompareButton(context),
-                    ],
-                  ),
+                  Gap(14.h),
+                  Row(children: [const Spacer(), _buildCompareButton(context)]),
                 ],
               ),
             ),
@@ -423,7 +473,11 @@ class PremiumCarCardWidget extends StatelessWidget {
       );
     }
 
-    return Icon(Icons.palette_outlined, color: AppColor.greyColor(context), size: 14.w);
+    return Icon(
+      Icons.palette_outlined,
+      color: AppColor.greyColor(context),
+      size: 14.w,
+    );
   }
 
   Widget _buildCompareButton(BuildContext context) {
@@ -468,14 +522,19 @@ class PremiumCarCardWidget extends StatelessWidget {
               : AppColor.blackTextColor(context).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16.r),
           border: isInCompare
-              ? Border.all(color: AppColor.primaryColor(context).withValues(alpha: 0.4), width: 1)
+              ? Border.all(
+                  color: AppColor.primaryColor(context).withValues(alpha: 0.4),
+                  width: 1,
+                )
               : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
+              isInCompare
+                  ? Icons.compare_arrows_rounded
+                  : Icons.add_chart_rounded,
               color: isInCompare
                   ? AppColor.primaryColor(context)
                   : AppColor.blackTextColor(context),

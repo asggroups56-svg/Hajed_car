@@ -26,7 +26,7 @@ class SectionTitleWidget extends StatelessWidget {
             onPressed: onSeeAll,
             child: Text(
               AppLocaleKey.seeAll.tr(),
-              style: AppTextStyle.bodySmall(context, color: AppColor.blackTextColor(context)),
+              style: AppTextStyle.bodySmall(context, color: AppColor.primaryColor(context)),
             ),
           ),
       ],

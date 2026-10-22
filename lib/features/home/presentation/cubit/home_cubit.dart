@@ -133,7 +133,7 @@ class HomeCubit extends Cubit<HomeState> {
       emit(
         state.copyWith(
           brandCarsStatus: const StatusState.success([]),
-          selectedBrandId: null,
+          clearSelectedBrandId: true,
         ),
       );
       return;
@@ -162,7 +162,8 @@ class HomeCubit extends Cubit<HomeState> {
 
     final result = await homeRepo.getBrandCars(brandId);
 
-    if (requestId != _brandCarsRequestId || state.selectedBrandId != brandIdInt) {
+    if (requestId != _brandCarsRequestId ||
+        state.selectedBrandId != brandIdInt) {
       return;
     }
 
@@ -267,6 +268,10 @@ class HomeCubit extends Cubit<HomeState> {
       ),
     );
     unawaited(getBrandCars(brandId));
+  }
+
+  void selectAllBrands() {
+    unawaited(getBrandCars(''));
   }
 
   List<CarModel> getFilteredBrands(List<CarModel> brands, String query) {
