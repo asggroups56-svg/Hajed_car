@@ -195,6 +195,7 @@ class _CarsScreenState extends State<CarsScreen> {
                       color: AppColor.primaryColor(context),
                       backgroundColor: AppColor.secondAppColor(context),
                       child: CustomScrollView(
+                        cacheExtent: 350,
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
@@ -306,6 +307,8 @@ class _CarsScreenState extends State<CarsScreen> {
                               padding:
                                   EdgeInsets.fromLTRB(20.w, 0, 20.w, 100.h),
                               sliver: SliverList.separated(
+                                addAutomaticKeepAlives: false,
+                                addRepaintBoundaries: true,
                                 itemCount: availableCars.length,
                                 separatorBuilder: (context, index) => Gap(16.h),
                                 itemBuilder: (context, index) {

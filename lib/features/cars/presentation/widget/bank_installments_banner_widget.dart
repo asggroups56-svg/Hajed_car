@@ -58,12 +58,15 @@ class _BankInstallmentsBannerWidgetState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (widget.offers.isEmpty && widget.offer == null) {
-        final homeCubit = context.read<HomeCubit>();
-        if (homeCubit.state.normalFinancingStatus.data == null ||
-            homeCubit.state.normalFinancingStatus.data!.isEmpty) {
-          homeCubit.getNormalFinancing();
-        }
+        try {
+          final homeCubit = context.read<HomeCubit>();
+          if (homeCubit.state.normalFinancingStatus.data == null ||
+              homeCubit.state.normalFinancingStatus.data!.isEmpty) {
+            homeCubit.getNormalFinancing();
+          }
+        } catch (_) {}
       }
     });
   }

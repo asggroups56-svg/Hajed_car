@@ -371,13 +371,24 @@ class PremiumCarCardWidget extends StatelessWidget {
               Color(0xFF8E24AA),
             ];
 
-      return ShaderMask(
-        shaderCallback: (bounds) => LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ).createShader(bounds),
-        child: Icon(Icons.color_lens_rounded, size: 15.w, color: Colors.white),
+      return Container(
+        width: 13.w,
+        height: 13.w,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: SweepGradient(colors: gradientColors),
+          border: Border.all(
+            color: AppColor.blackTextColor(context).withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
       );
     }
 

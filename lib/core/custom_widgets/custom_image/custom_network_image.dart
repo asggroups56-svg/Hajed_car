@@ -53,13 +53,13 @@ class CustomNetworkImage extends StatelessWidget {
           width: width,
           height: height,
           memCacheWidth: (width != null && width!.isFinite && width! > 0)
-              ? (width! * 2.5).round().clamp(100, 1200)
-              : 800,
-          memCacheHeight: (height != null && height!.isFinite && height! > 0)
-              ? (height! * 2.5).round().clamp(100, 1200)
+              ? (width! * 2).round().clamp(100, 800)
               : 600,
-          maxWidthDiskCache: 1200,
-          maxHeightDiskCache: 1200,
+          memCacheHeight: (height != null && height!.isFinite && height! > 0)
+              ? (height! * 2).round().clamp(100, 600)
+              : 400,
+          maxWidthDiskCache: 800,
+          maxHeightDiskCache: 600,
           placeholder: (context, url) => Container(
             color: AppColor.greyColor(context).withValues(alpha: 0.05),
             child: Center(
