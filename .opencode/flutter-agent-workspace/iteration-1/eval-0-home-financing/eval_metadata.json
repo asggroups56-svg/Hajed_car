@@ -1,0 +1,17 @@
+{
+  "eval_id": 0,
+  "eval_name": "home-financing-offers",
+  "prompt": "In the Hajed_car app, add a financing offers section to the guest home screen (lib/features/home). It should appear right under the ads slider, use the financing ads already loaded by HomeCubit (do not call the API from widgets), show a horizontal list of offer cards with bank name, offer title and monthly installment, and open the financing screen on tap. Give it proper loading, empty and error states. Keep the home screen thin by putting the section and the card in separate widget files. Add any new Arabic and English strings properly.",
+  "assertions": [
+    "A section widget and a separate offer-card widget file exist under home widgets",
+    "The section is mounted directly after AdsSliderWidget in guest_home_screen",
+    "Data comes from HomeState.financingAdsStatus, not a widget API call",
+    "Loading, empty and failure states are handled, with retry through the cubit",
+    "Card tap opens the financing screen through the app route helper",
+    "All new user-visible strings use localization keys present in both ar.json and en.json",
+    "New UI reuses core loading/empty/error widgets instead of inventing new ones",
+    "New UI uses theme colors/text styles and ScreenUtil rather than raw values",
+    "guest_home_screen stays a thin composition (few added lines)",
+    "No dependency change and no new analyzer issues on touched paths"
+  ]
+}

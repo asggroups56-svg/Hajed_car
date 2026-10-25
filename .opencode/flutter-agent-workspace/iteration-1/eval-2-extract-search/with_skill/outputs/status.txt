@@ -1,0 +1,7 @@
+ M lib/features/home/data/model/financing_ad_model.dart
+ M lib/features/home/presentation/view/screen/guest_home_screen.dart
+ M lib/features/home/presentation/view/widgets/ad_card_widget.dart
+ M lib/features/services/presentation/screen/financing_screen.dart
+ M lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart
+?? .opencode/
+?? lib/features/home/presentation/view/widgets/home_search_bar_widget.dart

@@ -53,8 +53,7 @@ class FinancingScreen extends StatefulWidget {
   State<FinancingScreen> createState() => _FinancingScreenState();
 }
 
-class _FinancingScreenState extends State<FinancingScreen>
-    with SingleTickerProviderStateMixin {
+class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   final _formKey1 = GlobalKey<FormState>();
@@ -89,6 +88,7 @@ class _FinancingScreenState extends State<FinancingScreen>
   static const double _defaultApr = 4.5;
 
   late double _carPrice;
+  late double _priceWithVat;
   int _durationYears = 5;
   double _downPayment = 0;
   double _lastPayment = 0;
@@ -96,22 +96,55 @@ class _FinancingScreenState extends State<FinancingScreen>
 
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer;
   bool get _isOffer => _activeOffer != null;
-  double get _apr {
-    final userBank = _bankCtrl.text.trim();
+
+  /// Plate/registration fee (already VAT-inclusive) for the car or offer.
+  double get _platesCost {
+    final carPlates = widget.car?.platesCostWithVat ?? 0;
+    return carPlates > 0 ? carPlates : (_activeOffer?.platesCostWithVat ?? 0);
+  }
+
+  /// Total car price (fee + VAT + plates). Percentage-based payments
+  /// (first/last installment) are calculated on this amount.
+  double get _financingCarPrice => _priceWithVat;
+
+  void _applyOfferPaymentTerms() {
     final offer = _activeOffer;
-    if (offer != null && userBank.isNotEmpty) {
-      final offerBank = offer.displayBankName ?? offer.bankName;
-      final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
-      if (!isSame &&
-          (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
-        return offer.interestRateOther!;
-      }
+    if (offer == null) {
+      // Standard financing has no offer-specific percentages.
+      _downPayment = 0;
+      _lastPayment = 0;
+      return;
     }
-    return _activeOffer?.interestRate ?? _defaultApr;
+    _downPayment =
+        _financingCarPrice * offer.firstInstallmentForBank(userSalaryBank: _bankCtrl.text) / 100;
+    _lastPayment =
+        _financingCarPrice * offer.lastInstallmentForBank(userSalaryBank: _bankCtrl.text) / 100;
+  }
+
+  void _onSalaryBankChanged() {
+    setState(() {
+      // The selected bank decides whether the salary-transfer or the
+      // non-transfer terms apply, so a previously reviewed calculator is no
+      // longer valid.
+      _hasReviewedCalculator = false;
+      _applyOfferPaymentTerms();
+    });
+  }
+
+  double get _apr {
+    final offer = _activeOffer;
+    if (offer == null) return _defaultApr;
+    // The salary bank changes every offer term (profit, insurance, admin and
+    // the first/last payment percentages).
+    if (offer.usesNonTransferredTerms(userSalaryBank: _bankCtrl.text) &&
+        offer.interestRateOther != null) {
+      return offer.interestRateOther!;
+    }
+    return offer.interestRate ?? _defaultApr;
   }
 
   double get _insurancePercent =>
-      double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
+      _activeOffer?.insuranceForBank(userSalaryBank: _bankCtrl.text) ?? 0;
 
   double get _financedAmount {
     final financed = _carPrice - _downPayment;
@@ -123,11 +156,16 @@ class _FinancingScreenState extends State<FinancingScreen>
   }
 
   double get _totalInsurance {
-    return _financedAmount * (_insurancePercent / 100) * _durationYears;
+    // Insurance is charged on the full VAT-inclusive car price.
+    return _priceWithVat * (_insurancePercent / 100) * _durationYears;
   }
 
+  /// Administrative fee charged on the financed amount.
+  double get _adminFees =>
+      _financedAmount * (_activeOffer?.adminFeesForBank(userSalaryBank: _bankCtrl.text) ?? 0) / 100;
+
   double get _totalFinancedWithInterest {
-    return _financedAmount + _totalInterest + _totalInsurance;
+    return _financedAmount + _totalInterest + _totalInsurance + _adminFees;
   }
 
   double get _monthlyInstallment {
@@ -143,41 +181,35 @@ class _FinancingScreenState extends State<FinancingScreen>
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
 
-    _selectedOffer =
-        widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
+    _selectedOffer = widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
         if (mounted) setState(() {});
       });
 
-    final raw = widget.car?.price?.toString() ?? '150000';
+    final raw = (widget.car?.effectivePrice ?? widget.car?.price)?.toString() ?? '150000';
     final basePrice =
         widget.initialCarPrice ??
         (double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000);
-    final vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double platesVal = widget.car?.paintingsVal ?? 0.0;
-    final double priceWithFee = basePrice + 3000;
+    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    // (price + fee) + VAT + plates. The fee is taxed, and the plate fee is
+    // added after VAT because it already includes it.
     final double priceWithVat = widget.initialPriceIncludesVat
-        ? priceWithFee
-        : priceWithFee * (1 + vatPercentage / 100);
-    _carPrice = priceWithVat + platesVal;
+        ? basePrice + FinancingAdModel.defaultFinancingFee + _platesCost
+        : (basePrice + FinancingAdModel.defaultFinancingFee) * (1 + vatPercentage / 100) +
+              _platesCost;
+    _priceWithVat = priceWithVat;
+    _carPrice = priceWithVat;
 
-    _downPayment =
-        widget.initialDownPayment ??
-        (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
-    _durationYears =
-        (widget.initialDuration ??
-                ((_activeOffer?.totalMonths ?? 60) / 12).round())
-            .clamp(1, 5);
-    _lastPayment =
-        widget.initialLastPayment ??
-        (_carPrice * ((_activeOffer?.lastInstallmentPct ?? 0) / 100));
+    _applyOfferPaymentTerms();
+    _downPayment = widget.initialDownPayment ?? _downPayment;
+    _lastPayment = widget.initialLastPayment ?? _lastPayment;
+    _durationYears = (widget.initialDuration ?? ((_activeOffer?.totalMonths ?? 60) / 12).round())
+        .clamp(1, 5);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final homeCubit = context.read<HomeCubit>();
-      if (homeCubit.state.banksStatus.data == null ||
-          homeCubit.state.banksStatus.data!.isEmpty) {
+      if (homeCubit.state.banksStatus.data == null || homeCubit.state.banksStatus.data!.isEmpty) {
         homeCubit.getBanks();
       }
       if (homeCubit.state.normalFinancingStatus.data == null ||
@@ -210,8 +242,7 @@ class _FinancingScreenState extends State<FinancingScreen>
         initialChildSize: 0.85,
         maxChildSize: 0.95,
         minChildSize: 0.5,
-        builder: (ctx, scrollController) =>
-            const FinancingRequirementsBottomSheet(),
+        builder: (ctx, scrollController) => const FinancingRequirementsBottomSheet(),
       ),
     );
   }
@@ -224,25 +255,25 @@ class _FinancingScreenState extends State<FinancingScreen>
       enableDrag: true,
       backgroundColor: Colors.transparent,
       builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.92,
           maxChildSize: 0.97,
           minChildSize: 0.5,
           builder: (ctx, scrollController) => FinancingCalculatorBottomSheet(
-            carPrice: _carPrice,
+            priceWithVat: _priceWithVat,
             initialDownPayment: _downPayment,
             initialLastPayment: _lastPayment,
             initialDuration: _durationYears,
             interestRate: _isOffer ? _apr : null,
-            isOffer: _isOffer,
-            bankName: _activeOffer?.displayBankName,
-            firstInstallmentPct: _activeOffer?.firstInstallmentPct,
-            lastInstallmentPct: _activeOffer?.lastInstallmentPct,
-            adminFeesPct: _activeOffer?.adminFeesPct,
+            firstInstallmentPct: _activeOffer?.firstInstallmentForBank(
+              userSalaryBank: _bankCtrl.text,
+            ),
+            lastInstallmentPct: _activeOffer?.lastInstallmentForBank(
+              userSalaryBank: _bankCtrl.text,
+            ),
+            adminFeesPct: _activeOffer?.adminFeesForBank(userSalaryBank: _bankCtrl.text),
             userSalaryBank: _bankCtrl.text.trim(),
             offers: widget.offers,
             initialOffer: _activeOffer,
@@ -274,9 +305,7 @@ class _FinancingScreenState extends State<FinancingScreen>
     if (current == 0) {
       if (!(_formKey1.currentState?.validate() ?? false)) return;
       _phoneNumber = _phoneCtrl.text;
-      context.read<HomeCubit>().sendOtp(
-        SendOtpModel(mobileNumber: _phoneNumber),
-      );
+      context.read<HomeCubit>().sendOtp(SendOtpModel(mobileNumber: _phoneNumber));
     } else if (current == 1) {
       if (!(_formKey2.currentState?.validate() ?? false)) return;
       if (!_hasReviewedCalculator) {
@@ -291,13 +320,9 @@ class _FinancingScreenState extends State<FinancingScreen>
       }
     } else if (current == 2) {
       final requiredDocs = FinancingDocumentsTab.requiredDocuments;
-      final missingDocs = requiredDocs
-          .where((doc) => _uploadedFiles[doc] == null)
-          .toList();
+      final missingDocs = requiredDocs.where((doc) => _uploadedFiles[doc] == null).toList();
       if (missingDocs.isNotEmpty) {
-        _showSnack(
-          'يرجى رفع المستندات المطلوبة للمتابعة (${missingDocs.first})',
-        );
+        _showSnack('يرجى رفع المستندات المطلوبة للمتابعة (${missingDocs.first})');
         return;
       }
       _submitLoanApplication();
@@ -311,8 +336,7 @@ class _FinancingScreenState extends State<FinancingScreen>
 
     final int genderValue = _selectedGender == 'female' ? 2 : 1;
 
-    final String makeYearStr =
-        widget.car?.makeYear.toString() ?? DateTime.now().year.toString();
+    final String makeYearStr = widget.car?.makeYear.toString() ?? DateTime.now().year.toString();
 
     final int customerNoVal = int.tryParse(HiveMethods.getcode() ?? '') ?? 0;
 
@@ -336,17 +360,13 @@ class _FinancingScreenState extends State<FinancingScreen>
     }
     final bank = _bankCtrl.text.trim();
     final baseProgramName =
-        _activeOffer?.programName ??
-        _activeOffer?.displayBankName ??
-        'Auto Finance Premium';
+        _activeOffer?.programName ?? _activeOffer?.offerBankName ?? 'Auto Finance Premium';
     final programNameWithBank = bank.isNotEmpty
         ? '$baseProgramName | البنك المحول له: $bank'
         : baseProgramName;
 
-    final int repCode =
-        int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
-    final int bankCode =
-        _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
+    final int repCode = int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
+    final int bankCode = _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
 
     final model = AddLoanApplicationModel(
       applicationId: 0,
@@ -382,10 +402,7 @@ class _FinancingScreenState extends State<FinancingScreen>
 
     final filesList = _uploadedFiles.values.whereType<File>().toList();
 
-    context.read<HomeCubit>().addLoanApplicationWithFiles(
-      model: model,
-      files: filesList,
-    );
+    context.read<HomeCubit>().addLoanApplicationWithFiles(model: model, files: filesList);
   }
 
   void _showOtpSheet() {
@@ -398,9 +415,7 @@ class _FinancingScreenState extends State<FinancingScreen>
       backgroundColor: Colors.transparent,
       builder: (ctx) => SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: OtpBottomSheet(
             phoneNumber: _phoneNumber,
             homeCubit: homeCubit,
@@ -423,9 +438,7 @@ class _FinancingScreenState extends State<FinancingScreen>
         content: Text(msg, textAlign: TextAlign.end),
         backgroundColor: AppColor.primaryColor(context, listen: false),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
       ),
     );
   }
@@ -475,7 +488,7 @@ class _FinancingScreenState extends State<FinancingScreen>
               final phone = _phoneCtrl.text.trim();
               final bank = _bankCtrl.text.trim();
               final textMsg =
-                  'طلب تمويل جديد: ${_activeOffer?.programName ?? _activeOffer?.displayBankName ?? "برنامج التمويل"}\n'
+                  'طلب تمويل جديد: ${_activeOffer?.programName ?? _activeOffer?.offerBankName ?? "برنامج التمويل"}\n'
                   'السيارة: ${widget.car?.itemName ?? "غير محدد"}\n'
                   'سعر السيارة الكاش :  ${_carPrice.toStringAsFixed(2)} ر.س\n'
                   'مبلغ التمويل: ${_financedAmount.toStringAsFixed(2)} ر.س\n'
@@ -531,7 +544,6 @@ class _FinancingScreenState extends State<FinancingScreen>
                 durationYears: _durationYears,
                 downPayment: _downPayment,
                 lastPayment: _lastPayment,
-                bankName: _activeOffer?.displayBankName,
                 onEditCalculator: () => _showCalculatorSheet(),
                 onShowRequirements: _showRequirementsSheet,
                 onPhoneChanged: (phone) => _phoneNumber = phone,
@@ -539,8 +551,7 @@ class _FinancingScreenState extends State<FinancingScreen>
                 idCtrl: _idCtrl,
                 phoneCtrl: _phoneCtrl,
                 selectedGender: _selectedGender,
-                onGenderChanged: (g) =>
-                    setState(() => _selectedGender = g ?? 'male'),
+                onGenderChanged: (g) => setState(() => _selectedGender = g ?? 'male'),
               ),
               FinancingWorkInfoTab(
                 formKey: _formKey2,
@@ -550,14 +561,13 @@ class _FinancingScreenState extends State<FinancingScreen>
                 salaryCtrl: _salaryCtrl,
                 bankCtrl: _bankCtrl,
                 employmentType: _employmentType,
-                onEmploymentTypeChanged: (t) =>
-                    setState(() => _employmentType = t ?? 'private'),
+                onEmploymentTypeChanged: (t) => setState(() => _employmentType = t ?? 'private'),
+                onBankChanged: (_) => _onSalaryBankChanged(),
                 onBankSelected: (bank) => setState(() => _selectedBank = bank),
               ),
               FinancingDocumentsTab(
                 uploadedFiles: _uploadedFiles,
-                onFilesChanged: (files) =>
-                    setState(() => _uploadedFiles = files),
+                onFilesChanged: (files) => setState(() => _uploadedFiles = files),
               ),
             ],
           ),
@@ -583,20 +593,18 @@ class _FinancingScreenState extends State<FinancingScreen>
       leading: const SizedBox.shrink(),
       title: Text(
         AppLocaleKey.personalInfo.tr(),
-        style: AppTextStyle.titleMedium(context).copyWith(
-          fontWeight: FontWeight.w900,
-          color: AppColor.primaryColor(context),
-        ),
+        style: AppTextStyle.titleMedium(
+          context,
+        ).copyWith(fontWeight: FontWeight.w900, color: AppColor.primaryColor(context)),
       ),
       actions: [
         TextButton(
           onPressed: _showCancelDialog,
           child: Text(
             AppLocaleKey.cancel.tr(),
-            style: AppTextStyle.bodyMedium(context).copyWith(
-              color: AppColor.greyColor(context),
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyle.bodyMedium(
+              context,
+            ).copyWith(color: AppColor.greyColor(context), fontWeight: FontWeight.bold),
           ),
         ),
       ],

@@ -1,0 +1,315 @@
+diff --git a/i18n/ar.json b/i18n/ar.json
+index 3fa61ff..595949a 100644
+--- a/i18n/ar.json
++++ b/i18n/ar.json
+@@ -1506,6 +1506,9 @@
+   "ADVANCED_AMOUNT":"قيمة الدفعة المقدمة",
+   "CAR_OFFERS":"عروض السيارات",
+   "bank":"البنك",
++  "searchBanksHint": "ابحث عن بنك",
++  "searchBanksClear": "مسح البحث",
++  "noBanksFound": "لا توجد بنوك",
+   "terms_title": "الشروط والأحكام",
+   "terms_subtitle": "يرجى قراءة الشروط والأحكام بعناية قبل إتمام الحجز أو الشراء",
+   "terms_notice_title": "تنبيه مهم",
+diff --git a/i18n/en.json b/i18n/en.json
+index f62938e..efc3b70 100644
+--- a/i18n/en.json
++++ b/i18n/en.json
+@@ -1503,6 +1503,9 @@
+   "ADVANCED_AMOUNT": "Advanced Amount",
+   "CAR_OFFERS": "Car Offers",
+   "bank": "Bank",
++  "searchBanksHint": "Search banks",
++  "searchBanksClear": "Clear search",
++  "noBanksFound": "No banks found",
+   "terms_title": "Terms and Conditions",
+   "terms_subtitle": "Please read the terms and conditions carefully before completing a reservation or purchase.",
+   "terms_notice_title": "Important Notice",
+diff --git a/lib/core/localization/app_locale_keys.dart b/lib/core/localization/app_locale_keys.dart
+index b9250a9..912aca4 100644
+--- a/lib/core/localization/app_locale_keys.dart
++++ b/lib/core/localization/app_locale_keys.dart
+@@ -865,6 +865,11 @@ class AppLocaleKey {
+   static const String carsAvailable = 'carsAvailable';
+   static const String comingSoon = 'comingSoon';
+ 
++  // Banks Search
++  static const String searchBanksHint = 'searchBanksHint';
++  static const String searchBanksClear = 'searchBanksClear';
++  static const String noBanksFound = 'noBanksFound';
++
+   // Payment Success Screen
+   static const String paymentSuccessTitle = 'payment_success_title';
+   static const String paymentSuccessSubtitle = 'payment_success_subtitle';
+diff --git a/lib/features/home/presentation/cubit/home_cubit.dart b/lib/features/home/presentation/cubit/home_cubit.dart
+index 0856b70..27f3c1a 100644
+--- a/lib/features/home/presentation/cubit/home_cubit.dart
++++ b/lib/features/home/presentation/cubit/home_cubit.dart
+@@ -31,6 +31,7 @@ class HomeCubit extends Cubit<HomeState> {
+   int _brandCarsRequestId = 0;
+   Future<void>? _normalFinancingRequest;
+   final Set<String> _locallyReservedCarCodes = <String>{};
++  int _banksRequestId = 0;
+ 
+   HomeCubit(this.homeRepo) : super(const HomeState());
+ 
+@@ -357,9 +358,30 @@ class HomeCubit extends Cubit<HomeState> {
+     );
+   }
+ 
++  /// Runs the existing banks operation with an optional search value.
++  ///
++  /// A blank query (or clearing the field) restores the full bank list.
++  Future<void> searchBanks(String query) {
++    final normalizedQuery = query.trim();
++    return getBanks(searchVal: normalizedQuery.isEmpty ? null : normalizedQuery);
++  }
++
+   Future<void> getBanks({String? searchVal}) async {
++    final normalizedSearchVal =
++        (searchVal == null || searchVal.trim().isEmpty)
++        ? null
++        : searchVal.trim();
++
++    // Typing can fire searches faster than the server answers. Keep an id for
++    // the latest request so a slower, older response cannot overwrite the
++    // results for the query currently shown in the field.
++    final requestId = ++_banksRequestId;
++
+     emit(state.copyWith(banksStatus: const StatusState.loading()));
+-    final result = await homeRepo.getBanks(searchVal);
++    final result = await homeRepo.getBanks(normalizedSearchVal);
++
++    if (isClosed || requestId != _banksRequestId) return;
++
+     result.fold(
+       (failure) {
+         emit(
+diff --git a/lib/features/home/presentation/view/screen/guest_home_screen.dart b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+index 025abb9..1df0009 100644
+--- a/lib/features/home/presentation/view/screen/guest_home_screen.dart
++++ b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+@@ -6,6 +6,7 @@ import 'package:car/core/utils/navigator_methods.dart';
+ import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+ import 'package:car/features/home/presentation/view/screen/main_layout.dart';
+ import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_section_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
+@@ -159,6 +160,8 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
+                   ),
+                   Gap(15.h),
+                   const PopularCarsSlider(),
++                  Gap(15.h),
++                  const BanksSectionWidget(),
+                   Gap(20.h),
+                 ],
+               ),
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/banks_search_field_widget.dart
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/theme/app_text_style.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++
++class BanksSearchFieldWidget extends StatelessWidget {
++  final TextEditingController controller;
++  final String hintText;
++  final String clearTooltip;
++  final ValueChanged<String> onChanged;
++  final ValueChanged<String>? onSubmitted;
++  final VoidCallback onClear;
++
++  const BanksSearchFieldWidget({
++    super.key,
++    required this.controller,
++    required this.hintText,
++    required this.clearTooltip,
++    required this.onChanged,
++    required this.onClear,
++    this.onSubmitted,
++  });
++
++  @override
++  Widget build(BuildContext context) {
++    return TextField(
++      controller: controller,
++      onChanged: onChanged,
++      onSubmitted: onSubmitted,
++      textInputAction: TextInputAction.search,
++      autocorrect: false,
++      style: AppTextStyle.bodySmall(
++        context,
++        color: AppColor.blackTextColor(context),
++      ),
++      decoration: InputDecoration(
++        hintText: hintText,
++        hintStyle: AppTextStyle.bodySmall(
++          context,
++          color: AppColor.greyColor(context),
++        ),
++        prefixIcon: Icon(
++          Icons.search_rounded,
++          color: AppColor.primaryColor(context),
++          size: 20.sp,
++        ),
++        suffixIcon: controller.text.isEmpty
++            ? null
++            : IconButton(
++                onPressed: onClear,
++                tooltip: clearTooltip,
++                icon: Icon(
++                  Icons.close_rounded,
++                  color: AppColor.greyColor(context),
++                  size: 18.sp,
++                ),
++              ),
++        filled: true,
++        fillColor: AppColor.secondAppColor(context),
++        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
++        border: OutlineInputBorder(
++          borderRadius: BorderRadius.circular(12.r),
++          borderSide: BorderSide.none,
++        ),
++        enabledBorder: OutlineInputBorder(
++          borderRadius: BorderRadius.circular(12.r),
++          borderSide: BorderSide(
++            color: AppColor.dividerColor(context).withValues(alpha: .5),
++          ),
++        ),
++        focusedBorder: OutlineInputBorder(
++          borderRadius: BorderRadius.circular(12.r),
++          borderSide: BorderSide(
++            color: AppColor.primaryColor(context),
++            width: 1.5,
++          ),
++        ),
++      ),
++    );
++  }
++}
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/banks_section_widget.dart
++import 'dart:async';
++
++import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
++import 'package:car/core/custom_widgets/exception_widget/exception_widget.dart';
++import 'package:car/core/custom_widgets/no_data_widget/no_data_widget.dart';
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/features/home/data/model/banks_data_model.dart';
++import 'package:car/features/home/presentation/cubit/home_cubit.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_search_field_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_slider_widget.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++class BanksSectionWidget extends StatefulWidget {
++  const BanksSectionWidget({super.key});
++
++  @override
++  State<BanksSectionWidget> createState() => _BanksSectionWidgetState();
++}
++
++class _BanksSectionWidgetState extends State<BanksSectionWidget> {
++  static const Duration _debounceDuration = Duration(milliseconds: 400);
++
++  final TextEditingController _searchController = TextEditingController();
++  Timer? _debounce;
++
++  @override
++  void dispose() {
++    _debounce?.cancel();
++    _searchController.dispose();
++    super.dispose();
++  }
++
++  void _onQueryChanged(String value) {
++    // Rebuild so the clear button reflects the field content.
++    setState(() {});
++    _debounce?.cancel();
++
++    // Clearing the field should restore all banks immediately.
++    if (value.trim().isEmpty) {
++      _runSearch('');
++      return;
++    }
++
++    _debounce = Timer(_debounceDuration, () {
++      if (!mounted) return;
++      _runSearch(value);
++    });
++  }
++
++  void _onSubmitted(String value) {
++    _debounce?.cancel();
++    _runSearch(value);
++  }
++
++  void _clearSearch() {
++    _debounce?.cancel();
++    _searchController.clear();
++    setState(() {});
++    _runSearch('');
++  }
++
++  void _runSearch(String value) {
++    context.read<HomeCubit>().searchBanks(value);
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.start,
++      children: [
++        BanksSearchFieldWidget(
++          controller: _searchController,
++          hintText: AppLocaleKey.searchBanksHint.tr(),
++          clearTooltip: AppLocaleKey.searchBanksClear.tr(),
++          onChanged: _onQueryChanged,
++          onSubmitted: _onSubmitted,
++          onClear: _clearSearch,
++        ),
++        Gap(8.h),
++        BlocBuilder<HomeCubit, HomeState>(
++          buildWhen: (previous, current) =>
++              previous.banksStatus != current.banksStatus,
++          builder: (context, state) {
++            final status = state.banksStatus;
++
++            if (status.isInitial || status.isLoading) {
++              return SizedBox(
++                height: 40.h,
++                child: const Center(child: CustomLoading(size: 30)),
++              );
++            }
++
++            if (status.isFailure) {
++              return ExceptionWidget(
++                axis: Axis.horizontal,
++                message: status.error,
++                onReload: () => _runSearch(_searchController.text),
++              );
++            }
++
++            final List<BANKSDATAModel> banks = status.data ?? const [];
++            if (banks.isEmpty) {
++              return NoDataWidget(
++                axis: Axis.horizontal,
++                message: AppLocaleKey.noBanksFound.tr(),
++              );
++            }
++
++            return BanksSliderWidget(banks: banks);
++          },
++        ),
++      ],
++    );
++  }
++}

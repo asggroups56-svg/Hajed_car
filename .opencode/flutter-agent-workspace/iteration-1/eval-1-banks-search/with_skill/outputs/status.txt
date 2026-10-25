@@ -1,0 +1,12 @@
+ M i18n/ar.json
+ M i18n/en.json
+ M lib/core/localization/app_locale_keys.dart
+ M lib/features/home/data/model/financing_ad_model.dart
+ M lib/features/home/presentation/cubit/home_cubit.dart
+ M lib/features/home/presentation/view/screen/guest_home_screen.dart
+ M lib/features/home/presentation/view/widgets/ad_card_widget.dart
+ M lib/features/services/presentation/screen/financing_screen.dart
+ M lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart
+?? .opencode/
+?? lib/features/home/presentation/view/widgets/banks_search_field_widget.dart
+?? lib/features/home/presentation/view/widgets/banks_section_widget.dart

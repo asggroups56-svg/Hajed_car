@@ -1,0 +1,84 @@
+{
+  "expectations": [
+    {
+      "text": "Reuses the existing banks repository/endpoint instead of adding a duplicate",
+      "passed": true,
+      "evidence": "HomeCubit -> HomeRepo.getBanks -> EndPoints.customer reused"
+    },
+    {
+      "text": "Typing is debounced (300ms or more)",
+      "passed": true,
+      "evidence": "debounce timer found"
+    },
+    {
+      "text": "A stale-response guard prevents older responses from overwriting newer ones",
+      "passed": true,
+      "evidence": "request-id guard found in HomeCubit"
+    },
+    {
+      "text": "Cubit does not emit after it is closed",
+      "passed": true,
+      "evidence": "isClosed guard in cubit: True"
+    },
+    {
+      "text": "Clearing the field restores the full bank list",
+      "passed": true,
+      "evidence": "clear handler resets to empty query and reloads banks"
+    },
+    {
+      "text": "Search field sits above the banks slider and updates the existing slider",
+      "passed": true,
+      "evidence": "screen mounts the section; section renders BanksSliderWidget"
+    },
+    {
+      "text": "Refresh/resume keeps the active query and the displayed list consistent",
+      "passed": false,
+      "evidence": "query stored in state and reused by refreshHomeData: False"
+    },
+    {
+      "text": "Loading, empty and error states are handled",
+      "passed": true,
+      "evidence": "status branches inspected"
+    },
+    {
+      "text": "No API call is made from widget code",
+      "passed": true,
+      "evidence": "no Dio/ApiConsumer/http in new UI files"
+    },
+    {
+      "text": "All new user-visible strings are localized in both languages",
+      "passed": true,
+      "evidence": "keys used: ['noBanksFound', 'searchBanksClear', 'searchBanksHint']; missing: []"
+    },
+    {
+      "text": "Reuses the core loading/empty/error widgets rather than new lookalikes",
+      "passed": true,
+      "evidence": "core state widgets referenced"
+    },
+    {
+      "text": "No new analyzer issues on the touched paths",
+      "passed": true,
+      "evidence": "flutter analyze: 146 issues before and after (no new errors)"
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 1,
+    "total": 12,
+    "pass_rate": 0.9167
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "user_notes_summary": {
+    "uncertainties": [
+      "Timing and token counts were not captured for this run."
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,536 @@
+diff --git a/i18n/ar.json b/i18n/ar.json
+index 3fa61ff..b165a87 100644
+--- a/i18n/ar.json
++++ b/i18n/ar.json
+@@ -624,6 +624,10 @@
+   "request_car_desc": "مش لاقي عربية أحلامك؟ اطلبها دلوقتي وفريقنا هيوفرها لك في دقائق.",
+   "request_submitted_success": "تم ارسال طلبك بنجاح. سيتواصل معك فريقنا قريباً.",
+   "bankOffers": "العروض",
++  "financing_offers_title": "عروض التمويل",
++  "financing_offers_empty": "لا توجد عروض تمويل متاحة حالياً",
++  "financing_offers_error": "تعذر تحميل عروض التمويل",
++  "financing_offer_fallback_title": "عرض تمويلي",
+   "calculateFinancing": "حاسبة التمويل",
+   "downPayment": "الدفعة المقدمة",
+   "durationInYears": "المدة (سنوات)",
+diff --git a/i18n/en.json b/i18n/en.json
+index f62938e..0c4ca12 100644
+--- a/i18n/en.json
++++ b/i18n/en.json
+@@ -617,6 +617,10 @@
+   "request_car_desc": "Can't find your dream car? Request it now and our team will provide it for you in minutes.",
+   "request_submitted_success": "Request submitted successfully. Our team will contact you soon.",
+   "bankOffers": "Offers",
++  "financing_offers_title": "Financing Offers",
++  "financing_offers_empty": "No financing offers available right now",
++  "financing_offers_error": "Couldn't load financing offers",
++  "financing_offer_fallback_title": "Financing Offer",
+   "calculateFinancing": "Financing Calculator",
+   "downPayment": "Down Payment",
+   "durationInYears": "Duration (Years)",
+diff --git a/lib/core/localization/app_locale_keys.dart b/lib/core/localization/app_locale_keys.dart
+index b9250a9..69be4fa 100644
+--- a/lib/core/localization/app_locale_keys.dart
++++ b/lib/core/localization/app_locale_keys.dart
+@@ -786,6 +786,11 @@ class AppLocaleKey {
+ 
+   // Bank Installment Offers
+   static const String bankOffers = 'bankOffers';
++  static const String financingOffersTitle = 'financing_offers_title';
++  static const String financingOffersEmpty = 'financing_offers_empty';
++  static const String financingOffersError = 'financing_offers_error';
++  static const String financingOfferFallbackTitle =
++      'financing_offer_fallback_title';
+   static const String calculateFinancing = 'calculateFinancing';
+   static const String downPayment = 'downPayment';
+   static const String durationInYears = 'durationInYears';
+diff --git a/lib/core/routes/app_routers.dart b/lib/core/routes/app_routers.dart
+index 17e76c6..f66cc45 100644
+--- a/lib/core/routes/app_routers.dart
++++ b/lib/core/routes/app_routers.dart
+@@ -105,6 +105,8 @@ class AppRouters {
+       //   return MaterialPageRoute(builder: (_) => const RequestCarScreen());
+       case RoutesName.financingScreen:
+         GetBrandCarsDataModel? car;
++        FinancingAdModel? offer;
++        List<FinancingAdModel> offers = const [];
+         if (args is GetBrandCarsDataModel) {
+           car = args;
+         } else if (args is Map<String, dynamic>) {
+@@ -113,8 +115,16 @@ class AppRouters {
+           } else if (args['car'] is Map<String, dynamic>) {
+             car = GetBrandCarsDataModel.fromJson(args['car']);
+           }
++          offer = args['offer'] is FinancingAdModel ? args['offer'] : null;
++          offers = (args['offers'] as List?)
++                  ?.whereType<FinancingAdModel>()
++                  .toList() ??
++              const [];
+         }
+-        return MaterialPageRoute(builder: (_) => FinancingScreen(car: car));
++        return MaterialPageRoute(
++          builder: (_) =>
++              FinancingScreen(car: car, offer: offer, offers: offers),
++        );
+       // case RoutesName.bookingAppointmentScreen:
+       //   return MaterialPageRoute(builder: (_) => const BookingAppointmentScreen());
+       case RoutesName.serviceHistoryScreen:
+diff --git a/lib/features/home/presentation/view/screen/guest_home_screen.dart b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+index 025abb9..f700697 100644
+--- a/lib/features/home/presentation/view/screen/guest_home_screen.dart
++++ b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+@@ -7,6 +7,7 @@ import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+ import 'package:car/features/home/presentation/view/screen/main_layout.dart';
+ import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/financing_offers_section_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
+ import 'package:easy_localization/easy_localization.dart';
+@@ -139,6 +140,8 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
+                   Gap(15.h),
+                   const AdsSliderWidget(),
+                   Gap(15.h),
++                  const FinancingOffersSection(),
++                  Gap(15.h),
+                   SectionTitleWidget(
+                     title: AppLocaleKey.brands.tr(),
+                     onSeeAll: () {
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/financing_offer_card_widget.dart
++import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/core/routes/routes_name.dart';
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/theme/app_text_style.dart';
++import 'package:car/core/utils/navigator_methods.dart';
++import 'package:car/features/home/data/model/financing_ad_model.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++/// Compact card for one financing programme shown on the guest home screen.
++class FinancingOfferCardWidget extends StatelessWidget {
++  const FinancingOfferCardWidget({
++    super.key,
++    required this.offer,
++    this.offers = const [],
++  });
++
++  final FinancingAdModel offer;
++  final List<FinancingAdModel> offers;
++
++  static const double cardWidth = 264;
++  static const double cardHeight = 176;
++
++  void _openFinancingScreen(BuildContext context) {
++    NavigatorMethods.pushNamed(
++      context,
++      RoutesName.financingScreen,
++      arguments: {
++        'car': offer.toCarDataModel(),
++        'offer': offer,
++        'offers': offers,
++      },
++    );
++  }
++
++  String _firstNonEmpty(List<String?> values) {
++    for (final value in values) {
++      final trimmed = value?.trim() ?? '';
++      if (trimmed.isNotEmpty) return trimmed;
++    }
++    return '';
++  }
++
++  String _bankName(BuildContext context) {
++    final isEnglish = context.locale.languageCode == 'en';
++    return _firstNonEmpty(
++      isEnglish
++          ? [
++              offer.bankNameEng,
++              offer.displayBankName,
++              offer.bankName,
++              offer.bankOrProvider,
++            ]
++          : [
++              offer.displayBankName,
++              offer.bankName,
++              offer.bankNameEng,
++              offer.bankOrProvider,
++            ],
++    );
++  }
++
++  String _offerTitle(BuildContext context) {
++    final title = _firstNonEmpty([
++      offer.programName,
++      offer.itemName,
++      offer.modelName,
++      offer.bankName,
++      offer.bankNameEng,
++    ]);
++    return title.isEmpty
++        ? AppLocaleKey.financingOfferFallbackTitle.tr()
++        : title;
++  }
++
++  double? _monthlyInstallment() {
++    if ((offer.price ?? 0) <= 0) return null;
++    final installment = offer.monthlyInstallmentWithVat;
++    return installment > 0 ? installment : null;
++  }
++
++  Widget _buildBankBadge(BuildContext context, String bankName) {
++    final badgeSize = 36.w;
++    final fallback = Center(
++      child: Text(
++        bankName.isEmpty ? '🏦' : bankName.substring(0, 1),
++        style: AppTextStyle.bodyMedium(context).copyWith(
++          color: AppColor.primaryColor(context),
++          fontWeight: FontWeight.w900,
++        ),
++      ),
++    );
++    final imageUrl = offer.displayBankImageUrl;
++
++    return Container(
++      width: badgeSize,
++      height: badgeSize,
++      clipBehavior: Clip.antiAlias,
++      decoration: BoxDecoration(
++        color: AppColor.primaryColor(context).withValues(alpha: 0.1),
++        shape: BoxShape.circle,
++      ),
++      child: imageUrl == null || imageUrl.isEmpty
++          ? fallback
++          : CustomNetworkImage(
++              imageUrl: imageUrl,
++              width: badgeSize,
++              height: badgeSize,
++              fit: BoxFit.cover,
++              errorWidget: fallback,
++            ),
++    );
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final bankName = _bankName(context);
++    final title = _offerTitle(context);
++    final installment = _monthlyInstallment();
++    final formatter = NumberFormat('#,##0', 'en_US');
++
++    return GestureDetector(
++      onTap: () => _openFinancingScreen(context),
++      child: Container(
++        width: cardWidth.w,
++        padding: EdgeInsets.all(14.w),
++        decoration: BoxDecoration(
++          gradient: LinearGradient(
++            begin: Alignment.topLeft,
++            end: Alignment.bottomRight,
++            colors: [
++              AppColor.primaryColor(context).withValues(alpha: 0.08),
++              AppColor.secondAppColor(context),
++            ],
++          ),
++          borderRadius: BorderRadius.circular(18.r),
++          border: Border.all(
++            color: AppColor.primaryColor(context).withValues(alpha: 0.12),
++          ),
++          boxShadow: [
++            BoxShadow(
++              color: AppColor.blackColor(context).withValues(alpha: 0.06),
++              blurRadius: 12,
++              offset: const Offset(0, 4),
++            ),
++          ],
++        ),
++        child: Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            Row(
++              children: [
++                _buildBankBadge(context, bankName),
++                Gap(10.w),
++                Expanded(
++                  child: Text(
++                    bankName.isEmpty
++                        ? AppLocaleKey.financingOfferFallbackTitle.tr()
++                        : bankName,
++                    maxLines: 1,
++                    overflow: TextOverflow.ellipsis,
++                    style: AppTextStyle.bodySmall(context).copyWith(
++                      color: AppColor.blackTextColor(
++                        context,
++                      ).withValues(alpha: 0.7),
++                      fontWeight: FontWeight.w700,
++                    ),
++                  ),
++                ),
++                Gap(6.w),
++                Icon(
++                  Icons.arrow_forward_ios_rounded,
++                  size: 13.sp,
++                  color: AppColor.primaryColor(context).withValues(alpha: 0.7),
++                ),
++              ],
++            ),
++            Gap(12.h),
++            Text(
++              title,
++              maxLines: 2,
++              overflow: TextOverflow.ellipsis,
++              style: AppTextStyle.titleSmall(
++                context,
++              ).copyWith(fontWeight: FontWeight.w800, height: 1.3),
++            ),
++            const Spacer(),
++            Text(
++              AppLocaleKey.monthlyInstallment.tr(),
++              maxLines: 1,
++              overflow: TextOverflow.ellipsis,
++              style: AppTextStyle.bodySmall(context),
++            ),
++            Gap(3.h),
++            if (installment == null)
++              Text(
++                AppLocaleKey.priceOnRequest.tr(),
++                maxLines: 1,
++                overflow: TextOverflow.ellipsis,
++                style: AppTextStyle.titleSmall(context).copyWith(
++                  color: AppColor.primaryColor(context),
++                  fontWeight: FontWeight.w800,
++                ),
++              )
++            else
++              Row(
++                crossAxisAlignment: CrossAxisAlignment.end,
++                children: [
++                  Flexible(
++                    child: Text(
++                      formatter.format(installment),
++                      maxLines: 1,
++                      overflow: TextOverflow.ellipsis,
++                      style: AppTextStyle.titleMedium(context).copyWith(
++                        color: AppColor.primaryColor(context),
++                        fontWeight: FontWeight.w900,
++                      ),
++                    ),
++                  ),
++                  Gap(4.w),
++                  Padding(
++                    padding: EdgeInsets.only(bottom: 2.h),
++                    child: Text(
++                      AppLocaleKey.sar.tr(),
++                      style: AppTextStyle.bodySmall(context).copyWith(
++                        color: AppColor.blackTextColor(
++                          context,
++                        ).withValues(alpha: 0.7),
++                        fontWeight: FontWeight.w700,
++                      ),
++                    ),
++                  ),
++                ],
++              ),
++          ],
++        ),
++      ),
++    );
++  }
++}
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/financing_offers_section_widget.dart
++import 'package:car/core/custom_widgets/custom_loading/custom_shimmer.dart';
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/theme/app_text_style.dart';
++import 'package:car/features/home/data/model/financing_ad_model.dart';
++import 'package:car/features/home/presentation/cubit/home_cubit.dart';
++import 'package:car/features/home/presentation/view/widgets/financing_offer_card_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++/// Horizontal financing offers strip shown directly under the home ads
++/// slider. The data is owned and loaded by [HomeCubit]; this widget only
++/// renders the current state.
++class FinancingOffersSection extends StatelessWidget {
++  const FinancingOffersSection({super.key});
++
++  List<FinancingAdModel> _uniqueOffers(List<FinancingAdModel> ads) {
++    final seenProgramIds = <int>{};
++    final offers = <FinancingAdModel>[];
++
++    for (final ad in ads) {
++      final programId = ad.programId;
++      if (programId != null && !seenProgramIds.add(programId)) continue;
++      offers.add(ad);
++    }
++
++    return offers;
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return BlocBuilder<HomeCubit, HomeState>(
++      buildWhen: (previous, current) =>
++          previous.financingAdsStatus != current.financingAdsStatus,
++      builder: (context, state) {
++        final status = state.financingAdsStatus;
++        final offers = status.isSuccess
++            ? _uniqueOffers(status.data ?? const [])
++            : const <FinancingAdModel>[];
++
++        return Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            SectionTitleWidget(title: AppLocaleKey.financingOffersTitle.tr()),
++            Gap(10.h),
++            if (status.isInitial || status.isLoading)
++              const _FinancingOffersLoadingPlaceholder()
++            else if (status.isFailure)
++              _FinancingOffersMessageCard(
++                icon: Icons.cloud_off_rounded,
++                iconColor: AppColor.redColor(context),
++                message: AppLocaleKey.financingOffersError.tr(),
++                action: TextButton(
++                  onPressed: () => context.read<HomeCubit>().getFinancingAds(),
++                  child: Text(
++                    AppLocaleKey.retry.tr(),
++                    style: AppTextStyle.bodySmall(context).copyWith(
++                      color: AppColor.primaryColor(context),
++                      fontWeight: FontWeight.w700,
++                    ),
++                  ),
++                ),
++              )
++            else if (offers.isEmpty)
++              _FinancingOffersMessageCard(
++                icon: Icons.account_balance_outlined,
++                iconColor: AppColor.greyColor(context),
++                message: AppLocaleKey.financingOffersEmpty.tr(),
++              )
++            else
++              SizedBox(
++                height: FinancingOfferCardWidget.cardHeight.h,
++                child: ListView.separated(
++                  scrollDirection: Axis.horizontal,
++                  physics: const BouncingScrollPhysics(),
++                  padding: EdgeInsets.zero,
++                  itemCount: offers.length,
++                  separatorBuilder: (_, _) => Gap(12.w),
++                  itemBuilder: (context, index) => FinancingOfferCardWidget(
++                    offer: offers[index],
++                    offers: offers,
++                  ),
++                ),
++              ),
++          ],
++        );
++      },
++    );
++  }
++}
++
++class _FinancingOffersLoadingPlaceholder extends StatelessWidget {
++  const _FinancingOffersLoadingPlaceholder();
++
++  @override
++  Widget build(BuildContext context) {
++    return SizedBox(
++      height: FinancingOfferCardWidget.cardHeight.h,
++      child: ListView.separated(
++        scrollDirection: Axis.horizontal,
++        physics: const NeverScrollableScrollPhysics(),
++        padding: EdgeInsets.zero,
++        itemCount: 3,
++        separatorBuilder: (_, _) => Gap(12.w),
++        itemBuilder: (context, index) => Container(
++          width: FinancingOfferCardWidget.cardWidth.w,
++          padding: EdgeInsets.all(14.w),
++          decoration: BoxDecoration(
++            color: AppColor.secondAppColor(context),
++            borderRadius: BorderRadius.circular(18.r),
++            border: Border.all(
++              color: AppColor.dividerColor(context).withValues(alpha: 0.6),
++            ),
++          ),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Row(
++                children: [
++                  CustomShimmer(width: 36.w, height: 36.w, radius: 18.r),
++                  Gap(10.w),
++                  Expanded(
++                    child: CustomShimmer(height: 14.h, radius: 6.r),
++                  ),
++                ],
++              ),
++              Gap(16.h),
++              CustomShimmer(height: 16.h, radius: 6.r),
++              Gap(8.h),
++              CustomShimmer(width: 150.w, height: 16.h, radius: 6.r),
++              const Spacer(),
++              CustomShimmer(width: 90.w, height: 12.h, radius: 6.r),
++              Gap(6.h),
++              CustomShimmer(width: 130.w, height: 22.h, radius: 6.r),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
++
++class _FinancingOffersMessageCard extends StatelessWidget {
++  const _FinancingOffersMessageCard({
++    required this.icon,
++    required this.iconColor,
++    required this.message,
++    this.action,
++  });
++
++  final IconData icon;
++  final Color iconColor;
++  final String message;
++  final Widget? action;
++
++  @override
++  Widget build(BuildContext context) {
++    return Container(
++      width: double.infinity,
++      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
++      decoration: BoxDecoration(
++        color: AppColor.secondAppColor(context),
++        borderRadius: BorderRadius.circular(16.r),
++        border: Border.all(
++          color: AppColor.dividerColor(context).withValues(alpha: 0.6),
++        ),
++      ),
++      child: Row(
++        children: [
++          Icon(icon, size: 22.sp, color: iconColor),
++          Gap(10.w),
++          Expanded(
++            child: Text(
++              message,
++              style: AppTextStyle.bodyMedium(context).copyWith(
++                color: AppColor.blackTextColor(context).withValues(alpha: 0.75),
++              ),
++            ),
++          ),
++          if (action != null) action!,
++        ],
++      ),
++    );
++  }
++}

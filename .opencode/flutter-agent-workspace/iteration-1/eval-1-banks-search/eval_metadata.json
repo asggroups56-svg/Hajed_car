@@ -1,0 +1,19 @@
+{
+  "eval_id": 1,
+  "eval_name": "banks-search-state",
+  "prompt": "Add bank search to the home screen in the Hajed_car app. Put a small search field above the banks slider (home already loads banks). Typing should call the existing banks endpoint through the repository/cubit, debounce input, ignore stale responses, and update the list. An empty query restores all banks. Add a clear button. Handle loading, empty and error states, and translate all new text.",
+  "assertions": [
+    "Reuses the existing banks repository/endpoint instead of adding a duplicate",
+    "Typing is debounced (300ms or more)",
+    "A stale-response guard prevents older responses from overwriting newer ones",
+    "Cubit does not emit after it is closed",
+    "Clearing the field restores the full bank list",
+    "Search field sits above the banks slider and updates the existing slider",
+    "Refresh/resume keeps the active query and the displayed list consistent",
+    "Loading, empty and error states are handled",
+    "No API call is made from widget code",
+    "All new user-visible strings are localized in both languages",
+    "Reuses the core loading/empty/error widgets rather than new lookalikes",
+    "No new analyzer issues on the touched paths"
+  ]
+}

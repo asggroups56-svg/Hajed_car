@@ -1,0 +1,23 @@
+{
+  "skill_name": "flutter-agent",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "In the Hajed_car app, add a financing offers section to the guest home screen (lib/features/home). It should appear right under the ads slider, use the financing ads already loaded by HomeCubit (do not call the API from widgets), show a horizontal list of offer cards with bank name, offer title and monthly installment, and open the financing screen on tap. Give it proper loading, empty and error states. Keep the home screen thin by putting the section and the card in separate widget files. Add any new Arabic and English strings properly.",
+      "expected_output": "A new home section + card widget files, wired to HomeCubit.financingAdsStatus, with translated labels and loading/empty/error handling; flutter analyze shows no new errors.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Add bank search to the home screen in the Hajed_car app. Put a small search field above the banks slider (home already loads banks). Typing should call the existing banks endpoint through the repository/cubit, debounce input, ignore stale responses, and update the list. An empty query restores all banks. Add a clear button. Handle loading, empty and error states, and translate all new text.",
+      "expected_output": "A debounced bank search UI wired to a new HomeCubit status, reusing HomeRepo.getBanks and EndPoints.customer, with stale-response protection, clear action, all states handled, and translations.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "In the Hajed_car app, the guest home screen (lib/features/home/presentation/view/screen/guest_home_screen.dart) has an inline search bar and filter button. Extract them into a reusable widget file in the home widgets folder without changing behavior: tapping the search still switches to the cars tab, the filter button still opens the filter screen, and the hint stays translated. Keep the screen composition readable.",
+      "expected_output": "A new home search/filter widget file, guest_home_screen using it with identical behavior, no leftover duplicate UI, translations intact, and analyze clean.",
+      "files": []
+    }
+  ]
+}

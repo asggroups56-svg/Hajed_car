@@ -1,0 +1,74 @@
+{
+  "expectations": [
+    {
+      "text": "A section widget and a separate offer-card widget file exist under home widgets",
+      "passed": true,
+      "evidence": "new widget files: ['financing_offer_card_widget.dart', 'financing_offers_section_widget.dart']"
+    },
+    {
+      "text": "The section is mounted directly after AdsSliderWidget in guest_home_screen",
+      "passed": true,
+      "evidence": "inspected guest_home_screen composition order"
+    },
+    {
+      "text": "Data comes from HomeState.financingAdsStatus, not a widget API call",
+      "passed": true,
+      "evidence": "financingAdsStatus found in section; no Dio/ApiConsumer/http in UI files"
+    },
+    {
+      "text": "Loading, empty and failure states are handled, with retry through the cubit",
+      "passed": true,
+      "evidence": "status branches + retry call inspected"
+    },
+    {
+      "text": "Card tap opens the financing screen through the app route helper",
+      "passed": true,
+      "evidence": "RoutesName.financingScreen + NavigatorMethods found"
+    },
+    {
+      "text": "All new user-visible strings use localization keys present in both ar.json and en.json",
+      "passed": true,
+      "evidence": "keys used: ['financingOfferFallback', 'financingOffersEmpty', 'financingOffersSectionTitle', 'monthlyInstallment', 'sar']; missing: []"
+    },
+    {
+      "text": "New UI reuses core loading/empty/error widgets instead of inventing new ones",
+      "passed": true,
+      "evidence": "core state widgets referenced in section"
+    },
+    {
+      "text": "New UI uses theme colors/text styles and ScreenUtil rather than raw values",
+      "passed": true,
+      "evidence": "no raw Colors/Color(0x); uses .w/.h/.r, AppColor, AppTextStyle"
+    },
+    {
+      "text": "guest_home_screen stays a thin composition (few added lines)",
+      "passed": true,
+      "evidence": "added lines in screen diff: 3"
+    },
+    {
+      "text": "No dependency change and no new analyzer issues on touched paths",
+      "passed": true,
+      "evidence": "pubspec untouched; analyzer count matched the 146-issue baseline"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "user_notes_summary": {
+    "uncertainties": [
+      "Timing and token counts were not captured for this run."
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

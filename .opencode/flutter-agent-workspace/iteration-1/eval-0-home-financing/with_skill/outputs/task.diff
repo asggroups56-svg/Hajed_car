@@ -1,0 +1,437 @@
+diff --git a/i18n/ar.json b/i18n/ar.json
+index 3fa61ff..f790e8a 100644
+--- a/i18n/ar.json
++++ b/i18n/ar.json
+@@ -640,6 +640,9 @@
+   "bankSab": "بنك ساب",
+   "viewOffers": "عرض العروض",
+   "noOffersFound": "لم يتم العثور على عروض",
++  "financingOffersSectionTitle": "عروض التمويل",
++  "financingOffersEmpty": "لا توجد عروض تمويل متاحة حالياً",
++  "financingOfferFallback": "عرض تمويل",
+   "compareBankInstallments": "قارن أقساط البنوك السعودية",
+   "compareBankInstallmentsDesc": "اكتشف أفضل عروض التمويل التي تناسب ميزانيتك من البنوك المعتمدة",
+   "splitPayment": "قسّمها على 4 دفعات بقيمة",
+diff --git a/i18n/en.json b/i18n/en.json
+index f62938e..3b79c72 100644
+--- a/i18n/en.json
++++ b/i18n/en.json
+@@ -633,6 +633,9 @@
+   "bankSab": "SAB Bank",
+   "viewOffers": "View Offers",
+   "noOffersFound": "No Offers Found",
++  "financingOffersSectionTitle": "Financing offers",
++  "financingOffersEmpty": "No financing offers available right now",
++  "financingOfferFallback": "Financing offer",
+   "compareBankInstallments": "Compare Saudi Bank Installments",
+   "compareBankInstallmentsDesc": "Discover the best financing offers that suit your budget from approved banks",
+   "splitPayment": "Split it over 4 payments of",
+diff --git a/lib/core/localization/app_locale_keys.dart b/lib/core/localization/app_locale_keys.dart
+index b9250a9..2a90d40 100644
+--- a/lib/core/localization/app_locale_keys.dart
++++ b/lib/core/localization/app_locale_keys.dart
+@@ -802,6 +802,10 @@ class AppLocaleKey {
+   static const String bankSab = 'bankSab';
+   static const String viewOffers = 'viewOffers';
+   static const String noOffersFound = 'noOffersFound';
++  static const String financingOffersSectionTitle =
++      'financingOffersSectionTitle';
++  static const String financingOffersEmpty = 'financingOffersEmpty';
++  static const String financingOfferFallback = 'financingOfferFallback';
+   static const String compareBankInstallments = 'compareBankInstallments';
+   static const String compareBankInstallmentsDesc =
+       'compareBankInstallmentsDesc';
+diff --git a/lib/core/routes/app_routers.dart b/lib/core/routes/app_routers.dart
+index 17e76c6..6c88ed4 100644
+--- a/lib/core/routes/app_routers.dart
++++ b/lib/core/routes/app_routers.dart
+@@ -105,6 +105,8 @@ class AppRouters {
+       //   return MaterialPageRoute(builder: (_) => const RequestCarScreen());
+       case RoutesName.financingScreen:
+         GetBrandCarsDataModel? car;
++        FinancingAdModel? offer;
++        List<FinancingAdModel> offers = const [];
+         if (args is GetBrandCarsDataModel) {
+           car = args;
+         } else if (args is Map<String, dynamic>) {
+@@ -113,8 +115,12 @@ class AppRouters {
+           } else if (args['car'] is Map<String, dynamic>) {
+             car = GetBrandCarsDataModel.fromJson(args['car']);
+           }
++          offer = args['offer'] is FinancingAdModel ? args['offer'] : null;
++          offers = (args['offers'] as List?)?.whereType<FinancingAdModel>().toList() ?? const [];
+         }
+-        return MaterialPageRoute(builder: (_) => FinancingScreen(car: car));
++        return MaterialPageRoute(
++          builder: (_) => FinancingScreen(car: car, offer: offer, offers: offers),
++        );
+       // case RoutesName.bookingAppointmentScreen:
+       //   return MaterialPageRoute(builder: (_) => const BookingAppointmentScreen());
+       case RoutesName.serviceHistoryScreen:
+diff --git a/lib/features/home/presentation/view/screen/guest_home_screen.dart b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+index 025abb9..228733b 100644
+--- a/lib/features/home/presentation/view/screen/guest_home_screen.dart
++++ b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+@@ -7,6 +7,7 @@ import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+ import 'package:car/features/home/presentation/view/screen/main_layout.dart';
+ import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/financing_offers_section_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
+ import 'package:easy_localization/easy_localization.dart';
+@@ -139,6 +140,8 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
+                   Gap(15.h),
+                   const AdsSliderWidget(),
+                   Gap(15.h),
++                  const FinancingOffersSectionWidget(),
++                  Gap(15.h),
+                   SectionTitleWidget(
+                     title: AppLocaleKey.brands.tr(),
+                     onSeeAll: () {
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/financing_offer_card_widget.dart
++import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/theme/app_text_style.dart';
++import 'package:car/features/home/data/model/financing_ad_model.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++/// One bank financing offer shown in the home financing offers slider.
++class FinancingOfferCardWidget extends StatelessWidget {
++  const FinancingOfferCardWidget({super.key, required this.offer, this.onTap});
++
++  final FinancingAdModel offer;
++  final VoidCallback? onTap;
++
++  String _bankName(BuildContext context) {
++    final localizedName = context.locale.languageCode == 'en'
++        ? offer.bankNameEng
++        : offer.bankName;
++    final candidates = [
++      localizedName,
++      offer.bankName,
++      offer.bankNameEng,
++      offer.displayBankName,
++      offer.bankOrProvider,
++    ];
++    for (final candidate in candidates) {
++      final name = candidate?.trim();
++      if (name != null && name.isNotEmpty) return name;
++    }
++    return '';
++  }
++
++  String _offerTitle(BuildContext context) {
++    final candidates = [offer.programName, offer.itemName, offer.modelName];
++    for (final candidate in candidates) {
++      final title = candidate?.trim();
++      if (title != null && title.isNotEmpty) return title;
++    }
++    return AppLocaleKey.financingOfferFallback.tr();
++  }
++
++  String _monthlyInstallment(BuildContext context) {
++    final installment = offer.monthlyInstallmentWithVat;
++    if (installment <= 0) return '—';
++    return NumberFormat(
++      '#,##0',
++      context.locale.languageCode,
++    ).format(installment);
++  }
++
++  Widget _buildBankLogo(BuildContext context) {
++    final fallback = _BankLogoFallback(name: _bankName(context));
++    final logoUrl = offer.displayBankImageUrl;
++    if (logoUrl == null || logoUrl.isEmpty) return fallback;
++    return CustomNetworkImage(
++      imageUrl: logoUrl,
++      width: 30.w,
++      height: 30.w,
++      radius: 8.r,
++      fit: BoxFit.contain,
++      errorWidget: fallback,
++    );
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return GestureDetector(
++      onTap: onTap,
++      child: Container(
++        width: 210.w,
++        padding: EdgeInsets.all(12.w),
++        decoration: BoxDecoration(
++          color: AppColor.cardColor(context),
++          borderRadius: BorderRadius.circular(16.r),
++          border: Border.all(
++            color: AppColor.borderColor(context).withValues(alpha: 0.6),
++          ),
++          boxShadow: [
++            BoxShadow(
++              color: AppColor.blackColor(context).withValues(alpha: 0.05),
++              blurRadius: 10,
++              offset: const Offset(0, 4),
++            ),
++          ],
++        ),
++        child: Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            Row(
++              children: [
++                _buildBankLogo(context),
++                Gap(8.w),
++                Expanded(
++                  child: Text(
++                    _bankName(context),
++                    maxLines: 1,
++                    overflow: TextOverflow.ellipsis,
++                    style: AppTextStyle.bodySmall(context).copyWith(
++                      color: AppColor.greyColor(context),
++                      fontWeight: FontWeight.w600,
++                    ),
++                  ),
++                ),
++              ],
++            ),
++            Gap(10.h),
++            Text(
++              _offerTitle(context),
++              maxLines: 2,
++              overflow: TextOverflow.ellipsis,
++              style: AppTextStyle.bodyMedium(context).copyWith(
++                color: AppColor.blackTextColor(context),
++                fontWeight: FontWeight.w700,
++                height: 1.3,
++              ),
++            ),
++            const Spacer(),
++            Text(
++              AppLocaleKey.monthlyInstallment.tr(),
++              maxLines: 1,
++              overflow: TextOverflow.ellipsis,
++              style: AppTextStyle.bodySmall(
++                context,
++              ).copyWith(color: AppColor.greyColor(context)),
++            ),
++            Gap(2.h),
++            Row(
++              children: [
++                Flexible(
++                  child: Text(
++                    _monthlyInstallment(context),
++                    maxLines: 1,
++                    overflow: TextOverflow.ellipsis,
++                    style: AppTextStyle.titleMedium(context).copyWith(
++                      color: AppColor.primaryColor(context),
++                      fontWeight: FontWeight.w900,
++                    ),
++                  ),
++                ),
++                Gap(4.w),
++                Text(
++                  AppLocaleKey.sar.tr(),
++                  style: AppTextStyle.bodySmall(context).copyWith(
++                    color: AppColor.primaryColor(context),
++                    fontWeight: FontWeight.w700,
++                  ),
++                ),
++              ],
++            ),
++          ],
++        ),
++      ),
++    );
++  }
++}
++
++class _BankLogoFallback extends StatelessWidget {
++  const _BankLogoFallback({required this.name});
++
++  final String name;
++
++  @override
++  Widget build(BuildContext context) {
++    final initial = name.isNotEmpty ? name.characters.first : '🏦';
++    return Container(
++      width: 30.w,
++      height: 30.w,
++      alignment: Alignment.center,
++      decoration: BoxDecoration(
++        color: AppColor.primaryColor(context).withValues(alpha: 0.1),
++        borderRadius: BorderRadius.circular(8.r),
++      ),
++      child: Text(
++        initial,
++        maxLines: 1,
++        style: AppTextStyle.bodySmall(context).copyWith(
++          color: AppColor.primaryColor(context),
++          fontWeight: FontWeight.w900,
++        ),
++      ),
++    );
++  }
++}
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/financing_offers_section_widget.dart
++import 'package:car/core/custom_widgets/custom_loading/custom_shimmer.dart';
++import 'package:car/core/custom_widgets/exception_widget/exception_widget.dart';
++import 'package:car/core/custom_widgets/no_data_widget/no_data_widget.dart';
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/core/network/status.state.dart';
++import 'package:car/core/routes/routes_name.dart';
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/utils/navigator_methods.dart';
++import 'package:car/features/home/data/model/financing_ad_model.dart';
++import 'package:car/features/home/presentation/cubit/home_cubit.dart';
++import 'package:car/features/home/presentation/view/widgets/financing_offer_card_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++/// Horizontal financing offers section shown under the home ads slider.
++///
++/// The offers are already fetched by [HomeCubit.refreshHomeData]; this widget
++/// only renders the [HomeState.financingAdsStatus] it receives.
++class FinancingOffersSectionWidget extends StatelessWidget {
++  const FinancingOffersSectionWidget({super.key});
++
++  void _openFinancing(
++    BuildContext context,
++    FinancingAdModel offer,
++    List<FinancingAdModel> offers,
++  ) {
++    NavigatorMethods.pushNamed(
++      context,
++      RoutesName.financingScreen,
++      arguments: {
++        'car': offer.toCarDataModel(),
++        'offer': offer,
++        'offers': offers,
++      },
++    );
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return BlocBuilder<HomeCubit, HomeState>(
++      buildWhen: (previous, current) =>
++          previous.financingAdsStatus != current.financingAdsStatus,
++      builder: (context, state) {
++        return Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            SectionTitleWidget(
++              title: AppLocaleKey.financingOffersSectionTitle.tr(),
++            ),
++            Gap(10.h),
++            _buildBody(context, state.financingAdsStatus),
++          ],
++        );
++      },
++    );
++  }
++
++  Widget _buildBody(
++    BuildContext context,
++    StatusState<List<FinancingAdModel>> status,
++  ) {
++    if (status.isInitial || status.isLoading) {
++      return const _FinancingOffersLoadingPlaceholder();
++    }
++
++    if (status.isFailure) {
++      return ExceptionWidget(
++        axis: Axis.horizontal,
++        message: status.error,
++        onReload: () => context.read<HomeCubit>().getFinancingAds(),
++      );
++    }
++
++    final offers = status.data ?? const <FinancingAdModel>[];
++    if (offers.isEmpty) {
++      return NoDataWidget(
++        axis: Axis.horizontal,
++        message: AppLocaleKey.financingOffersEmpty.tr(),
++      );
++    }
++
++    return SizedBox(
++      height: 168.h,
++      child: ListView.separated(
++        scrollDirection: Axis.horizontal,
++        physics: const BouncingScrollPhysics(),
++        padding: EdgeInsets.symmetric(vertical: 4.h),
++        itemCount: offers.length,
++        separatorBuilder: (context, index) => Gap(12.w),
++        itemBuilder: (context, index) {
++          final offer = offers[index];
++          return FinancingOfferCardWidget(
++            key: ValueKey('financing_offer_${offer.programId ?? index}'),
++            offer: offer,
++            onTap: () => _openFinancing(context, offer, offers),
++          );
++        },
++      ),
++    );
++  }
++}
++
++class _FinancingOffersLoadingPlaceholder extends StatelessWidget {
++  const _FinancingOffersLoadingPlaceholder();
++
++  @override
++  Widget build(BuildContext context) {
++    return SizedBox(
++      height: 168.h,
++      child: ListView.separated(
++        scrollDirection: Axis.horizontal,
++        physics: const NeverScrollableScrollPhysics(),
++        padding: EdgeInsets.symmetric(vertical: 4.h),
++        itemCount: 3,
++        separatorBuilder: (context, index) => Gap(12.w),
++        itemBuilder: (context, index) => Container(
++          width: 210.w,
++          padding: EdgeInsets.all(12.w),
++          decoration: BoxDecoration(
++            color: AppColor.cardColor(context),
++            borderRadius: BorderRadius.circular(16.r),
++            border: Border.all(
++              color: AppColor.borderColor(context).withValues(alpha: 0.6),
++            ),
++          ),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Row(
++                children: [
++                  CustomShimmer(width: 30.w, height: 30.w, radius: 8.r),
++                  Gap(8.w),
++                  CustomShimmer(width: 90.w, height: 12.h, radius: 6.r),
++                ],
++              ),
++              Gap(14.h),
++              CustomShimmer(width: 150.w, height: 14.h, radius: 6.r),
++              Gap(8.h),
++              CustomShimmer(width: 110.w, height: 14.h, radius: 6.r),
++              const Spacer(),
++              CustomShimmer(width: 70.w, height: 10.h, radius: 5.r),
++              Gap(6.h),
++              CustomShimmer(width: 100.w, height: 18.h, radius: 6.r),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}

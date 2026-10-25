@@ -54,6 +54,11 @@ class GetBrandCarsDataModel extends Equatable {
   final String? carImage;
   final num? SALE_PRICE;
   final double? paintingsVal;
+  final String? bankName;
+  final String? bankCode;
+  final double? insurancePct;
+  final double? insurancePctOther;
+  final double? insuranceAmount;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -124,6 +129,11 @@ class GetBrandCarsDataModel extends Equatable {
     this.reservedName,
     this.SALE_PRICE,
     this.paintingsVal,
+    this.bankName,
+    this.bankCode,
+    this.insurancePct,
+    this.insurancePctOther,
+    this.insuranceAmount,
   });
 
   final String? customerName;
@@ -149,6 +159,9 @@ class GetBrandCarsDataModel extends Equatable {
     }
     return images;
   }
+
+  /// Plate/registration fee attached to the offer. It already includes VAT.
+  double get platesCostWithVat => paintingsVal ?? 0;
 
   String get formattedPriceWithVat {
     final rawPrice = effectivePrice;
@@ -257,6 +270,13 @@ class GetBrandCarsDataModel extends Equatable {
       'PaintingsVal': paintingsVal,
       'PAINTINGS_VAL': paintingsVal,
       'paintingsVal': paintingsVal,
+      'platesCostWithVat': platesCostWithVat,
+      'bankName': bankName,
+      'BANK_NAME': bankName,
+      'bankCode': bankCode,
+      'insurancePct': insurancePct,
+      'insurancePctOther': insurancePctOther,
+      'insuranceAmount': insuranceAmount,
     };
   }
 
@@ -346,6 +366,11 @@ class GetBrandCarsDataModel extends Equatable {
           ? SALE_PRICE
           : other.SALE_PRICE,
       paintingsVal: paintingsVal ?? other.paintingsVal,
+      bankName: bankName ?? other.bankName,
+      bankCode: bankCode ?? other.bankCode,
+      insurancePct: insurancePct ?? other.insurancePct,
+      insurancePctOther: insurancePctOther ?? other.insurancePctOther,
+      insuranceAmount: insuranceAmount ?? other.insuranceAmount,
     );
   }
 
@@ -418,6 +443,11 @@ class GetBrandCarsDataModel extends Equatable {
       reservedName: reservedName,
       SALE_PRICE: SALE_PRICE,
       paintingsVal: paintingsVal,
+      bankName: bankName,
+      bankCode: bankCode,
+      insurancePct: insurancePct,
+      insurancePctOther: insurancePctOther,
+      insuranceAmount: insuranceAmount,
     );
   }
 
@@ -557,6 +587,31 @@ class GetBrandCarsDataModel extends Equatable {
           (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
           (json['paintingsVal'] as num?)?.toDouble() ??
           getDouble('PaintingsVal', 'PAINTINGS_VAL', 'paintingsVal'),
+      bankName:
+          json['BankName']?.toString() ??
+          json['BANK_NAME']?.toString() ??
+          json['bankName']?.toString() ??
+          json['BankOrProviderName']?.toString(),
+      bankCode:
+          json['BankCode']?.toString() ??
+          json['BANK_CODE']?.toString() ??
+          json['bankCode']?.toString() ??
+          json['BankOrProvider']?.toString(),
+      insurancePct: getDouble(
+        'InsurancePct',
+        'INSURANCE_PCT',
+        'insurancePct',
+      ),
+      insurancePctOther: getDouble(
+        'InsurancePctother',
+        'InsurancePctOther',
+        'insurancePctOther',
+      ),
+      insuranceAmount: getDouble(
+        'InsuranceVal',
+        'InsuranceAmount',
+        'insuranceAmount',
+      ),
       customerName:
           json['CUSTOMER_NAME']?.toString() ??
           json['customerName']?.toString() ??
@@ -677,6 +732,11 @@ class GetBrandCarsDataModel extends Equatable {
     isTamaraAvailable,
     videoId,
     paintingsVal,
+    bankName,
+    bankCode,
+    insurancePct,
+    insurancePctOther,
+    insuranceAmount,
   ];
 
   CarModel toCarModel() {

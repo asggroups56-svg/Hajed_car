@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class BudgetCarsListWidget extends StatelessWidget {
-  static const double _financingFee = 3000;
+  static const double _financingFee = FinancingAdModel.defaultFinancingFee;
   final int selectedBudgetIndex;
 
   const BudgetCarsListWidget({super.key, required this.selectedBudgetIndex});

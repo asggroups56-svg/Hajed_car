@@ -839,12 +839,12 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
       return '$installments ${AppLocaleKey.sar.tr()}';
     }
 
-    final plates = _numberValue(
-      car['paintingsVal'] ?? car['PaintingsVal'] ?? car['PAINTINGS_VAL'],
-    );
     final vat =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15;
-    final financingPrice = ((price + 3000) * (1 + vat / 100)) + plates;
+    final plates = _numberValue(
+      car['paintingsVal'] ?? car['PaintingsVal'] ?? car['PAINTINGS_VAL'] ?? 0,
+    );
+    final financingPrice = (price + 3000) * (1 + vat / 100) + plates;
     final interestRate = _numberValue(
       car['interestRate'] ?? car['InterestRate'],
     );

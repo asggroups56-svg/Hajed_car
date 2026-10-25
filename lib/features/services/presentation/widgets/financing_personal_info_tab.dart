@@ -23,7 +23,6 @@ class FinancingPersonalInfoTab extends StatefulWidget {
   final double lastPayment;
   final VoidCallback onEditCalculator;
   final VoidCallback onShowRequirements;
-  final String? bankName;
   final ValueChanged<String>? onPhoneChanged;
   final TextEditingController? fullNameCtrl;
   final TextEditingController? idCtrl;
@@ -43,7 +42,6 @@ class FinancingPersonalInfoTab extends StatefulWidget {
     required this.lastPayment,
     required this.onEditCalculator,
     required this.onShowRequirements,
-    this.bankName,
     this.onPhoneChanged,
     this.fullNameCtrl,
     this.idCtrl,
@@ -105,7 +103,6 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
           children: [
             CarSummaryCard(
               car: widget.car,
-              bankName: widget.bankName,
               monthlyInstallment: widget.monthlyInstallment,
               durationYears: widget.durationYears,
               downPayment: widget.downPayment,

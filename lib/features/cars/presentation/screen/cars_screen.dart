@@ -89,11 +89,13 @@ class _CarsScreenState extends State<CarsScreen> {
                   state.normalFinancingStatus.data ??
                   const <FinancingAdModel>[];
               final sortedNormalOffers =
-                  List<FinancingAdModel>.from(normalOffers)..sort(
-                    (a, b) => (a.interestRate ?? double.infinity).compareTo(
-                      b.interestRate ?? double.infinity,
-                    ),
-                  );
+                  List<FinancingAdModel>.from(normalOffers)..sort((a, b) {
+                    final aCost =
+                        a.getEffectiveInterestRate() + a.insuranceForBank();
+                    final bCost =
+                        b.getEffectiveInterestRate() + b.insuranceForBank();
+                    return aCost.compareTo(bCost);
+                  });
               final normalOffer = sortedNormalOffers.isEmpty
                   ? null
                   : sortedNormalOffers.first;

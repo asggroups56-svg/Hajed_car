@@ -13,11 +13,16 @@ class FinancingAdModel extends Equatable {
   final String? bankName;
   final String? bankNameEng;
   final String? bankPicturePath;
+  final int? bankId;
+  final String? bankCode;
   final String? startDate;
   final String? endDate;
   final double? firstInstallmentPct;
+  final double? firstInstallmentPctOther;
   final double? lastInstallmentPct;
+  final double? lastInstallmentPctOther;
   final double? adminFeesPct;
+  final double? adminFeesPctOther;
   final String? programPic;
   final double? interestRate;
   final double? interestRateOther;
@@ -50,7 +55,10 @@ class FinancingAdModel extends Equatable {
   final String? color;
   final String? carImage;
   final String? displayBankName;
-  final String? InsurancePct;
+  final double? insurancePct;
+  final double? insurancePctOther;
+  final double? insuranceAmount;
+  final double? insuranceAmountOther;
   final double? paintingsVal;
 
   const FinancingAdModel({
@@ -61,11 +69,16 @@ class FinancingAdModel extends Equatable {
     this.bankName,
     this.bankNameEng,
     this.bankPicturePath,
+    this.bankId,
+    this.bankCode,
     this.startDate,
     this.endDate,
     this.firstInstallmentPct,
+    this.firstInstallmentPctOther,
     this.lastInstallmentPct,
+    this.lastInstallmentPctOther,
     this.adminFeesPct,
+    this.adminFeesPctOther,
     this.programPic,
     this.interestRate,
     this.interestRateOther,
@@ -98,7 +111,10 @@ class FinancingAdModel extends Equatable {
     this.color,
     this.carImage,
     this.displayBankName,
-    this.InsurancePct,
+    this.insurancePct,
+    this.insurancePctOther,
+    this.insuranceAmount,
+    this.insuranceAmountOther,
     this.paintingsVal,
   });
 
@@ -123,29 +139,74 @@ class FinancingAdModel extends Equatable {
       json['Price'] ?? json['PRICE'] ?? json['price'],
     );
 
+    // The plates/registration fee can arrive under several names. The value
+    // supplied by the offers endpoint is the amount the customer pays,
+    // including VAT, so it must not be taxed again.
+    final platesCost = _toDouble(
+      json['PaintingsVal'] ??
+          json['PAINTINGS_VAL'] ??
+          json['paintingsVal'] ??
+          json['PlatesVal'] ??
+          json['PLATES_VAL'] ??
+          json['platesVal'] ??
+          json['PlateCost'] ??
+          json['plateCost'] ??
+          json['LicensePlatesCost'] ??
+          json['licensePlatesCost'],
+    );
+
     return FinancingAdModel(
       programId: (json['ProgramID'] as num?)?.toInt(),
       programName: json['ProgramName']?.toString(),
       isActive: json['IsActive'] as bool?,
       bankOrProvider: json['BankOrProvider']?.toString(),
       bankName:
-          (json['BankName'] ?? json['BANK_NAME'] ?? json['BankOrProviderName'])
+          (json['BankName'] ??
+                  json['BANK_NAME'] ??
+                  json['BankOrProviderName'] ??
+                  json['bankName'])
               ?.toString(),
       bankNameEng:
           (json['BankNameEng'] ??
                   json['BANK_NAME_ENG'] ??
-                  json['BankOrProviderNameEng'])
+                  json['BankOrProviderNameEng'] ??
+                  json['bankNameEng'])
               ?.toString(),
       bankPicturePath:
           (json['PICTUREPATH'] ??
                   json['PicturePath'] ??
-                  json['BankPicturePath'])
+                  json['BankPicturePath'] ??
+                  json['bankPicturePath'])
+              ?.toString(),
+      bankId: _toInt(
+        json['BankID'] ?? json['BankId'] ?? json['BANK_ID'] ?? json['bankId'],
+      ),
+      bankCode:
+          (json['BankCode'] ??
+                  json['BANK_CODE'] ??
+                  json['bankCode'] ??
+                  json['BankOrProvider'])
               ?.toString(),
       startDate: json['StartDate']?.toString(),
       endDate: json['EndDate']?.toString(),
       firstInstallmentPct: _toDouble(json['FirstInstallmentPct']),
+      firstInstallmentPctOther: _toDouble(
+        json['FirstInstallmentPctother'] ??
+            json['FirstInstallmentPctOther'] ??
+            json['firstInstallmentPctOther'],
+      ),
       lastInstallmentPct: _toDouble(json['LastInstallmentPct']),
+      lastInstallmentPctOther: _toDouble(
+        json['LastInstallmentPctother'] ??
+            json['LastInstallmentPctOther'] ??
+            json['lastInstallmentPctOther'],
+      ),
       adminFeesPct: _toDouble(json['AdminFeesPct']),
+      adminFeesPctOther: _toDouble(
+        json['AdminFeesPctother'] ??
+            json['AdminFeesPctOther'] ??
+            json['adminFeesPctOther'],
+      ),
       programPic: json['programpic']?.toString(),
       interestRate: _toDouble(json['InterestRate']),
       interestRateOther: _toDouble(
@@ -186,17 +247,35 @@ class FinancingAdModel extends Equatable {
       mobileShow: json['MobileShow'] as bool?,
       color: json['Color']?.toString(),
       carImage: json['carimage']?.toString(),
-      displayBankName: json['BANK_NAME']?.toString(),
-      InsurancePct: (json['InsurancePct'] as num?)?.toString(),
-      paintingsVal:
-          (json['PaintingsVal'] as num?)?.toDouble() ??
-          (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
-          (json['paintingsVal'] as num?)?.toDouble() ??
-          _toDouble(
-            json['PaintingsVal'] ??
-                json['PAINTINGS_VAL'] ??
-                json['paintingsVal'],
-          ),
+      displayBankName:
+          (json['BANK_NAME'] ??
+                  json['DisplayBankName'] ??
+                  json['displayBankName'])
+              ?.toString(),
+      insurancePct: _toDouble(
+        json['InsurancePct'] ?? json['INSURANCE_PCT'] ?? json['insurancePct'],
+      ),
+      insurancePctOther: _toDouble(
+        json['InsurancePctother'] ??
+            json['InsurancePctOther'] ??
+            json['INSURANCE_PCT_OTHER'] ??
+            json['insurancePctOther'],
+      ),
+      insuranceAmount: _toDouble(
+        json['InsuranceVal'] ??
+            json['InsuranceValue'] ??
+            json['InsuranceAmount'] ??
+            json['INSURANCE_VAL'] ??
+            json['insuranceAmount'] ??
+            json['insuranceVal'],
+      ),
+      insuranceAmountOther: _toDouble(
+        json['InsuranceValother'] ??
+            json['InsuranceValOther'] ??
+            json['InsuranceAmountOther'] ??
+            json['insuranceAmountOther'],
+      ),
+      paintingsVal: platesCost,
     );
   }
 
@@ -215,8 +294,9 @@ class FinancingAdModel extends Equatable {
               ? carImage!.split(',').first
               : null);
     if (rawPic == null || rawPic.isEmpty) return '';
-    if (rawPic.startsWith('http://') || rawPic.startsWith('https://'))
+    if (rawPic.startsWith('http://') || rawPic.startsWith('https://')) {
       return rawPic;
+    }
     final cleaned = rawPic
         .replaceAll('../../Img/Emp/', '')
         .replaceAll('../..', '');
@@ -238,8 +318,9 @@ class FinancingAdModel extends Equatable {
   String? get displayBankImageUrl {
     final rawPath = bankPicturePath?.trim();
     if (rawPath == null || rawPath.isEmpty) return null;
-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://'))
+    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
       return rawPath;
+    }
     final cleaned = rawPath
         .replaceAll('../../Img/Emp/', '')
         .replaceAll('../..', '');
@@ -277,35 +358,151 @@ class FinancingAdModel extends Equatable {
   }
 
   double getEffectiveInterestRate({String? userSalaryBank}) {
-    if (userSalaryBank != null && userSalaryBank.trim().isNotEmpty) {
-      final activeBank = displayBankName ?? bankName;
-      if (activeBank != null && !isSameBankName(userSalaryBank, activeBank)) {
-        if (interestRateOther != null && interestRateOther! > 0) {
-          return interestRateOther!;
-        }
-      }
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+        interestRateOther != null) {
+      return interestRateOther!;
     }
     return interestRate ?? 0;
   }
 
+  /// The bank attached to the offer. Offer responses often expose the bank
+  /// only as an id (`BankOrProvider`) plus a localized name in one of these
+  /// fields.
+  String? get offerBankName {
+    final name = (displayBankName ?? bankName ?? bankNameEng)?.trim();
+    return name == null || name.isEmpty ? null : name;
+  }
+
+  String? get bankIdentifier =>
+      (bankCode ?? bankOrProvider ?? bankId?.toString())?.trim();
+
+  /// True when [candidate] is the bank of this offer. Offer responses expose
+  /// the bank name in Arabic or English (sometimes only one of them), while
+  /// the customer picks the salary bank from a differently localized list.
+  bool isOfferBank(String? candidate) {
+    if (candidate == null || candidate.trim().isEmpty) return false;
+    return isSameBankName(candidate, bankName) ||
+        isSameBankName(candidate, bankNameEng) ||
+        isSameBankName(candidate, displayBankName);
+  }
+
+  /// True when the user's salary bank is different from the offer bank (غير محول / بنك آخر),
+  /// meaning the salary is not with this bank and the API's `*Other` terms apply.
+  ///
+  /// When the salary bank matches the offer bank (نفس البنك), the salary is with this bank
+  /// (محول), so the standard transfer terms apply.
+  bool usesNonTransferredTerms({String? userSalaryBank}) {
+    final salaryBank = userSalaryBank?.trim();
+    if (salaryBank == null || salaryBank.isEmpty) return false;
+    if (offerBankName == null) return false;
+    return !isOfferBank(salaryBank);
+  }
+
+  /// True when the user's salary is with another bank (different from the offer bank / غير محول).
+  bool isOtherBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank);
+
+  /// True when the user's salary bank is the same as the offer bank (محول).
+  bool isTransferredBank({String? userSalaryBank}) {
+    final salaryBank = userSalaryBank?.trim();
+    if (salaryBank == null || salaryBank.isEmpty) return false;
+    if (offerBankName == null) return false;
+    return isOfferBank(salaryBank);
+  }
+
+  double firstInstallmentForBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+          firstInstallmentPctOther != null
+      ? firstInstallmentPctOther!
+      : firstInstallmentPct ?? 0;
+
+  double lastInstallmentForBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+          lastInstallmentPctOther != null
+      ? lastInstallmentPctOther!
+      : lastInstallmentPct ?? 0;
+
+  double adminFeesForBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+          adminFeesPctOther != null
+      ? adminFeesPctOther!
+      : adminFeesPct ?? 0;
+
+  double insuranceForBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+          insurancePctOther != null
+      ? insurancePctOther!
+      : insurancePct ?? 0;
+
+  /// Absolute insurance amount when the API supplies one instead of (or in
+  /// addition to) the percentage.
+  double insuranceValueForBank({String? userSalaryBank}) =>
+      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
+          insuranceAmountOther != null
+      ? insuranceAmountOther!
+      : insuranceAmount ?? 0;
+
+  /// Plate/registration fee from the offer. It is the amount the customer
+  /// pays and already includes VAT, so callers must not add VAT again.
+  double get platesCostWithVat => paintingsVal ?? 0;
+
+  /// Fixed financing fee. It is part of the taxable amount, so VAT applies to
+  /// the car price plus this fee.
+  static const double defaultFinancingFee = 3000;
+
+  double get _vatPercentage =>
+      double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+
+  /// Total car price used by financing:
+  ///
+  /// `(price excl. VAT + 3,000) × (1 + VAT%) + plates`
+  ///
+  /// The financing fee is added before VAT, and the plate/registration fee is
+  /// added afterwards because it already includes VAT. [platesVal] lets a
+  /// caller supply the car's plate fee when the offer does not carry it; a
+  /// non-zero value wins over [platesCostWithVat].
+  double carPriceWithVat({
+    double? basePrice,
+    double financingFee = defaultFinancingFee,
+    double? platesVal,
+  }) {
+    final priceExclVat = basePrice ?? price ?? 0;
+    final plates = (platesVal ?? 0) > 0 ? platesVal! : platesCostWithVat;
+    return (priceExclVat + financingFee) * (1 + _vatPercentage / 100) + plates;
+  }
+
+  /// Monthly installment for the offer terms.
+  ///
+  /// `((carPrice − down) + profit + insurance + admin − finalPayment) / months`
+  /// where [carPriceWithVat] includes the fee and the plates, profit and admin
+  /// are based on the financed amount, and insurance is based on that full
+  /// car price. [userSalaryBank] selects the salary-transfer terms or the
+  /// `*Other` (non-transferred) terms.
   double monthlyInstallmentForPrice(
     double basePrice, {
-    double financingFee = 3000,
-    double platesVal = 0,
+    double financingFee = defaultFinancingFee,
+    double? platesVal,
     String? userSalaryBank,
   }) {
     final months = totalMonths ?? 60;
     if (months <= 0) return 0;
-    final vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final carPrice =
-        ((basePrice + financingFee) * (1 + vatPercentage / 100)) + platesVal;
-    final downPaymentPercent = firstInstallmentPct ?? 0;
-    final finalPaymentPercent = lastInstallmentPct ?? 0;
+    // Down and final payments are percentages of the VAT-inclusive car price.
+    final carPrice = carPriceWithVat(
+      basePrice: basePrice,
+      financingFee: financingFee,
+      platesVal: platesVal,
+    );
+    final downPaymentPercent = firstInstallmentForBank(
+      userSalaryBank: userSalaryBank,
+    );
+    final finalPaymentPercent = lastInstallmentForBank(
+      userSalaryBank: userSalaryBank,
+    );
     final flatRatePercent = getEffectiveInterestRate(
       userSalaryBank: userSalaryBank,
     );
-    final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
+    final insurancePercent = insuranceForBank(userSalaryBank: userSalaryBank);
+    final adminFeesPercent = adminFeesForBank(userSalaryBank: userSalaryBank);
     final financeYears = months / 12;
 
     final downPaymentAmount = (carPrice * downPaymentPercent) / 100;
@@ -314,11 +511,12 @@ class FinancingAdModel extends Equatable {
 
     final totalInterest =
         netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance =
-        netFinanceAmount * (insurancePercent / 100) * financeYears;
+    // Insurance is charged on the full car price, not on the financed amount.
+    final totalInsurance = carPrice * (insurancePercent / 100) * financeYears;
+    final totalAdminFees = netFinanceAmount * (adminFeesPercent / 100);
 
     final totalFinancedWithInterest =
-        netFinanceAmount + totalInterest + totalInsurance;
+        netFinanceAmount + totalInterest + totalInsurance + totalAdminFees;
     return (totalFinancedWithInterest - finalPaymentAmount) / months;
   }
 
@@ -335,27 +533,11 @@ class FinancingAdModel extends Equatable {
 
   GetBrandCarsDataModel toCarDataModel() {
     final images = allCarImages;
-    final carPrice = priceWithVat;
     final months = totalMonths ?? 60;
-    final downPaymentPercent = firstInstallmentPct ?? 0;
-    final finalPaymentPercent = lastInstallmentPct ?? 0;
-    final flatRatePercent = interestRate ?? 0;
-    final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
-    final financeYears = months / 12;
-
-    final downPaymentAmount = (carPrice * downPaymentPercent) / 100;
-    final finalPaymentAmount = (carPrice * finalPaymentPercent) / 100;
-    final netFinanceAmount = carPrice - downPaymentAmount;
-
-    final totalInterest =
-        netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    final totalInsurance =
-        netFinanceAmount * (insurancePercent / 100) * financeYears;
-
-    final totalFinancedWithInterest =
-        netFinanceAmount + totalInterest + totalInsurance;
+    // Keep the card monthly identical to the shared offer formula (fee, VAT,
+    // plates, profit, insurance and admin fees included).
     final monthlyInstallment = months > 0
-        ? (totalFinancedWithInterest - finalPaymentAmount) / months
+        ? monthlyInstallmentForPrice(price ?? 0)
         : null;
 
     return GetBrandCarsDataModel(
@@ -366,8 +548,13 @@ class FinancingAdModel extends Equatable {
       groupLevel: 0,
       price: price?.toStringAsFixed(0),
       SALE_PRICE: salePrice ?? price,
-      interestRate: interestRate,
+      interestRate: getEffectiveInterestRate(),
       monthlyInstallment: monthlyInstallment,
+      bankName: offerBankName,
+      bankCode: bankCode,
+      insurancePct: insurancePct,
+      insurancePctOther: insurancePctOther,
+      insuranceAmount: insuranceAmount,
       itemCode: itemCode ?? '',
       itemType: 0,
       itemName: itemName ?? modelName ?? '',
@@ -414,6 +601,12 @@ class FinancingAdModel extends Equatable {
     return (price ?? 0) * (1 + vatPercentage / 100);
   }
 
+  /// Total price with the fee, VAT and the plate/government fee. The plate fee
+  /// is already included by [carPriceWithVat], so it is not added again.
+  double priceWithVatAndPlates({double financingFee = 0}) {
+    return carPriceWithVat(basePrice: price, financingFee: financingFee);
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'name': itemName ?? modelName ?? programName ?? 'سيارة',
@@ -455,8 +648,18 @@ class FinancingAdModel extends Equatable {
       'InterestRate_other': interestRateOther,
       'interestRateOther': interestRateOther,
       'firstInstallmentPct': firstInstallmentPct,
+      'firstInstallmentPctOther': firstInstallmentPctOther,
       'lastInstallmentPct': lastInstallmentPct,
+      'lastInstallmentPctOther': lastInstallmentPctOther,
       'adminFeesPct': adminFeesPct,
+      'adminFeesPctOther': adminFeesPctOther,
+      'insurancePct': insurancePct,
+      'insurancePctOther': insurancePctOther,
+      'insuranceAmount': insuranceAmount,
+      'insuranceAmountOther': insuranceAmountOther,
+      'bankName': offerBankName,
+      'bankCode': bankIdentifier,
+      'platesCostWithVat': platesCostWithVat,
     };
   }
 
@@ -469,11 +672,16 @@ class FinancingAdModel extends Equatable {
     bankName,
     bankNameEng,
     bankPicturePath,
+    bankId,
+    bankCode,
     startDate,
     endDate,
     firstInstallmentPct,
+    firstInstallmentPctOther,
     lastInstallmentPct,
+    lastInstallmentPctOther,
     adminFeesPct,
+    adminFeesPctOther,
     programPic,
     interestRate,
     interestRateOther,
@@ -485,5 +693,11 @@ class FinancingAdModel extends Equatable {
     itemCode,
     itemName,
     carImage,
+    displayBankName,
+    insurancePct,
+    insurancePctOther,
+    insuranceAmount,
+    insuranceAmountOther,
+    paintingsVal,
   ];
 }

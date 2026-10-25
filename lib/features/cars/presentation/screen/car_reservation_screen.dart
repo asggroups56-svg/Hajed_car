@@ -7,7 +7,8 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/saudi_phone_number.dart';
-import 'package:car/features/admin/data/model/cars_response_model.dart' as admin;
+import 'package:car/features/admin/data/model/cars_response_model.dart'
+    as admin;
 import 'package:car/features/admin/data/model/representative_model.dart';
 import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
 import 'package:car/features/cars/presentation/screen/financing_info_screen.dart';
@@ -40,7 +41,11 @@ enum ReservationScreenStep { methodSelection, informationEntry, payment }
 class CarReservationScreen extends StatefulWidget {
   final GetBrandCarsDataModel car;
   final bool isFromLink;
-  const CarReservationScreen({super.key, required this.car, this.isFromLink = false});
+  const CarReservationScreen({
+    super.key,
+    required this.car,
+    this.isFromLink = false,
+  });
   @override
   State<CarReservationScreen> createState() => _CarReservationScreenState();
 }
@@ -80,7 +85,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     final names = fullName.trim().split(' ');
     if (names.isNotEmpty && fullName.isNotEmpty) {
       _firstNameController.text = names.first;
-      _lastNameController.text = names.length > 1 ? names.sublist(1).join(' ') : '';
+      _lastNameController.text = names.length > 1
+          ? names.sublist(1).join(' ')
+          : '';
     }
     _financePhoneController.text = phone;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -89,8 +96,12 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
   }
 
   Future<void> _loadErrorCodes() async {
-    final String data = await rootBundle.loadString('assets/payment_error_codes.json');
-    final String moraData = await rootBundle.loadString('assets/mora_sms_error_codes.json');
+    final String data = await rootBundle.loadString(
+      'assets/payment_error_codes.json',
+    );
+    final String moraData = await rootBundle.loadString(
+      'assets/mora_sms_error_codes.json',
+    );
     setState(() {
       _errorCodes = jsonDecode(data);
       _moraErrorCodes = jsonDecode(moraData);
@@ -109,7 +120,8 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
       value = 0.0;
     }
     if (!value.isFinite) value = 0.0;
-    final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
+    final double vatSerial =
+        double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
     final result = withTax ? value * ((100 + vatSerial) / 100) : value;
     return _round2(result);
   }
@@ -118,7 +130,8 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     return double.parse(value.toStringAsFixed(2));
   }
 
-  bool get _isFinancingFlow => _selectedMethod == 'tamara' || _selectedMethod == 'bank';
+  bool get _isFinancingFlow =>
+      _selectedMethod == 'tamara' || _selectedMethod == 'bank';
   @override
   void dispose() {
     _cashNameController.dispose();
@@ -137,8 +150,13 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     if (_selectedMethod == null) return;
     if (_isFinancingFlow) {
       final double basePrice = _parsePrice(widget.car.price, withTax: false);
-      final double vatSerial = double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
-      final double financingTotalPriceWithTax = (basePrice * ((100 + vatSerial) / 100)) + 3000;
+      final double vatSerial =
+          double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
+      // (price + 3,000 fee) + VAT + plates. The fee is taxed, and the plate
+      // fee is added after VAT because it already includes it.
+      final double financingTotalPriceWithTax =
+          (basePrice + 3000) * ((100 + vatSerial) / 100) +
+          widget.car.platesCostWithVat;
 
       Navigator.push(
         context,
@@ -164,7 +182,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
           );
           return;
         }
-        context.read<HomeCubit>().sendOtp(SendOtpModel(mobileNumber: _cashPhoneController.text));
+        context.read<HomeCubit>().sendOtp(
+          SendOtpModel(mobileNumber: _cashPhoneController.text),
+        );
       }
     }
   }
@@ -207,7 +227,10 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
         minChildSize: 0.5,
         builder: (_, sc) => SingleChildScrollView(
           controller: sc,
-          child: PricingDetailsBottomSheet(car: widget.car, totalPrice: _totalPrice),
+          child: PricingDetailsBottomSheet(
+            car: widget.car,
+            totalPrice: _totalPrice,
+          ),
         ),
       ),
     );
@@ -222,7 +245,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
           child: OtpBottomSheet(
             phoneNumber: _cashPhoneController.text,
             homeCubit: context.read<HomeCubit>(),
@@ -294,7 +319,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
       if (msg.contains(enText) || enText.contains(msg)) {
         final code = entry.key;
         final translation = entry.value[lang];
-        return isArabic ? '$translation (رمز: $code)' : '$translation (Code: $code)';
+        return isArabic
+            ? '$translation (رمز: $code)'
+            : '$translation (Code: $code)';
       }
     }
     return isArabic ? 'فشل الدفع $message ' : 'Payment failed';
@@ -358,13 +385,22 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
         (HiveMethods.getUserName() ?? '').length.clamp(0, 50),
       ),
       requiredDoc: paymentId != null
-          ? paymentId.toString().substring(0, paymentId.toString().length.clamp(0, 50))
+          ? paymentId.toString().substring(
+              0,
+              paymentId.toString().length.clamp(0, 50),
+            )
           : '',
       subLpo: [
         SubLpoModel(
           itemCode: widget.car.itemCode.trim(),
-          itemName: widget.car.itemName.substring(0, widget.car.itemName.length.clamp(0, 100)),
-          chassisNo: widget.car.chassisNo.substring(0, widget.car.chassisNo.length.clamp(0, 50)),
+          itemName: widget.car.itemName.substring(
+            0,
+            widget.car.itemName.length.clamp(0, 100),
+          ),
+          chassisNo: widget.car.chassisNo.substring(
+            0,
+            widget.car.chassisNo.length.clamp(0, 50),
+          ),
           price: _parsePrice(widget.car.price, withTax: false),
           advancedAmount: _depositAmount,
           storeCode: storeCodeVal,
@@ -382,10 +418,16 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     context.read<HomeCubit>().getAddBookingPermission(model);
   }
 
-  String _bookingFailureMessage({String? serverMessage, String? networkMessage}) {
+  String _bookingFailureMessage({
+    String? serverMessage,
+    String? networkMessage,
+  }) {
     final isArabic = context.locale.languageCode == 'ar';
-    final message = (serverMessage?.trim().isNotEmpty == true ? serverMessage : networkMessage)
-        ?.trim();
+    final message =
+        (serverMessage?.trim().isNotEmpty == true
+                ? serverMessage
+                : networkMessage)
+            ?.trim();
 
     // The inventory is shared by all installations.  The API rejects a
     // duplicate reservation after another device has completed it; make that
@@ -404,13 +446,16 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     }
 
     if (message?.isNotEmpty == true) return message!;
-    return isArabic ? 'فشل الحجز، يرجى المحاولة مرة أخرى' : 'Reservation failed. Please try again.';
+    return isArabic
+        ? 'فشل الحجز، يرجى المحاولة مرة أخرى'
+        : 'Reservation failed. Please try again.';
   }
 
   @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    final isMethodSelection = _currentStep == ReservationScreenStep.methodSelection;
+    final isMethodSelection =
+        _currentStep == ReservationScreenStep.methodSelection;
     return MultiBlocListener(
       listeners: [
         BlocListener<HomeCubit, HomeState>(
@@ -426,7 +471,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                   itemCode: widget.car.itemCode,
                   itemName: widget.car.itemName,
                   storeCode: widget.car.storeCode.toString(),
-                  costPrice: widget.car.price is num ? (widget.car.price as num).toDouble() : null,
+                  costPrice: widget.car.price is num
+                      ? (widget.car.price as num).toDouble()
+                      : null,
                 ),
                 reservedAt: DateTime.now(),
               );
@@ -442,7 +489,10 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                 final homeCubit = context.read<HomeCubit>();
 
                 // 1. إرسال أوبجكت الرسالة النصية أولاً مباشرة
-                final messageModel = SendWhatsAppModel(toNumber: phone, text: textMsg);
+                final messageModel = SendWhatsAppModel(
+                  toNumber: phone,
+                  text: textMsg,
+                );
                 homeCubit.sendWhatsApp(messageModel);
 
                 // 2. إرسال أوبجكت ملف الـ PDF بعد دقيقتين
@@ -459,7 +509,8 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
               }
               // Notification is handled exclusively by FCM push endpoint
               _navigateToSuccess();
-            } else if (status.isFailure || (status.isSuccess && status.data?.success != true)) {
+            } else if (status.isFailure ||
+                (status.isSuccess && status.data?.success != true)) {
               setState(() => _isLoading = false);
               CommonMethods.showToast(
                 message: _bookingFailureMessage(
@@ -472,7 +523,8 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
           },
         ),
         BlocListener<HomeCubit, HomeState>(
-          listenWhen: (previous, current) => previous.sendOtpStatus != current.sendOtpStatus,
+          listenWhen: (previous, current) =>
+              previous.sendOtpStatus != current.sendOtpStatus,
           listener: (context, state) {
             final status = state.sendOtpStatus;
             if (status.isLoading) {
@@ -500,7 +552,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                 }
               } else if (status.isFailure) {
                 CommonMethods.showToast(
-                  message: status.message ?? (isArabic ? 'حدث خطأ' : 'An error occurred'),
+                  message:
+                      status.message ??
+                      (isArabic ? 'حدث خطأ' : 'An error occurred'),
                   type: ToastType.error,
                 );
               }
@@ -512,7 +566,9 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
         backgroundColor: AppColor.scaffoldColor(context),
         appBar: AppBar(
           title: Text(
-            isMethodSelection ? AppLocaleKey.agentSelectPaymentMethod.tr() : widget.car.itemName,
+            isMethodSelection
+                ? AppLocaleKey.agentSelectPaymentMethod.tr()
+                : widget.car.itemName,
             style: AppTextStyle.titleMedium(context).copyWith(
               fontWeight: FontWeight.w900,
               fontSize: 16.sp,
@@ -529,19 +585,32 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 AppLocaleKey.agentCancel.tr(),
-                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 13.sp),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13.sp,
+                ),
               ),
             ),
           ],
           leading: isMethodSelection
               ? const SizedBox.shrink()
               : IconButton(
-                  icon: Icon(Icons.chevron_right_rounded, color: AppColor.blackTextColor(context)),
+                  icon: Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColor.blackTextColor(context),
+                  ),
                   onPressed: () {
                     if (_currentStep == ReservationScreenStep.payment) {
-                      setState(() => _currentStep = ReservationScreenStep.informationEntry);
+                      setState(
+                        () => _currentStep =
+                            ReservationScreenStep.informationEntry,
+                      );
                     } else {
-                      setState(() => _currentStep = ReservationScreenStep.methodSelection);
+                      setState(
+                        () => _currentStep =
+                            ReservationScreenStep.methodSelection,
+                      );
                     }
                   },
                 ),
@@ -589,7 +658,8 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
                   },
                   onShowPricingDetails: _showPricingDetails,
                   isTermsAccepted: _isTermsAccepted,
-                  onTermsAcceptedChanged: (val) => setState(() => _isTermsAccepted = val ?? false),
+                  onTermsAcceptedChanged: (val) =>
+                      setState(() => _isTermsAccepted = val ?? false),
                 ),
               ],
               Gap(100.h),

@@ -1,0 +1,15 @@
+{
+  "eval_id": 2,
+  "eval_name": "extract-home-search",
+  "prompt": "In the Hajed_car app, the guest home screen (lib/features/home/presentation/view/screen/guest_home_screen.dart) has an inline search bar and filter button. Extract them into a reusable widget file in the home widgets folder without changing behavior: tapping the search still switches to the cars tab, the filter button still opens the filter screen, and the hint stays translated. Keep the screen composition readable.",
+  "assertions": [
+    "A dedicated home search/filter widget file exists under home widgets",
+    "guest_home_screen uses the extracted widget and no longer inlines the search/filter UI",
+    "Search tap still switches to the cars tab",
+    "Filter tap still opens the filter screen",
+    "Hint text is still localized with the existing key",
+    "No dead controller or unused theme imports left behind",
+    "Extracted widget keeps the original visual values (padding, radius, colors)",
+    "No new analyzer issues on the touched files"
+  ]
+}

@@ -412,6 +412,11 @@ class AppLocaleKey {
   static const String adDealerName = 'adDealerName';
   static const String adDealerSubtitle = 'adDealerSubtitle';
   static const String adUntil = 'adUntil';
+  static const String adInsurancePct = 'adInsurancePct';
+  static const String adPlatesFee = 'adPlatesFee';
+  static const String adNonTransferTerms = 'adNonTransferTerms';
+  static const String adOtherBankTerms = 'adOtherBankTerms';
+  static const String adTransferredBankTerms = 'adTransferredBankTerms';
   static const String monthlyInstallment = 'monthlyInstallment';
   static const String riyadhCityHint = 'riyadhCityHint';
   static const String jeddahCityHint = 'jeddahCityHint';

@@ -1,0 +1,490 @@
+diff --git a/i18n/ar.json b/i18n/ar.json
+index 3fa61ff..d93ce67 100644
+--- a/i18n/ar.json
++++ b/i18n/ar.json
+@@ -1506,6 +1506,11 @@
+   "ADVANCED_AMOUNT":"قيمة الدفعة المقدمة",
+   "CAR_OFFERS":"عروض السيارات",
+   "bank":"البنك",
++  "banks": "البنوك",
++  "banks_search_hint": "ابحث عن بنك...",
++  "banks_search_empty": "لا توجد بنوك",
++  "banks_search_error": "تعذر تحميل البنوك",
++  "banks_search_clear": "مسح البحث",
+   "terms_title": "الشروط والأحكام",
+   "terms_subtitle": "يرجى قراءة الشروط والأحكام بعناية قبل إتمام الحجز أو الشراء",
+   "terms_notice_title": "تنبيه مهم",
+diff --git a/i18n/en.json b/i18n/en.json
+index f62938e..a1bfd64 100644
+--- a/i18n/en.json
++++ b/i18n/en.json
+@@ -1503,6 +1503,11 @@
+   "ADVANCED_AMOUNT": "Advanced Amount",
+   "CAR_OFFERS": "Car Offers",
+   "bank": "Bank",
++  "banks": "Banks",
++  "banks_search_hint": "Search banks...",
++  "banks_search_empty": "No banks found",
++  "banks_search_error": "Could not load banks",
++  "banks_search_clear": "Clear search",
+   "terms_title": "Terms and Conditions",
+   "terms_subtitle": "Please read the terms and conditions carefully before completing a reservation or purchase.",
+   "terms_notice_title": "Important Notice",
+diff --git a/lib/core/localization/app_locale_keys.dart b/lib/core/localization/app_locale_keys.dart
+index b9250a9..34a470e 100644
+--- a/lib/core/localization/app_locale_keys.dart
++++ b/lib/core/localization/app_locale_keys.dart
+@@ -1540,6 +1540,11 @@ class AppLocaleKey {
+   static const String agentPlatePrice = 'agent_plate_price';
+ 
+   static const String retry = 'retry';
++  static const String banks = 'banks';
++  static const String banksSearchHint = 'banks_search_hint';
++  static const String banksSearchEmpty = 'banks_search_empty';
++  static const String banksSearchError = 'banks_search_error';
++  static const String banksSearchClear = 'banks_search_clear';
+   static const String no_offers = 'no_offers';
+   static const String no_offers_desc = 'no_offers_desc';
+   static const String show_number = 'show_number';
+diff --git a/lib/features/home/presentation/cubit/home_cubit.dart b/lib/features/home/presentation/cubit/home_cubit.dart
+index 0856b70..83233bd 100644
+--- a/lib/features/home/presentation/cubit/home_cubit.dart
++++ b/lib/features/home/presentation/cubit/home_cubit.dart
+@@ -29,9 +29,17 @@ class HomeCubit extends Cubit<HomeState> {
+   String? lastEditLoanMessage;
+   bool _isRefreshingHome = false;
+   int _brandCarsRequestId = 0;
++  int _banksRequestId = 0;
++  Timer? _banksSearchDebounce;
+   Future<void>? _normalFinancingRequest;
+   final Set<String> _locallyReservedCarCodes = <String>{};
+ 
++  /// How long the banks search field waits after the last keystroke before
++  /// calling the API, so typing does not fire a request per character.
++  static const Duration banksSearchDebounceDuration = Duration(
++    milliseconds: 350,
++  );
++
+   HomeCubit(this.homeRepo) : super(const HomeState());
+ 
+   /// Reloads every data source shown on the home screen.
+@@ -45,7 +53,7 @@ class HomeCubit extends Cubit<HomeState> {
+     try {
+       await Future.wait([
+         getCarsModels(),
+-        getBanks(),
++        getBanks(searchVal: state.banksSearchQuery),
+         fetchAllCars(),
+         getFinancingAds(),
+         getNormalFinancing(),
+@@ -357,9 +365,19 @@ class HomeCubit extends Cubit<HomeState> {
+     );
+   }
+ 
++  /// Loads banks from the API. When [searchVal] is set the backend filters the
++  /// result; an empty value restores the full banks list.
+   Future<void> getBanks({String? searchVal}) async {
++    // Keep an id for the latest request so an older, slower response cannot
++    // replace the list that belongs to the query currently in the field.
++    final requestId = ++_banksRequestId;
++    final search = (searchVal ?? '').trim();
++
+     emit(state.copyWith(banksStatus: const StatusState.loading()));
+-    final result = await homeRepo.getBanks(searchVal);
++    final result = await homeRepo.getBanks(search.isEmpty ? null : search);
++
++    if (requestId != _banksRequestId) return;
++
+     result.fold(
+       (failure) {
+         emit(
+@@ -372,6 +390,35 @@ class HomeCubit extends Cubit<HomeState> {
+     );
+   }
+ 
++  /// Called for every keystroke in the banks search field.
++  ///
++  /// The query is stored immediately (so the clear button and the field stay
++  /// in sync) while the API call is debounced. Any response from a previous
++  /// query is invalidated before the new query is stored.
++  void onBanksSearchChanged(String value) {
++    final query = value.trim();
++    if (query == state.banksSearchQuery) return;
++
++    _banksRequestId++;
++    _banksSearchDebounce?.cancel();
++    emit(state.copyWith(banksSearchQuery: query));
++
++    _banksSearchDebounce = Timer(banksSearchDebounceDuration, () {
++      unawaited(getBanks(searchVal: query));
++    });
++  }
++
++  /// Clears the banks search and immediately restores the full banks list.
++  void clearBanksSearch() {
++    _banksSearchDebounce?.cancel();
++
++    if (state.banksSearchQuery.isEmpty) return;
++
++    _banksRequestId++;
++    emit(state.copyWith(banksSearchQuery: ''));
++    unawaited(getBanks());
++  }
++
+   Future<void> getFinancingAds({String? code}) async {
+     final isSpecificProgram = code != null && code.isNotEmpty;
+     if (isSpecificProgram) {
+@@ -618,4 +665,10 @@ class HomeCubit extends Cubit<HomeState> {
+     await sendWhatsApp(textModel);
+     await sendWhatsAppPdf(pdfModel);
+   }
++
++  @override
++  Future<void> close() {
++    _banksSearchDebounce?.cancel();
++    return super.close();
++  }
+ }
+diff --git a/lib/features/home/presentation/cubit/home_state.dart b/lib/features/home/presentation/cubit/home_state.dart
+index 162199e..c37d4a6 100644
+--- a/lib/features/home/presentation/cubit/home_state.dart
++++ b/lib/features/home/presentation/cubit/home_state.dart
+@@ -21,6 +21,7 @@ class HomeState extends Equatable {
+   final int? toPrice;
+   final String? fuelType;
+   final StatusState<List<BANKSDATAModel>> banksStatus;
++  final String banksSearchQuery;
+   final StatusState<SendOtpResponseModel> sendOtpStatus;
+   final StatusState<List<FinancingAdModel>> financingAdsStatus;
+   final StatusState<List<FinancingAdModel>> programCarsStatus;
+@@ -39,6 +40,7 @@ class HomeState extends Equatable {
+     this.allCarsStatus = const StatusState.initial(),
+     this.allPopularCarsStatus = const StatusState.initial(),
+     this.banksStatus = const StatusState.initial(),
++    this.banksSearchQuery = '',
+     this.selectedBrandId,
+     this.selectedIndex = 0,
+     this.searchQuery = '',
+@@ -69,6 +71,7 @@ class HomeState extends Equatable {
+     StatusState<List<GetBrandCarsDataModel>>? allCarsStatus,
+     StatusState? allPopularCarsStatus,
+     StatusState<List<BANKSDATAModel>>? banksStatus,
++    String? banksSearchQuery,
+     int? selectedBrandId,
+     bool clearSelectedBrandId = false,
+     int? selectedIndex,
+@@ -100,6 +103,7 @@ class HomeState extends Equatable {
+       allCarsStatus: allCarsStatus ?? this.allCarsStatus,
+       allPopularCarsStatus: allPopularCarsStatus ?? this.allPopularCarsStatus,
+       banksStatus: banksStatus ?? this.banksStatus,
++      banksSearchQuery: banksSearchQuery ?? this.banksSearchQuery,
+       selectedBrandId: clearSelectedBrandId
+           ? null
+           : selectedBrandId ?? this.selectedBrandId,
+@@ -141,6 +145,7 @@ class HomeState extends Equatable {
+     allCarsStatus,
+     allPopularCarsStatus,
+     banksStatus,
++    banksSearchQuery,
+     selectedBrandId,
+     selectedIndex,
+     brands,
+diff --git a/lib/features/home/presentation/view/screen/guest_home_screen.dart b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+index 025abb9..df9ed3a 100644
+--- a/lib/features/home/presentation/view/screen/guest_home_screen.dart
++++ b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+@@ -6,6 +6,7 @@ import 'package:car/core/utils/navigator_methods.dart';
+ import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+ import 'package:car/features/home/presentation/view/screen/main_layout.dart';
+ import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_search_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
+@@ -139,6 +140,8 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
+                   Gap(15.h),
+                   const AdsSliderWidget(),
+                   Gap(15.h),
++                  const BanksSearchWidget(),
++                  Gap(15.h),
+                   SectionTitleWidget(
+                     title: AppLocaleKey.brands.tr(),
+                     onSeeAll: () {
+
+--- /dev/null
++++ b/lib/features/home/presentation/view/widgets/banks_search_widget.dart
++import 'package:car/core/localization/app_locale_keys.dart';
++import 'package:car/core/theme/app_colors.dart';
++import 'package:car/core/theme/app_text_style.dart';
++import 'package:car/features/home/data/model/banks_data_model.dart';
++import 'package:car/features/home/presentation/cubit/home_cubit.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_slider_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
++import 'package:easy_localization/easy_localization.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_bloc/flutter_bloc.dart';
++import 'package:flutter_screenutil/flutter_screenutil.dart';
++import 'package:gap/gap.dart';
++
++/// Compact banks section for the home screen: a search field above the
++/// existing auto-scrolling banks slider.
++///
++/// The field only forwards the query to [HomeCubit], which debounces it and
++/// calls the banks endpoint. No API call is made from this widget.
++class BanksSearchWidget extends StatefulWidget {
++  const BanksSearchWidget({super.key});
++
++  @override
++  State<BanksSearchWidget> createState() => _BanksSearchWidgetState();
++}
++
++class _BanksSearchWidgetState extends State<BanksSearchWidget> {
++  late final TextEditingController _controller;
++  final FocusNode _focusNode = FocusNode();
++
++  @override
++  void initState() {
++    super.initState();
++    _controller = TextEditingController(
++      text: context.read<HomeCubit>().state.banksSearchQuery,
++    );
++  }
++
++  @override
++  void dispose() {
++    _controller.dispose();
++    _focusNode.dispose();
++    super.dispose();
++  }
++
++  void _onChanged(String value) {
++    context.read<HomeCubit>().onBanksSearchChanged(value);
++    // Rebuilds only to show/hide the clear button as the text changes.
++    setState(() {});
++  }
++
++  void _clearSearch() {
++    _controller.clear();
++    _focusNode.unfocus();
++    context.read<HomeCubit>().clearBanksSearch();
++    setState(() {});
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    return BlocBuilder<HomeCubit, HomeState>(
++      buildWhen: (previous, current) =>
++          previous.banksStatus != current.banksStatus ||
++          previous.banksSearchQuery != current.banksSearchQuery,
++      builder: (context, state) {
++        return Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            SectionTitleWidget(title: AppLocaleKey.banks.tr()),
++            Gap(10.h),
++            _SearchField(
++              controller: _controller,
++              focusNode: _focusNode,
++              onChanged: _onChanged,
++              onClear: _clearSearch,
++            ),
++            Gap(12.h),
++            _BanksContent(state: state),
++          ],
++        );
++      },
++    );
++  }
++}
++
++class _SearchField extends StatelessWidget {
++  const _SearchField({
++    required this.controller,
++    required this.focusNode,
++    required this.onChanged,
++    required this.onClear,
++  });
++
++  final TextEditingController controller;
++  final FocusNode focusNode;
++  final ValueChanged<String> onChanged;
++  final VoidCallback onClear;
++
++  @override
++  Widget build(BuildContext context) {
++    final bool hasText = controller.text.isNotEmpty;
++
++    return ConstrainedBox(
++      constraints: BoxConstraints(minHeight: 42.h),
++      child: TextField(
++        controller: controller,
++        focusNode: focusNode,
++        onChanged: onChanged,
++        textInputAction: TextInputAction.search,
++        style: AppTextStyle.bodyMedium(
++          context,
++        ).copyWith(color: AppColor.blackTextColor(context)),
++        decoration: InputDecoration(
++          isDense: true,
++          hintText: AppLocaleKey.banksSearchHint.tr(),
++          hintStyle: AppTextStyle.bodySmall(
++            context,
++          ).copyWith(color: AppColor.greyColor(context)),
++          prefixIcon: Icon(
++            Icons.search_rounded,
++            size: 20.sp,
++            color: AppColor.primaryColor(context),
++          ),
++          prefixIconConstraints: BoxConstraints(
++            minWidth: 38.w,
++            minHeight: 38.h,
++          ),
++          suffixIcon: hasText
++              ? IconButton(
++                  tooltip: AppLocaleKey.banksSearchClear.tr(),
++                  onPressed: onClear,
++                  icon: Icon(
++                    Icons.close_rounded,
++                    size: 18.sp,
++                    color: AppColor.greyColor(context),
++                  ),
++                  splashRadius: 18.r,
++                  padding: EdgeInsets.zero,
++                  constraints: BoxConstraints(minWidth: 36.w, minHeight: 36.h),
++                )
++              : null,
++          suffixIconConstraints: BoxConstraints(
++            minWidth: 36.w,
++            minHeight: 36.h,
++          ),
++          filled: true,
++          fillColor: AppColor.secondAppColor(context),
++          contentPadding: EdgeInsets.symmetric(
++            horizontal: 12.w,
++            vertical: 10.h,
++          ),
++          border: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(12.r),
++            borderSide: BorderSide.none,
++          ),
++          enabledBorder: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(12.r),
++            borderSide: BorderSide(
++              color: AppColor.dividerColor(context).withValues(alpha: .5),
++            ),
++          ),
++          focusedBorder: OutlineInputBorder(
++            borderRadius: BorderRadius.circular(12.r),
++            borderSide: BorderSide(
++              color: AppColor.primaryColor(context),
++              width: 1.5,
++            ),
++          ),
++        ),
++      ),
++    );
++  }
++}
++
++class _BanksContent extends StatelessWidget {
++  const _BanksContent({required this.state});
++
++  final HomeState state;
++
++  @override
++  Widget build(BuildContext context) {
++    final status = state.banksStatus;
++
++    if (status.isInitial || status.isLoading) {
++      return SizedBox(
++        height: 40.h,
++        child: Center(
++          child: SizedBox(
++            width: 18.w,
++            height: 18.w,
++            child: CircularProgressIndicator(
++              strokeWidth: 2,
++              color: AppColor.primaryColor(context),
++            ),
++          ),
++        ),
++      );
++    }
++
++    if (status.isFailure) {
++      return _BanksMessage(
++        icon: Icons.error_outline_rounded,
++        message: AppLocaleKey.banksSearchError.tr(),
++        actionLabel: AppLocaleKey.retry.tr(),
++        onAction: () => context.read<HomeCubit>().getBanks(
++          searchVal: state.banksSearchQuery,
++        ),
++      );
++    }
++
++    final List<BANKSDATAModel> banks = status.data ?? const <BANKSDATAModel>[];
++
++    if (banks.isEmpty) {
++      return _BanksMessage(
++        icon: Icons.account_balance_outlined,
++        message: AppLocaleKey.banksSearchEmpty.tr(),
++      );
++    }
++
++    // The existing banks slider keeps its marquee behaviour.
++    return BanksSliderWidget(banks: banks);
++  }
++}
++
++class _BanksMessage extends StatelessWidget {
++  const _BanksMessage({
++    required this.icon,
++    required this.message,
++    this.actionLabel,
++    this.onAction,
++  });
++
++  final IconData icon;
++  final String message;
++  final String? actionLabel;
++  final VoidCallback? onAction;
++
++  @override
++  Widget build(BuildContext context) {
++    return Container(
++      width: double.infinity,
++      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
++      decoration: BoxDecoration(
++        color: AppColor.secondAppColor(context),
++        borderRadius: BorderRadius.circular(12.r),
++        border: Border.all(
++          color: AppColor.dividerColor(context).withValues(alpha: .5),
++        ),
++      ),
++      child: Row(
++        children: [
++          Icon(icon, size: 18.sp, color: AppColor.greyColor(context)),
++          Gap(8.w),
++          Expanded(
++            child: Text(
++              message,
++              style: AppTextStyle.bodySmall(
++                context,
++              ).copyWith(color: AppColor.greyColor(context)),
++            ),
++          ),
++          if (actionLabel != null && onAction != null)
++            TextButton(
++              onPressed: onAction,
++              child: Text(
++                actionLabel!,
++                style: AppTextStyle.bodySmall(
++                  context,
++                ).copyWith(color: AppColor.primaryColor(context)),
++              ),
++            ),
++        ],
++      ),
++    );
++  }
++}

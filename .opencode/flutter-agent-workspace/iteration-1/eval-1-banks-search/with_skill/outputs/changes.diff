@@ -1,0 +1,946 @@
+diff --git a/i18n/ar.json b/i18n/ar.json
+index 3fa61ff..595949a 100644
+--- a/i18n/ar.json
++++ b/i18n/ar.json
+@@ -1506,6 +1506,9 @@
+   "ADVANCED_AMOUNT":"قيمة الدفعة المقدمة",
+   "CAR_OFFERS":"عروض السيارات",
+   "bank":"البنك",
++  "searchBanksHint": "ابحث عن بنك",
++  "searchBanksClear": "مسح البحث",
++  "noBanksFound": "لا توجد بنوك",
+   "terms_title": "الشروط والأحكام",
+   "terms_subtitle": "يرجى قراءة الشروط والأحكام بعناية قبل إتمام الحجز أو الشراء",
+   "terms_notice_title": "تنبيه مهم",
+diff --git a/i18n/en.json b/i18n/en.json
+index f62938e..efc3b70 100644
+--- a/i18n/en.json
++++ b/i18n/en.json
+@@ -1503,6 +1503,9 @@
+   "ADVANCED_AMOUNT": "Advanced Amount",
+   "CAR_OFFERS": "Car Offers",
+   "bank": "Bank",
++  "searchBanksHint": "Search banks",
++  "searchBanksClear": "Clear search",
++  "noBanksFound": "No banks found",
+   "terms_title": "Terms and Conditions",
+   "terms_subtitle": "Please read the terms and conditions carefully before completing a reservation or purchase.",
+   "terms_notice_title": "Important Notice",
+diff --git a/lib/core/localization/app_locale_keys.dart b/lib/core/localization/app_locale_keys.dart
+index b9250a9..912aca4 100644
+--- a/lib/core/localization/app_locale_keys.dart
++++ b/lib/core/localization/app_locale_keys.dart
+@@ -865,6 +865,11 @@ class AppLocaleKey {
+   static const String carsAvailable = 'carsAvailable';
+   static const String comingSoon = 'comingSoon';
+ 
++  // Banks Search
++  static const String searchBanksHint = 'searchBanksHint';
++  static const String searchBanksClear = 'searchBanksClear';
++  static const String noBanksFound = 'noBanksFound';
++
+   // Payment Success Screen
+   static const String paymentSuccessTitle = 'payment_success_title';
+   static const String paymentSuccessSubtitle = 'payment_success_subtitle';
+diff --git a/lib/features/home/data/model/financing_ad_model.dart b/lib/features/home/data/model/financing_ad_model.dart
+index 54900a6..8522f55 100644
+--- a/lib/features/home/data/model/financing_ad_model.dart
++++ b/lib/features/home/data/model/financing_ad_model.dart
+@@ -16,8 +16,11 @@ class FinancingAdModel extends Equatable {
+   final String? startDate;
+   final String? endDate;
+   final double? firstInstallmentPct;
++  final double? firstInstallmentPctOther;
+   final double? lastInstallmentPct;
++  final double? lastInstallmentPctOther;
+   final double? adminFeesPct;
++  final double? adminFeesPctOther;
+   final String? programPic;
+   final double? interestRate;
+   final double? interestRateOther;
+@@ -50,7 +53,8 @@ class FinancingAdModel extends Equatable {
+   final String? color;
+   final String? carImage;
+   final String? displayBankName;
+-  final String? InsurancePct;
++  final double? insurancePct;
++  final double? insurancePctOther;
+   final double? paintingsVal;
+ 
+   const FinancingAdModel({
+@@ -64,8 +68,11 @@ class FinancingAdModel extends Equatable {
+     this.startDate,
+     this.endDate,
+     this.firstInstallmentPct,
++    this.firstInstallmentPctOther,
+     this.lastInstallmentPct,
++    this.lastInstallmentPctOther,
+     this.adminFeesPct,
++    this.adminFeesPctOther,
+     this.programPic,
+     this.interestRate,
+     this.interestRateOther,
+@@ -98,7 +105,8 @@ class FinancingAdModel extends Equatable {
+     this.color,
+     this.carImage,
+     this.displayBankName,
+-    this.InsurancePct,
++    this.insurancePct,
++    this.insurancePctOther,
+     this.paintingsVal,
+   });
+ 
+@@ -144,8 +152,23 @@ class FinancingAdModel extends Equatable {
+       startDate: json['StartDate']?.toString(),
+       endDate: json['EndDate']?.toString(),
+       firstInstallmentPct: _toDouble(json['FirstInstallmentPct']),
++      firstInstallmentPctOther: _toDouble(
++        json['FirstInstallmentPctother'] ??
++            json['FirstInstallmentPctOther'] ??
++            json['firstInstallmentPctOther'],
++      ),
+       lastInstallmentPct: _toDouble(json['LastInstallmentPct']),
++      lastInstallmentPctOther: _toDouble(
++        json['LastInstallmentPctother'] ??
++            json['LastInstallmentPctOther'] ??
++            json['lastInstallmentPctOther'],
++      ),
+       adminFeesPct: _toDouble(json['AdminFeesPct']),
++      adminFeesPctOther: _toDouble(
++        json['AdminFeesPctother'] ??
++            json['AdminFeesPctOther'] ??
++            json['adminFeesPctOther'],
++      ),
+       programPic: json['programpic']?.toString(),
+       interestRate: _toDouble(json['InterestRate']),
+       interestRateOther: _toDouble(
+@@ -187,7 +210,12 @@ class FinancingAdModel extends Equatable {
+       color: json['Color']?.toString(),
+       carImage: json['carimage']?.toString(),
+       displayBankName: json['BANK_NAME']?.toString(),
+-      InsurancePct: (json['InsurancePct'] as num?)?.toString(),
++      insurancePct: _toDouble(json['InsurancePct'] ?? json['insurancePct']),
++      insurancePctOther: _toDouble(
++        json['InsurancePctother'] ??
++            json['InsurancePctOther'] ??
++            json['insurancePctOther'],
++      ),
+       paintingsVal:
+           (json['PaintingsVal'] as num?)?.toDouble() ??
+           (json['PAINTINGS_VAL'] as num?)?.toDouble() ??
+@@ -215,8 +243,9 @@ class FinancingAdModel extends Equatable {
+               ? carImage!.split(',').first
+               : null);
+     if (rawPic == null || rawPic.isEmpty) return '';
+-    if (rawPic.startsWith('http://') || rawPic.startsWith('https://'))
++    if (rawPic.startsWith('http://') || rawPic.startsWith('https://')) {
+       return rawPic;
++    }
+     final cleaned = rawPic
+         .replaceAll('../../Img/Emp/', '')
+         .replaceAll('../..', '');
+@@ -238,8 +267,9 @@ class FinancingAdModel extends Equatable {
+   String? get displayBankImageUrl {
+     final rawPath = bankPicturePath?.trim();
+     if (rawPath == null || rawPath.isEmpty) return null;
+-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://'))
++    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
+       return rawPath;
++    }
+     final cleaned = rawPath
+         .replaceAll('../../Img/Emp/', '')
+         .replaceAll('../..', '');
+@@ -277,17 +307,49 @@ class FinancingAdModel extends Equatable {
+   }
+ 
+   double getEffectiveInterestRate({String? userSalaryBank}) {
+-    if (userSalaryBank != null && userSalaryBank.trim().isNotEmpty) {
+-      final activeBank = displayBankName ?? bankName;
+-      if (activeBank != null && !isSameBankName(userSalaryBank, activeBank)) {
+-        if (interestRateOther != null && interestRateOther! > 0) {
+-          return interestRateOther!;
+-        }
+-      }
++    if (usesOtherBankTerms(userSalaryBank: userSalaryBank) &&
++        interestRateOther != null) {
++      return interestRateOther!;
+     }
+     return interestRate ?? 0;
+   }
+ 
++  /// True when the customer salary is transferred to a bank other than the
++  /// offer bank. The API provides a separate set of terms for this case.
++  bool usesOtherBankTerms({String? userSalaryBank}) {
++    final salaryBank = userSalaryBank?.trim();
++    final offerBank = (displayBankName ?? bankName)?.trim();
++    return salaryBank != null &&
++        salaryBank.isNotEmpty &&
++        offerBank != null &&
++        offerBank.isNotEmpty &&
++        !isSameBankName(salaryBank, offerBank);
++  }
++
++  double firstInstallmentForBank({String? userSalaryBank}) =>
++      usesOtherBankTerms(userSalaryBank: userSalaryBank) &&
++          firstInstallmentPctOther != null
++      ? firstInstallmentPctOther!
++      : firstInstallmentPct ?? 0;
++
++  double lastInstallmentForBank({String? userSalaryBank}) =>
++      usesOtherBankTerms(userSalaryBank: userSalaryBank) &&
++          lastInstallmentPctOther != null
++      ? lastInstallmentPctOther!
++      : lastInstallmentPct ?? 0;
++
++  double adminFeesForBank({String? userSalaryBank}) =>
++      usesOtherBankTerms(userSalaryBank: userSalaryBank) &&
++          adminFeesPctOther != null
++      ? adminFeesPctOther!
++      : adminFeesPct ?? 0;
++
++  double insuranceForBank({String? userSalaryBank}) =>
++      usesOtherBankTerms(userSalaryBank: userSalaryBank) &&
++          insurancePctOther != null
++      ? insurancePctOther!
++      : insurancePct ?? 0;
++
+   double monthlyInstallmentForPrice(
+     double basePrice, {
+     double financingFee = 3000,
+@@ -300,12 +362,16 @@ class FinancingAdModel extends Equatable {
+         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+     final carPrice =
+         ((basePrice + financingFee) * (1 + vatPercentage / 100)) + platesVal;
+-    final downPaymentPercent = firstInstallmentPct ?? 0;
+-    final finalPaymentPercent = lastInstallmentPct ?? 0;
++    final downPaymentPercent = firstInstallmentForBank(
++      userSalaryBank: userSalaryBank,
++    );
++    final finalPaymentPercent = lastInstallmentForBank(
++      userSalaryBank: userSalaryBank,
++    );
+     final flatRatePercent = getEffectiveInterestRate(
+       userSalaryBank: userSalaryBank,
+     );
+-    final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
++    final insurancePercent = insuranceForBank(userSalaryBank: userSalaryBank);
+     final financeYears = months / 12;
+ 
+     final downPaymentAmount = (carPrice * downPaymentPercent) / 100;
+@@ -340,7 +406,7 @@ class FinancingAdModel extends Equatable {
+     final downPaymentPercent = firstInstallmentPct ?? 0;
+     final finalPaymentPercent = lastInstallmentPct ?? 0;
+     final flatRatePercent = interestRate ?? 0;
+-    final insurancePercent = double.tryParse(InsurancePct ?? '0') ?? 0;
++    final insurancePercent = insuranceForBank();
+     final financeYears = months / 12;
+ 
+     final downPaymentAmount = (carPrice * downPaymentPercent) / 100;
+@@ -414,6 +480,15 @@ class FinancingAdModel extends Equatable {
+     return (price ?? 0) * (1 + vatPercentage / 100);
+   }
+ 
++  /// Cash/financing base price: VAT is applied first, then the plate fee is
++  /// added as returned by the offers endpoint.
++  double priceWithVatAndPlates({double financingFee = 0}) {
++    final vatPercentage =
++        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
++    return ((price ?? 0) + financingFee) * (1 + vatPercentage / 100) +
++        (paintingsVal ?? 0);
++  }
++
+   Map<String, dynamic> toMap() {
+     return {
+       'name': itemName ?? modelName ?? programName ?? 'سيارة',
+@@ -455,8 +530,13 @@ class FinancingAdModel extends Equatable {
+       'InterestRate_other': interestRateOther,
+       'interestRateOther': interestRateOther,
+       'firstInstallmentPct': firstInstallmentPct,
++      'firstInstallmentPctOther': firstInstallmentPctOther,
+       'lastInstallmentPct': lastInstallmentPct,
++      'lastInstallmentPctOther': lastInstallmentPctOther,
+       'adminFeesPct': adminFeesPct,
++      'adminFeesPctOther': adminFeesPctOther,
++      'insurancePct': insurancePct,
++      'insurancePctOther': insurancePctOther,
+     };
+   }
+ 
+@@ -472,8 +552,11 @@ class FinancingAdModel extends Equatable {
+     startDate,
+     endDate,
+     firstInstallmentPct,
++    firstInstallmentPctOther,
+     lastInstallmentPct,
++    lastInstallmentPctOther,
+     adminFeesPct,
++    adminFeesPctOther,
+     programPic,
+     interestRate,
+     interestRateOther,
+@@ -485,5 +568,7 @@ class FinancingAdModel extends Equatable {
+     itemCode,
+     itemName,
+     carImage,
++    insurancePct,
++    insurancePctOther,
+   ];
+ }
+diff --git a/lib/features/home/presentation/cubit/home_cubit.dart b/lib/features/home/presentation/cubit/home_cubit.dart
+index 0856b70..27f3c1a 100644
+--- a/lib/features/home/presentation/cubit/home_cubit.dart
++++ b/lib/features/home/presentation/cubit/home_cubit.dart
+@@ -31,6 +31,7 @@ class HomeCubit extends Cubit<HomeState> {
+   int _brandCarsRequestId = 0;
+   Future<void>? _normalFinancingRequest;
+   final Set<String> _locallyReservedCarCodes = <String>{};
++  int _banksRequestId = 0;
+ 
+   HomeCubit(this.homeRepo) : super(const HomeState());
+ 
+@@ -357,9 +358,30 @@ class HomeCubit extends Cubit<HomeState> {
+     );
+   }
+ 
++  /// Runs the existing banks operation with an optional search value.
++  ///
++  /// A blank query (or clearing the field) restores the full bank list.
++  Future<void> searchBanks(String query) {
++    final normalizedQuery = query.trim();
++    return getBanks(searchVal: normalizedQuery.isEmpty ? null : normalizedQuery);
++  }
++
+   Future<void> getBanks({String? searchVal}) async {
++    final normalizedSearchVal =
++        (searchVal == null || searchVal.trim().isEmpty)
++        ? null
++        : searchVal.trim();
++
++    // Typing can fire searches faster than the server answers. Keep an id for
++    // the latest request so a slower, older response cannot overwrite the
++    // results for the query currently shown in the field.
++    final requestId = ++_banksRequestId;
++
+     emit(state.copyWith(banksStatus: const StatusState.loading()));
+-    final result = await homeRepo.getBanks(searchVal);
++    final result = await homeRepo.getBanks(normalizedSearchVal);
++
++    if (isClosed || requestId != _banksRequestId) return;
++
+     result.fold(
+       (failure) {
+         emit(
+diff --git a/lib/features/home/presentation/view/screen/guest_home_screen.dart b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+index 025abb9..1df0009 100644
+--- a/lib/features/home/presentation/view/screen/guest_home_screen.dart
++++ b/lib/features/home/presentation/view/screen/guest_home_screen.dart
+@@ -6,6 +6,7 @@ import 'package:car/core/utils/navigator_methods.dart';
+ import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+ import 'package:car/features/home/presentation/view/screen/main_layout.dart';
+ import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
++import 'package:car/features/home/presentation/view/widgets/banks_section_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
+ import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
+@@ -159,6 +160,8 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
+                   ),
+                   Gap(15.h),
+                   const PopularCarsSlider(),
++                  Gap(15.h),
++                  const BanksSectionWidget(),
+                   Gap(20.h),
+                 ],
+               ),
+diff --git a/lib/features/home/presentation/view/widgets/ad_card_widget.dart b/lib/features/home/presentation/view/widgets/ad_card_widget.dart
+index 2eee1f3..5ea4fe8 100644
+--- a/lib/features/home/presentation/view/widgets/ad_card_widget.dart
++++ b/lib/features/home/presentation/view/widgets/ad_card_widget.dart
+@@ -26,7 +26,8 @@ class AdCardWidget extends StatelessWidget {
+   int get _year => ad.modelYear ?? ad.makeYear ?? 0;
+ 
+   String _formattedPrice(BuildContext context) {
+-    final price = ad.price ?? 0;
++    // The plate fee is not subject to VAT, so it is added after the VAT price.
++    final price = ad.priceWithVatAndPlates();
+     if (price <= 0) return AppLocaleKey.priceOnRequest.tr();
+     return NumberFormat('#,##0', context.locale.languageCode).format(price);
+   }
+@@ -128,7 +129,9 @@ class AdCardWidget extends StatelessWidget {
+           height: 160.w,
+           decoration: BoxDecoration(
+             shape: BoxShape.circle,
+-            gradient: RadialGradient(colors: [_gold.withValues(alpha: 0.15), Colors.transparent]),
++            gradient: RadialGradient(
++              colors: [_gold.withValues(alpha: 0.15), Colors.transparent],
++            ),
+           ),
+         ),
+       ),
+@@ -154,7 +157,9 @@ class AdCardWidget extends StatelessWidget {
+             decoration: BoxDecoration(
+               color: AppColor.whiteColor(context).withValues(alpha: 0.12),
+               borderRadius: BorderRadius.circular(20.r),
+-              border: Border.all(color: AppColor.whiteColor(context).withValues(alpha: 0.2)),
++              border: Border.all(
++                color: AppColor.whiteColor(context).withValues(alpha: 0.2),
++              ),
+             ),
+             child: Text(
+               '$_year',
+@@ -199,9 +204,12 @@ class AdCardWidget extends StatelessWidget {
+                 ),
+                 TextSpan(
+                   text: '$pctLabel%',
+-                  style: AppTextStyle.bodyMedium(
+-                    context,
+-                  ).copyWith(color: _gold, fontWeight: FontWeight.w900, fontSize: 34.sp, height: 1),
++                  style: AppTextStyle.bodyMedium(context).copyWith(
++                    color: _gold,
++                    fontWeight: FontWeight.w900,
++                    fontSize: 34.sp,
++                    height: 1,
++                  ),
+                 ),
+               ],
+             ),
+@@ -210,7 +218,9 @@ class AdCardWidget extends StatelessWidget {
+             Padding(
+               padding: EdgeInsets.only(top: 2.h),
+               child: Text(
+-                AppLocaleKey.adLastPayment.tr(namedArgs: {'value': _lastPct.toStringAsFixed(0)}),
++                AppLocaleKey.adLastPayment.tr(
++                  namedArgs: {'value': _lastPct.toStringAsFixed(0)},
++                ),
+                 style: AppTextStyle.bodySmall(context).copyWith(
+                   color: AppColor.whiteColor(context).withValues(alpha: 0.85),
+                   fontWeight: FontWeight.w600,
+@@ -240,7 +250,10 @@ class AdCardWidget extends StatelessWidget {
+       width: 0.6.sw,
+       child: Row(
+         children: [
+-          for (int i = 0; i < chips.length; i++) ...[if (i != 0) Gap(8.w), chips[i]],
++          for (int i = 0; i < chips.length; i++) ...[
++            if (i != 0) Gap(8.w),
++            chips[i],
++          ],
+         ],
+       ),
+     );
+@@ -249,7 +262,11 @@ class AdCardWidget extends StatelessWidget {
+   Widget _buildFooter(BuildContext context) {
+     return Row(
+       children: [
+-        Icon(Icons.directions_car_filled_rounded, color: AppColor.whiteColor(context), size: 16.sp),
++        Icon(
++          Icons.directions_car_filled_rounded,
++          color: AppColor.whiteColor(context),
++          size: 16.sp,
++        ),
+         Gap(6.w),
+         Column(
+           crossAxisAlignment: CrossAxisAlignment.start,
+@@ -275,9 +292,10 @@ class AdCardWidget extends StatelessWidget {
+         if ((ad.endDate ?? '').isNotEmpty)
+           Text(
+             AppLocaleKey.adUntil.tr(namedArgs: {'date': ad.endDate ?? ''}),
+-            style: AppTextStyle.bodySmall(
+-              context,
+-            ).copyWith(color: AppColor.whiteColor(context).withValues(alpha: 0.6), fontSize: 9.sp),
++            style: AppTextStyle.bodySmall(context).copyWith(
++              color: AppColor.whiteColor(context).withValues(alpha: 0.6),
++              fontSize: 9.sp,
++            ),
+           ),
+       ],
+     );
+@@ -289,7 +307,11 @@ class _StatChip extends StatelessWidget {
+   final String label;
+   final Color gold;
+ 
+-  const _StatChip({required this.value, required this.label, required this.gold});
++  const _StatChip({
++    required this.value,
++    required this.label,
++    required this.gold,
++  });
+ 
+   @override
+   Widget build(BuildContext context) {
+@@ -299,15 +321,19 @@ class _StatChip extends StatelessWidget {
+         decoration: BoxDecoration(
+           color: AppColor.whiteColor(context).withValues(alpha: 0.1),
+           borderRadius: BorderRadius.circular(12.r),
+-          border: Border.all(color: AppColor.whiteColor(context).withValues(alpha: 0.14)),
++          border: Border.all(
++            color: AppColor.whiteColor(context).withValues(alpha: 0.14),
++          ),
+         ),
+         child: Column(
+           children: [
+             Text(
+               value,
+-              style: AppTextStyle.bodySmall(
+-                context,
+-              ).copyWith(color: gold, fontWeight: FontWeight.w800, fontSize: 12.sp),
++              style: AppTextStyle.bodySmall(context).copyWith(
++                color: gold,
++                fontWeight: FontWeight.w800,
++                fontSize: 12.sp,
++              ),
+             ),
+             Text(
+               label,
+diff --git a/lib/features/services/presentation/screen/financing_screen.dart b/lib/features/services/presentation/screen/financing_screen.dart
+index 4883a8b..d0e95d6 100644
+--- a/lib/features/services/presentation/screen/financing_screen.dart
++++ b/lib/features/services/presentation/screen/financing_screen.dart
+@@ -111,7 +111,7 @@ class _FinancingScreenState extends State<FinancingScreen>
+   }
+ 
+   double get _insurancePercent =>
+-      double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
++      _activeOffer?.insuranceForBank(userSalaryBank: _bankCtrl.text) ?? 0;
+ 
+   double get _financedAmount {
+     final financed = _carPrice - _downPayment;
+@@ -161,18 +161,29 @@ class _FinancingScreenState extends State<FinancingScreen>
+     final double priceWithVat = widget.initialPriceIncludesVat
+         ? priceWithFee
+         : priceWithFee * (1 + vatPercentage / 100);
++    // Plates are added after VAT, as supplied by the offers endpoint.
+     _carPrice = priceWithVat + platesVal;
+ 
+     _downPayment =
+         widget.initialDownPayment ??
+-        (_carPrice * ((_activeOffer?.firstInstallmentPct ?? 0) / 100));
++        (_carPrice *
++            ((_activeOffer?.firstInstallmentForBank(
++                      userSalaryBank: _bankCtrl.text,
++                    ) ??
++                    0) /
++                100));
+     _durationYears =
+         (widget.initialDuration ??
+                 ((_activeOffer?.totalMonths ?? 60) / 12).round())
+             .clamp(1, 5);
+     _lastPayment =
+         widget.initialLastPayment ??
+-        (_carPrice * ((_activeOffer?.lastInstallmentPct ?? 0) / 100));
++        (_carPrice *
++            ((_activeOffer?.lastInstallmentForBank(
++                      userSalaryBank: _bankCtrl.text,
++                    ) ??
++                    0) /
++                100));
+ 
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       final homeCubit = context.read<HomeCubit>();
+@@ -240,9 +251,15 @@ class _FinancingScreenState extends State<FinancingScreen>
+             interestRate: _isOffer ? _apr : null,
+             isOffer: _isOffer,
+             bankName: _activeOffer?.displayBankName,
+-            firstInstallmentPct: _activeOffer?.firstInstallmentPct,
+-            lastInstallmentPct: _activeOffer?.lastInstallmentPct,
+-            adminFeesPct: _activeOffer?.adminFeesPct,
++            firstInstallmentPct: _activeOffer?.firstInstallmentForBank(
++              userSalaryBank: _bankCtrl.text,
++            ),
++            lastInstallmentPct: _activeOffer?.lastInstallmentForBank(
++              userSalaryBank: _bankCtrl.text,
++            ),
++            adminFeesPct: _activeOffer?.adminFeesForBank(
++              userSalaryBank: _bankCtrl.text,
++            ),
+             userSalaryBank: _bankCtrl.text.trim(),
+             offers: widget.offers,
+             initialOffer: _activeOffer,
+diff --git a/lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart b/lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart
+index 0f52dcf..3a00834 100644
+--- a/lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart
++++ b/lib/features/services/presentation/widgets/financing_calculator_bottom_sheet.dart
+@@ -49,10 +49,12 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
+   });
+ 
+   @override
+-  State<FinancingCalculatorBottomSheet> createState() => _FinancingCalculatorBottomSheetState();
++  State<FinancingCalculatorBottomSheet> createState() =>
++      _FinancingCalculatorBottomSheetState();
+ }
+ 
+-class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBottomSheet> {
++class _FinancingCalculatorBottomSheetState
++    extends State<FinancingCalculatorBottomSheet> {
+   late int _durationYears;
+   late double _downPayment;
+   late double _lastPayment;
+@@ -63,7 +65,11 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+   List<FinancingAdModel> get _availableOffers {
+     if (widget.offers.isNotEmpty) return widget.offers;
+     try {
+-      final cubitOffers = context.read<HomeCubit>().state.normalFinancingStatus.data;
++      final cubitOffers = context
++          .read<HomeCubit>()
++          .state
++          .normalFinancingStatus
++          .data;
+       if (cubitOffers != null && cubitOffers.isNotEmpty) return cubitOffers;
+     } catch (_) {}
+     return const [];
+@@ -79,7 +85,8 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+       if (userBank.isNotEmpty) {
+         final offerBank = offer.displayBankName ?? offer.bankName;
+         final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
+-        if (!isSame && (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
++        if (!isSame &&
++            (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
+           return offer.interestRateOther!;
+         }
+       }
+@@ -113,7 +120,9 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+     super.dispose();
+   }
+ 
+-  double get _insurancePercent => double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
++  double get _insurancePercent =>
++      _activeOffer?.insuranceForBank(userSalaryBank: widget.userSalaryBank) ??
++      0;
+ 
+   double get _financedAmount {
+     final financed = widget.carPrice - _downPayment;
+@@ -133,7 +142,11 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+   }
+ 
+   double get _adminFees =>
+-      _financedAmount * ((_activeOffer?.adminFeesPct ?? widget.adminFeesPct ?? 0) / 100);
++      _financedAmount *
++      ((_activeOffer?.adminFeesForBank(userSalaryBank: widget.userSalaryBank) ??
++              widget.adminFeesPct ??
++              0) /
++          100);
+ 
+   double get _totalPrice =>
+       widget.carPrice + _totalInterest + _totalInsurance + _adminFees;
+@@ -141,8 +154,14 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+   void _selectOffer(FinancingAdModel offer) {
+     setState(() {
+       _selectedOffer = offer;
+-      _downPayment = widget.carPrice * (offer.firstInstallmentPct ?? 0) / 100;
+-      _lastPayment = widget.carPrice * (offer.lastInstallmentPct ?? 0) / 100;
++      _downPayment =
++          widget.carPrice *
++          offer.firstInstallmentForBank(userSalaryBank: widget.userSalaryBank) /
++          100;
++      _lastPayment =
++          widget.carPrice *
++          offer.lastInstallmentForBank(userSalaryBank: widget.userSalaryBank) /
++          100;
+       _downPaymentCtrl.text = _formatAmount(_downPayment);
+       _lastPaymentCtrl.text = _formatAmount(_lastPayment);
+     });
+@@ -156,11 +175,21 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+ 
+   double get _maxDownPayment => widget.isOffer
+       ? widget.carPrice *
+-            ((_activeOffer?.firstInstallmentPct ?? widget.firstInstallmentPct ?? 0) / 100)
++            ((_activeOffer?.firstInstallmentForBank(
++                      userSalaryBank: widget.userSalaryBank,
++                    ) ??
++                    widget.firstInstallmentPct ??
++                    0) /
++                100)
+       : widget.carPrice * 0.35;
+   double get _maxLastPayment => widget.isOffer
+       ? widget.carPrice *
+-            ((_activeOffer?.lastInstallmentPct ?? widget.lastInstallmentPct ?? 0) / 100)
++            ((_activeOffer?.lastInstallmentForBank(
++                      userSalaryBank: widget.userSalaryBank,
++                    ) ??
++                    widget.lastInstallmentPct ??
++                    0) /
++                100)
+       : widget.carPrice * 0.45;
+ 
+   @override
+@@ -200,7 +229,11 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                       color: AppColor.borderColor(context),
+                       shape: BoxShape.circle,
+                     ),
+-                    child: Icon(Icons.close, size: 16.sp, color: AppColor.blackTextColor(context)),
++                    child: Icon(
++                      Icons.close,
++                      size: 16.sp,
++                      color: AppColor.blackTextColor(context),
++                    ),
+                   ),
+                 ),
+ 
+@@ -254,23 +287,31 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                             itemBuilder: (context, index) {
+                               final offer = offersList[index];
+                               final isSelected =
+-                                  identical(_activeOffer, offer) || _selectedOffer == offer;
++                                  identical(_activeOffer, offer) ||
++                                  _selectedOffer == offer;
+                               final bankTitle = offer.bankName ?? 'البنك';
+ 
+                               return GestureDetector(
+                                 onTap: () => _selectOffer(offer),
+                                 child: AnimatedContainer(
+                                   duration: const Duration(milliseconds: 250),
+-                                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
++                                  padding: EdgeInsets.symmetric(
++                                    horizontal: 14.w,
++                                    vertical: 8.h,
++                                  ),
+                                   decoration: BoxDecoration(
+                                     color: isSelected
+-                                        ? AppColor.primaryColor(context).withValues(alpha: 0.12)
++                                        ? AppColor.primaryColor(
++                                            context,
++                                          ).withValues(alpha: 0.12)
+                                         : AppColor.cardColor(context),
+                                     borderRadius: BorderRadius.circular(14.r),
+                                     border: Border.all(
+                                       color: isSelected
+                                           ? AppColor.primaryColor(context)
+-                                          : AppColor.borderColor(context).withValues(alpha: 0.6),
++                                          : AppColor.borderColor(
++                                              context,
++                                            ).withValues(alpha: 0.6),
+                                       width: isSelected ? 1.8 : 1.0,
+                                     ),
+                                     boxShadow: isSelected
+@@ -285,7 +326,9 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                           ]
+                                         : [
+                                             BoxShadow(
+-                                              color: Colors.black.withValues(alpha: 0.02),
++                                              color: Colors.black.withValues(
++                                                alpha: 0.02,
++                                              ),
+                                               blurRadius: 4,
+                                               offset: const Offset(0, 2),
+                                             ),
+@@ -298,7 +341,9 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                         Container(
+                                           padding: EdgeInsets.all(2.w),
+                                           decoration: BoxDecoration(
+-                                            color: AppColor.primaryColor(context),
++                                            color: AppColor.primaryColor(
++                                              context,
++                                            ),
+                                             shape: BoxShape.circle,
+                                           ),
+                                           child: Icon(
+@@ -311,17 +356,25 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                       ],
+                                       Text(
+                                         bankTitle,
+-                                        style: AppTextStyle.bodyMedium(context).copyWith(
+-                                          fontWeight: isSelected
+-                                              ? FontWeight.w900
+-                                              : FontWeight.w700,
+-                                          color: isSelected
+-                                              ? AppColor.primaryColor(context)
+-                                              : AppColor.blackTextColor(context),
+-                                          fontSize: 13.sp,
+-                                        ),
++                                        style: AppTextStyle.bodyMedium(context)
++                                            .copyWith(
++                                              fontWeight: isSelected
++                                                  ? FontWeight.w900
++                                                  : FontWeight.w700,
++                                              color: isSelected
++                                                  ? AppColor.primaryColor(
++                                                      context,
++                                                    )
++                                                  : AppColor.blackTextColor(
++                                                      context,
++                                                    ),
++                                              fontSize: 13.sp,
++                                            ),
+                                       ),
+-                                      if (offer.displayBankImageUrl?.isNotEmpty == true) ...[
++                                      if (offer
++                                              .displayBankImageUrl
++                                              ?.isNotEmpty ==
++                                          true) ...[
+                                         Gap(10.w),
+                                         Container(
+                                           width: 30.w,
+@@ -339,14 +392,18 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                           ),
+                                           padding: EdgeInsets.all(2.w),
+                                           child: ClipRRect(
+-                                            borderRadius: BorderRadius.circular(15.r),
++                                            borderRadius: BorderRadius.circular(
++                                              15.r,
++                                            ),
+                                             child: Image.network(
+                                               offer.displayBankImageUrl!,
+                                               fit: BoxFit.cover,
+                                               errorBuilder: (_, __, ___) => Icon(
+                                                 Icons.account_balance_rounded,
+                                                 size: 14.sp,
+-                                                color: AppColor.primaryColor(context),
++                                                color: AppColor.primaryColor(
++                                                  context,
++                                                ),
+                                               ),
+                                             ),
+                                           ),
+@@ -362,12 +419,19 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                         Gap(10.h),
+                         // Institution disclaimer
+                         Container(
+-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
++                          padding: EdgeInsets.symmetric(
++                            horizontal: 10.w,
++                            vertical: 8.h,
++                          ),
+                           decoration: BoxDecoration(
+-                            color: AppColor.greyColor(context).withValues(alpha: 0.07),
++                            color: AppColor.greyColor(
++                              context,
++                            ).withValues(alpha: 0.07),
+                             borderRadius: BorderRadius.circular(8.r),
+                             border: Border.all(
+-                              color: AppColor.greyColor(context).withValues(alpha: 0.18),
++                              color: AppColor.greyColor(
++                                context,
++                              ).withValues(alpha: 0.18),
+                             ),
+                           ),
+                           child: Row(
+@@ -384,11 +448,12 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                   context.locale.languageCode == 'ar'
+                                       ? 'تُستخدم أسماء الجهات الظاهرة لأغراض الحساب فقط، ولا تمثل عرضًا تمويليًا أو توصية أو مقارنة بين الجهات التمويلية.'
+                                       : 'Institution names are displayed for calculation reference only and do not constitute a financing offer, recommendation, or comparison between financial institutions.',
+-                                  style: AppTextStyle.bodySmall(context).copyWith(
+-                                    color: AppColor.greyColor(context),
+-                                    fontSize: 9.5.sp,
+-                                    height: 1.55,
+-                                  ),
++                                  style: AppTextStyle.bodySmall(context)
++                                      .copyWith(
++                                        color: AppColor.greyColor(context),
++                                        fontSize: 9.5.sp,
++                                        height: 1.55,
++                                      ),
+                                   textAlign: context.locale.languageCode == 'ar'
+                                       ? TextAlign.right
+                                       : TextAlign.left,
+@@ -452,12 +517,13 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                               children: [
+                                 Text(
+                                   '$year',
+-                                  style: AppTextStyle.bodyLarge(context).copyWith(
+-                                    color: isSelected
+-                                        ? AppColor.whiteColor(context)
+-                                        : AppColor.blackTextColor(context),
+-                                    fontWeight: FontWeight.w900,
+-                                  ),
++                                  style: AppTextStyle.bodyLarge(context)
++                                      .copyWith(
++                                        color: isSelected
++                                            ? AppColor.whiteColor(context)
++                                            : AppColor.blackTextColor(context),
++                                        fontWeight: FontWeight.w900,
++                                      ),
+                                 ),
+                                 Text(
+                                   year == 1
+@@ -465,12 +531,13 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                                       : year == 2
+                                       ? 'سنتين'
+                                       : 'سنوات',
+-                                  style: AppTextStyle.bodySmall(context).copyWith(
+-                                    color: isSelected
+-                                        ? AppColor.whiteColor(context)
+-                                        : AppColor.greyColor(context),
+-                                    fontSize: 10.sp,
+-                                  ),
++                                  style: AppTextStyle.bodySmall(context)
++                                      .copyWith(
++                                        color: isSelected
++                                            ? AppColor.whiteColor(context)
++                                            : AppColor.greyColor(context),
++                                        fontSize: 10.sp,
++                                      ),
+                                 ),
+                               ],
+                             ),
+@@ -489,8 +556,14 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                         // allowing the customer to see the installment for a different
+                         // first-payment amount.
+                         readOnly: false,
+-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
++                        keyboardType: const TextInputType.numberWithOptions(
++                          decimal: true,
++                        ),
++                        inputFormatters: [
++                          FilteringTextInputFormatter.allow(
++                            RegExp(r'^\d+\.?\d*'),
++                          ),
++                        ],
+                         hintText: '0.0',
+                         onChanged: (v) {
+                           setState(() {
+@@ -517,9 +590,10 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                     child: ValueWithCurrencyIcon(
+                       text:
+                           '${AppLocaleKey.agentFirstPayment.tr()}:${fmt.format(_maxDownPayment.round())} ${AppLocaleKey.sar.tr()}',
+-                      textStyle: AppTextStyle.bodySmall(
+-                        context,
+-                      ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
++                      textStyle: AppTextStyle.bodySmall(context).copyWith(
++                        color: AppColor.greyColor(context),
++                        fontSize: 11.sp,
++                      ),
+                     ),
+                   ),
+                   Gap(20.h),
+@@ -527,8 +601,12 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                     title: AppLocaleKey.agentLastPayment.tr(),
+                     controller: _lastPaymentCtrl,
+                     readOnly: false,
+-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*'))],
++                    keyboardType: const TextInputType.numberWithOptions(
++                      decimal: true,
++                    ),
++                    inputFormatters: [
++                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
++                    ],
+                     hintText: '0.0',
+                     suffixIcon: Padding(
+                       padding: const EdgeInsets.only(top: 8.0),
+@@ -553,9 +631,10 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+                     child: ValueWithCurrencyIcon(
+                       text:
+                           '${AppLocaleKey.agentLastPaymentDesc.tr()} : ${fmt.format(_maxLastPayment.round())} ${AppLocaleKey.sar.tr()}',
+-                      textStyle: AppTextStyle.bodySmall(
+-                        context,
+-                      ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
++                      textStyle: AppTextStyle.bodySmall(context).copyWith(
++                        color: AppColor.greyColor(context),
++                        fontSize: 11.sp,
++                      ),
+                     ),
+                   ),
+                   Gap(24.h),
+@@ -578,9 +657,10 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
+ 
+                     child: Text(
+                       AppLocaleKey.agentBuyNow.tr(),
+-                      style: AppTextStyle.bodyMedium(
+-                        context,
+-                      ).copyWith(fontWeight: FontWeight.w700, color: AppColor.whiteColor(context)),
++                      style: AppTextStyle.bodyMedium(context).copyWith(
++                        fontWeight: FontWeight.w700,
++                        color: AppColor.whiteColor(context),
++                      ),
+                     ),
+                   ),
+                   Gap(8.h),

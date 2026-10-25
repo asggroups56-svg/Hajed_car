@@ -1,11 +1,9 @@
-import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/buttons/custom_button.dart';
 import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
-import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/services/presentation/widgets/custom_monthly_installment_card_widget.dart';
@@ -17,13 +15,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 
 class FinancingCalculatorBottomSheet extends StatefulWidget {
-  final double carPrice;
+  /// Car price including VAT and the fixed financing fee.
+  final double priceWithVat;
   final double initialDownPayment;
   final double initialLastPayment;
   final int initialDuration;
   final double? interestRate;
-  final bool isOffer;
-  final String? bankName;
   final double? firstInstallmentPct;
   final double? lastInstallmentPct;
   final double? adminFeesPct;
@@ -33,13 +30,11 @@ class FinancingCalculatorBottomSheet extends StatefulWidget {
 
   const FinancingCalculatorBottomSheet({
     super.key,
-    required this.carPrice,
+    required this.priceWithVat,
     this.initialDownPayment = 0,
     this.initialLastPayment = 0,
     this.initialDuration = 5,
     this.interestRate,
-    this.isOffer = false,
-    this.bankName,
     this.firstInstallmentPct,
     this.lastInstallmentPct,
     this.adminFeesPct,
@@ -72,20 +67,16 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
   static const double _defaultApr = 4.5;
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.initialOffer;
 
+  /// Total car price (fee + VAT + plates). Percentage-based payments and
+  /// insurance are calculated on this amount.
+  double get _totalCarPrice => widget.priceWithVat;
+
   double get _apr {
-    final userBank = widget.userSalaryBank?.trim() ?? '';
     final offer = _activeOffer;
-    if (offer != null) {
-      if (userBank.isNotEmpty) {
-        final offerBank = offer.displayBankName ?? offer.bankName;
-        final isSame = FinancingAdModel.isSameBankName(userBank, offerBank);
-        if (!isSame && (offer.interestRateOther != null && offer.interestRateOther! > 0)) {
-          return offer.interestRateOther!;
-        }
-      }
-      return offer.interestRate ?? widget.interestRate ?? _defaultApr;
-    }
-    return widget.interestRate ?? _defaultApr;
+    if (offer == null) return widget.interestRate ?? _defaultApr;
+    final rate = offer.getEffectiveInterestRate(userSalaryBank: widget.userSalaryBank);
+    if (rate > 0) return rate;
+    return offer.interestRate ?? widget.interestRate ?? _defaultApr;
   }
 
   static String _formatAmount(double val) {
@@ -113,10 +104,11 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
     super.dispose();
   }
 
-  double get _insurancePercent => double.tryParse(_activeOffer?.InsurancePct ?? '0') ?? 0;
+  double get _insurancePercent =>
+      _activeOffer?.insuranceForBank(userSalaryBank: widget.userSalaryBank) ?? 0;
 
   double get _financedAmount {
-    final financed = widget.carPrice - _downPayment;
+    final financed = _totalCarPrice - _downPayment;
     return financed > 0 ? financed : 0;
   }
 
@@ -125,26 +117,40 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
   }
 
   double get _totalInsurance {
-    return _financedAmount * (_insurancePercent / 100) * _durationYears;
-  }
-
-  double get _totalFinancedWithInterest {
-    return _financedAmount + _totalInterest + _totalInsurance;
+    // Insurance is charged on the full VAT-inclusive car price.
+    return _totalCarPrice * (_insurancePercent / 100) * _durationYears;
   }
 
   double get _adminFees =>
-      _financedAmount * ((_activeOffer?.adminFeesPct ?? widget.adminFeesPct ?? 0) / 100);
+      _financedAmount *
+      ((_activeOffer?.adminFeesForBank(userSalaryBank: widget.userSalaryBank) ??
+              widget.adminFeesPct ??
+              0) /
+          100);
 
-  double get _totalPrice =>
-      widget.carPrice + _totalInterest + _totalInsurance + _adminFees;
+  double get _totalFinancedWithInterest {
+    return _financedAmount + _totalInterest + _totalInsurance + _adminFees;
+  }
+
+  double get _totalPrice => _totalCarPrice + _totalInterest + _totalInsurance + _adminFees;
+
+  /// Applies the active offer percentages to the first/last payment fields.
+  /// The salary bank selected on the work-info tab decides which terms apply.
+  void _applyOfferTerms() {
+    final offer = _activeOffer;
+    if (offer == null) return;
+    _downPayment =
+        _totalCarPrice * offer.firstInstallmentForBank(userSalaryBank: widget.userSalaryBank) / 100;
+    _lastPayment =
+        _totalCarPrice * offer.lastInstallmentForBank(userSalaryBank: widget.userSalaryBank) / 100;
+    _downPaymentCtrl.text = _formatAmount(_downPayment);
+    _lastPaymentCtrl.text = _formatAmount(_lastPayment);
+  }
 
   void _selectOffer(FinancingAdModel offer) {
     setState(() {
       _selectedOffer = offer;
-      _downPayment = widget.carPrice * (offer.firstInstallmentPct ?? 0) / 100;
-      _lastPayment = widget.carPrice * (offer.lastInstallmentPct ?? 0) / 100;
-      _downPaymentCtrl.text = _formatAmount(_downPayment);
-      _lastPaymentCtrl.text = _formatAmount(_lastPayment);
+      _applyOfferTerms();
     });
   }
 
@@ -154,14 +160,46 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
     return remaining > 0 ? (remaining / (_durationYears * 12)) : 0;
   }
 
-  double get _maxDownPayment => widget.isOffer
-      ? widget.carPrice *
-            ((_activeOffer?.firstInstallmentPct ?? widget.firstInstallmentPct ?? 0) / 100)
-      : widget.carPrice * 0.35;
-  double get _maxLastPayment => widget.isOffer
-      ? widget.carPrice *
-            ((_activeOffer?.lastInstallmentPct ?? widget.lastInstallmentPct ?? 0) / 100)
-      : widget.carPrice * 0.45;
+  double get _maxDownPayment {
+    final offer = _activeOffer;
+    final percent = offer != null
+        ? offer.firstInstallmentForBank(userSalaryBank: widget.userSalaryBank)
+        : widget.firstInstallmentPct;
+    // Standard financing keeps its own percentage when no offer is selected.
+    return _totalCarPrice * ((percent ?? 35) / 100);
+  }
+
+  double get _maxLastPayment {
+    final offer = _activeOffer;
+    final percent = offer != null
+        ? offer.lastInstallmentForBank(userSalaryBank: widget.userSalaryBank)
+        : widget.lastInstallmentPct;
+    // Standard financing keeps its own percentage when no offer is selected.
+    return _totalCarPrice * ((percent ?? 45) / 100);
+  }
+
+  Widget _buildOfferTerms(BuildContext context, FinancingAdModel offer) {
+    final salaryBank = widget.userSalaryBank?.trim();
+    if (salaryBank == null || salaryBank.isEmpty) return const SizedBox.shrink();
+
+    final isOtherBank = offer.isOtherBank(userSalaryBank: salaryBank);
+
+    return Wrap(
+      spacing: 8.w,
+      runSpacing: 6.h,
+      children: [
+        _OfferTermPill(
+          label: isOtherBank
+              ? AppLocaleKey.adOtherBankTerms.tr()
+              : AppLocaleKey.adTransferredBankTerms.tr(),
+          icon: isOtherBank
+              ? Icons.swap_horiz_rounded
+              : Icons.check_circle_outline_rounded,
+          highlight: isOtherBank,
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +293,10 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                               final offer = offersList[index];
                               final isSelected =
                                   identical(_activeOffer, offer) || _selectedOffer == offer;
-                              final bankTitle = offer.bankName ?? 'البنك';
+                              final bankTitle =
+                                  offer.offerBankName ??
+                                  offer.programName ??
+                                  AppLocaleKey.bank.tr();
 
                               return GestureDetector(
                                 onTap: () => _selectOffer(offer),
@@ -343,7 +384,7 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                                             child: Image.network(
                                               offer.displayBankImageUrl!,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Icon(
+                                              errorBuilder: (context, error, stackTrace) => Icon(
                                                 Icons.account_balance_rounded,
                                                 size: 14.sp,
                                                 color: AppColor.primaryColor(context),
@@ -359,6 +400,8 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                             },
                           ),
                         ),
+                        Gap(10.h),
+                        if (_activeOffer != null) _buildOfferTerms(context, _activeOffer!),
                         Gap(10.h),
                         // Institution disclaimer
                         Container(
@@ -399,20 +442,7 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                         ),
                         Gap(16.h),
                       ],
-                    )
-                  else if (widget.bankName?.isNotEmpty == true) ...[
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '${AppLocaleKey.bank.tr()}: ${widget.bankName}',
-                        style: AppTextStyle.bodyMedium(context).copyWith(
-                          color: AppColor.primaryColor(context),
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
                     ),
-                    Gap(12.h),
-                  ],
 
                   Align(
                     alignment: Alignment.centerRight,
@@ -564,16 +594,12 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                     radius: 12.r,
                     color: AppColor.greenColor(context),
                     onPressed: () {
-                      if (HiveMethods.getToken() == null) {
-                        CommonMethods.showLoginRequiredDialog(context);
-                      } else {
-                        Navigator.pop(context, {
-                          'duration': _durationYears,
-                          'down': _downPayment,
-                          'last': _lastPayment,
-                          'offer': _activeOffer,
-                        });
-                      }
+                      Navigator.pop(context, {
+                        'duration': _durationYears,
+                        'down': _downPayment,
+                        'last': _lastPayment,
+                        'offer': _activeOffer,
+                      });
                     },
 
                     child: Text(
@@ -587,6 +613,40 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OfferTermPill extends StatelessWidget {
+  const _OfferTermPill({required this.label, required this.icon, this.highlight = false});
+
+  final String label;
+  final IconData icon;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = highlight ? AppColor.primaryColor(context) : AppColor.greyColor(context);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: highlight ? 0.12 : 0.07),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11.sp, color: color),
+          Gap(4.w),
+          Text(
+            label,
+            style: AppTextStyle.bodySmall(
+              context,
+            ).copyWith(color: color, fontSize: 10.sp, fontWeight: FontWeight.w700),
           ),
         ],
       ),

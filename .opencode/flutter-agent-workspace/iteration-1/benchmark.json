@@ -1,0 +1,485 @@
+{
+  "metadata": {
+    "skill_name": "flutter-agent",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-10-23T18:04:31Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A section widget and a separate offer-card widget file exist under home widgets",
+          "passed": true,
+          "evidence": "new widget files: ['financing_offer_card_widget.dart', 'financing_offers_section_widget.dart']"
+        },
+        {
+          "text": "The section is mounted directly after AdsSliderWidget in guest_home_screen",
+          "passed": true,
+          "evidence": "inspected guest_home_screen composition order"
+        },
+        {
+          "text": "Data comes from HomeState.financingAdsStatus, not a widget API call",
+          "passed": true,
+          "evidence": "financingAdsStatus found in section; no Dio/ApiConsumer/http in UI files"
+        },
+        {
+          "text": "Loading, empty and failure states are handled, with retry through the cubit",
+          "passed": true,
+          "evidence": "status branches + retry call inspected"
+        },
+        {
+          "text": "Card tap opens the financing screen through the app route helper",
+          "passed": true,
+          "evidence": "RoutesName.financingScreen + NavigatorMethods found"
+        },
+        {
+          "text": "All new user-visible strings use localization keys present in both ar.json and en.json",
+          "passed": true,
+          "evidence": "keys used: ['financingOfferFallback', 'financingOffersEmpty', 'financingOffersSectionTitle', 'monthlyInstallment', 'sar']; missing: []"
+        },
+        {
+          "text": "New UI reuses core loading/empty/error widgets instead of inventing new ones",
+          "passed": true,
+          "evidence": "core state widgets referenced in section"
+        },
+        {
+          "text": "New UI uses theme colors/text styles and ScreenUtil rather than raw values",
+          "passed": true,
+          "evidence": "no raw Colors/Color(0x); uses .w/.h/.r, AppColor, AppTextStyle"
+        },
+        {
+          "text": "guest_home_screen stays a thin composition (few added lines)",
+          "passed": true,
+          "evidence": "added lines in screen diff: 3"
+        },
+        {
+          "text": "No dependency change and no new analyzer issues on touched paths",
+          "passed": true,
+          "evidence": "pubspec untouched; analyzer count matched the 146-issue baseline"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9167,
+        "passed": 11,
+        "failed": 1,
+        "total": 12,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Reuses the existing banks repository/endpoint instead of adding a duplicate",
+          "passed": true,
+          "evidence": "HomeCubit -> HomeRepo.getBanks -> EndPoints.customer reused"
+        },
+        {
+          "text": "Typing is debounced (300ms or more)",
+          "passed": true,
+          "evidence": "debounce timer found"
+        },
+        {
+          "text": "A stale-response guard prevents older responses from overwriting newer ones",
+          "passed": true,
+          "evidence": "request-id guard found in HomeCubit"
+        },
+        {
+          "text": "Cubit does not emit after it is closed",
+          "passed": true,
+          "evidence": "isClosed guard in cubit: True"
+        },
+        {
+          "text": "Clearing the field restores the full bank list",
+          "passed": true,
+          "evidence": "clear handler resets to empty query and reloads banks"
+        },
+        {
+          "text": "Search field sits above the banks slider and updates the existing slider",
+          "passed": true,
+          "evidence": "screen mounts the section; section renders BanksSliderWidget"
+        },
+        {
+          "text": "Refresh/resume keeps the active query and the displayed list consistent",
+          "passed": false,
+          "evidence": "query stored in state and reused by refreshHomeData: False"
+        },
+        {
+          "text": "Loading, empty and error states are handled",
+          "passed": true,
+          "evidence": "status branches inspected"
+        },
+        {
+          "text": "No API call is made from widget code",
+          "passed": true,
+          "evidence": "no Dio/ApiConsumer/http in new UI files"
+        },
+        {
+          "text": "All new user-visible strings are localized in both languages",
+          "passed": true,
+          "evidence": "keys used: ['noBanksFound', 'searchBanksClear', 'searchBanksHint']; missing: []"
+        },
+        {
+          "text": "Reuses the core loading/empty/error widgets rather than new lookalikes",
+          "passed": true,
+          "evidence": "core state widgets referenced"
+        },
+        {
+          "text": "No new analyzer issues on the touched paths",
+          "passed": true,
+          "evidence": "flutter analyze: 146 issues before and after (no new errors)"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A dedicated home search/filter widget file exists under home widgets",
+          "passed": true,
+          "evidence": "new widget files: ['home_search_bar_widget.dart']"
+        },
+        {
+          "text": "guest_home_screen uses the extracted widget and no longer inlines the search/filter UI",
+          "passed": true,
+          "evidence": "screen imports/uses the new widget and no longer contains the inline row"
+        },
+        {
+          "text": "Search tap still switches to the cars tab",
+          "passed": true,
+          "evidence": "tabIndex assignment preserved"
+        },
+        {
+          "text": "Filter tap still opens the filter screen",
+          "passed": true,
+          "evidence": "filter route preserved"
+        },
+        {
+          "text": "Hint text is still localized with the existing key",
+          "passed": true,
+          "evidence": "existing search translation key used"
+        },
+        {
+          "text": "No dead controller or unused theme imports left behind",
+          "passed": true,
+          "evidence": "dead controller removed; imports inspected"
+        },
+        {
+          "text": "Extracted widget keeps the original visual values (padding, radius, colors)",
+          "passed": true,
+          "evidence": "original sizes/colors copied"
+        },
+        {
+          "text": "No new analyzer issues on the touched files",
+          "passed": true,
+          "evidence": "flutter analyze: no issues on the two touched files"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9,
+        "passed": 9,
+        "failed": 1,
+        "total": 10,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A section widget and a separate offer-card widget file exist under home widgets",
+          "passed": true,
+          "evidence": "new widget files: ['financing_offer_card_widget.dart', 'financing_offers_section_widget.dart']"
+        },
+        {
+          "text": "The section is mounted directly after AdsSliderWidget in guest_home_screen",
+          "passed": true,
+          "evidence": "inspected guest_home_screen composition order"
+        },
+        {
+          "text": "Data comes from HomeState.financingAdsStatus, not a widget API call",
+          "passed": true,
+          "evidence": "financingAdsStatus found in section; no Dio/ApiConsumer/http in UI files"
+        },
+        {
+          "text": "Loading, empty and failure states are handled, with retry through the cubit",
+          "passed": true,
+          "evidence": "status branches + retry call inspected"
+        },
+        {
+          "text": "Card tap opens the financing screen through the app route helper",
+          "passed": true,
+          "evidence": "RoutesName.financingScreen + NavigatorMethods found"
+        },
+        {
+          "text": "All new user-visible strings use localization keys present in both ar.json and en.json",
+          "passed": true,
+          "evidence": "keys used: ['financing_offer_fallback_title', 'financing_offers_empty', 'financing_offers_error', 'financing_offers_title', 'monthlyInstallment', 'price_on_request', 'retry', 'sar']; missing: []"
+        },
+        {
+          "text": "New UI reuses core loading/empty/error widgets instead of inventing new ones",
+          "passed": false,
+          "evidence": "core state widgets referenced in section"
+        },
+        {
+          "text": "New UI uses theme colors/text styles and ScreenUtil rather than raw values",
+          "passed": true,
+          "evidence": "no raw Colors/Color(0x); uses .w/.h/.r, AppColor, AppTextStyle"
+        },
+        {
+          "text": "guest_home_screen stays a thin composition (few added lines)",
+          "passed": true,
+          "evidence": "added lines in screen diff: 3"
+        },
+        {
+          "text": "No dependency change and no new analyzer issues on touched paths",
+          "passed": true,
+          "evidence": "pubspec untouched; analyzer count matched the 146-issue baseline"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 10,
+        "failed": 2,
+        "total": 12,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Reuses the existing banks repository/endpoint instead of adding a duplicate",
+          "passed": true,
+          "evidence": "HomeCubit -> HomeRepo.getBanks -> EndPoints.customer reused"
+        },
+        {
+          "text": "Typing is debounced (300ms or more)",
+          "passed": true,
+          "evidence": "debounce timer found"
+        },
+        {
+          "text": "A stale-response guard prevents older responses from overwriting newer ones",
+          "passed": true,
+          "evidence": "request-id guard found in HomeCubit"
+        },
+        {
+          "text": "Cubit does not emit after it is closed",
+          "passed": false,
+          "evidence": "isClosed guard in cubit: False"
+        },
+        {
+          "text": "Clearing the field restores the full bank list",
+          "passed": true,
+          "evidence": "clear handler resets to empty query and reloads banks"
+        },
+        {
+          "text": "Search field sits above the banks slider and updates the existing slider",
+          "passed": true,
+          "evidence": "screen mounts the section; section renders BanksSliderWidget"
+        },
+        {
+          "text": "Refresh/resume keeps the active query and the displayed list consistent",
+          "passed": true,
+          "evidence": "query stored in state and reused by refreshHomeData: True"
+        },
+        {
+          "text": "Loading, empty and error states are handled",
+          "passed": true,
+          "evidence": "status branches inspected"
+        },
+        {
+          "text": "No API call is made from widget code",
+          "passed": true,
+          "evidence": "no Dio/ApiConsumer/http in new UI files"
+        },
+        {
+          "text": "All new user-visible strings are localized in both languages",
+          "passed": true,
+          "evidence": "keys used: ['banks', 'banks_search_clear', 'banks_search_empty', 'banks_search_error', 'banks_search_hint', 'retry']; missing: []"
+        },
+        {
+          "text": "Reuses the core loading/empty/error widgets rather than new lookalikes",
+          "passed": false,
+          "evidence": "custom state widgets used instead"
+        },
+        {
+          "text": "No new analyzer issues on the touched paths",
+          "passed": true,
+          "evidence": "flutter analyze: 146 issues before and after (no new errors)"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A dedicated home search/filter widget file exists under home widgets",
+          "passed": true,
+          "evidence": "new widget files: ['home_search_filter_widget.dart']"
+        },
+        {
+          "text": "guest_home_screen uses the extracted widget and no longer inlines the search/filter UI",
+          "passed": true,
+          "evidence": "screen imports/uses the new widget and no longer contains the inline row"
+        },
+        {
+          "text": "Search tap still switches to the cars tab",
+          "passed": true,
+          "evidence": "tabIndex assignment preserved"
+        },
+        {
+          "text": "Filter tap still opens the filter screen",
+          "passed": true,
+          "evidence": "filter route preserved"
+        },
+        {
+          "text": "Hint text is still localized with the existing key",
+          "passed": true,
+          "evidence": "existing search translation key used"
+        },
+        {
+          "text": "No dead controller or unused theme imports left behind",
+          "passed": true,
+          "evidence": "dead controller removed; imports inspected"
+        },
+        {
+          "text": "Extracted widget keeps the original visual values (padding, radius, colors)",
+          "passed": true,
+          "evidence": "original sizes/colors copied"
+        },
+        {
+          "text": "No new analyzer issues on the touched files",
+          "passed": true,
+          "evidence": "flutter analyze: no issues on the two touched files"
+        }
+      ],
+      "notes": [
+        "Timing and token counts were not captured for this run."
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.9722,
+        "stddev": 0.0481,
+        "min": 0.9167,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.9111,
+        "stddev": 0.0839,
+        "min": 0.8333,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.06",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

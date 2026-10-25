@@ -38,31 +38,44 @@ class CustomMonthlyInstallmentCardWidget extends StatelessWidget {
             ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.w700),
           ),
           Gap(15.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                fmt.format(monthly.round()),
-                style: AppTextStyle.titleLarge(
-                  context,
-                ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w900),
-              ),
-              Gap(8.w),
-              ValueWithCurrencyIcon(
-                text: AppLocaleKey.sar.tr(),
-                textStyle: AppTextStyle.titleLarge(
-                  context,
-                ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w900),
-              ),
-              Text(
-                AppLocaleKey.agentMonthly.tr(),
-                style: AppTextStyle.titleLarge(
-                  context,
-                ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.w700),
-              ),
-            ],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  fmt.format(monthly.round()),
+                  style: AppTextStyle.titleLarge(
+                    context,
+                  ).copyWith(
+                    color: AppColor.blackTextColor(context),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Gap(8.w),
+                ValueWithCurrencyIcon(
+                  text: AppLocaleKey.sar.tr(),
+                  textStyle: AppTextStyle.titleLarge(
+                    context,
+                  ).copyWith(
+                    color: AppColor.blackTextColor(context),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Gap(8.w),
+                Text(
+                  AppLocaleKey.agentMonthly.tr(),
+                  style: AppTextStyle.titleLarge(
+                    context,
+                  ).copyWith(
+                    color: AppColor.primaryColor(context),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
           Gap(15.h),
           Text(
@@ -70,32 +83,51 @@ class CustomMonthlyInstallmentCardWidget extends StatelessWidget {
             style: AppTextStyle.bodySmall(
               context,
             ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
-            textAlign: TextAlign.end,
+            textAlign: TextAlign.center,
           ),
           Gap(16.h),
           Divider(color: AppColor.greyColor(context), height: 1),
           Gap(16.h),
           Row(
             children: [
-              Text(
-                AppLocaleKey.totalLoanPrice.tr(),
-                style: AppTextStyle.bodyMedium(
-                  context,
-                ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  AppLocaleKey.totalLoanPrice.tr(),
+                  style: AppTextStyle.bodyMedium(
+                    context,
+                  ).copyWith(
+                    color: AppColor.blackTextColor(context),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              const Spacer(),
-              Text(
-                fmt.format(totalPrice.round()),
-                style: AppTextStyle.bodyLarge(
-                  context,
-                ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.w900),
-              ),
-              Gap(4.w),
-              ValueWithCurrencyIcon(
-                text: AppLocaleKey.sar.tr(),
-                textStyle: AppTextStyle.bodyLarge(
-                  context,
-                ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.w900),
+              Gap(8.w),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      fmt.format(totalPrice.round()),
+                      style: AppTextStyle.bodyLarge(
+                        context,
+                      ).copyWith(
+                        color: AppColor.primaryColor(context),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Gap(4.w),
+                    ValueWithCurrencyIcon(
+                      text: AppLocaleKey.sar.tr(),
+                      textStyle: AppTextStyle.bodyLarge(
+                        context,
+                      ).copyWith(
+                        color: AppColor.primaryColor(context),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -105,7 +137,7 @@ class CustomMonthlyInstallmentCardWidget extends StatelessWidget {
             style: AppTextStyle.bodySmall(
               context,
             ).copyWith(color: AppColor.greyColor(context), fontSize: 11.sp),
-            textAlign: TextAlign.start,
+            textAlign: TextAlign.center,
           ),
         ],
       ),

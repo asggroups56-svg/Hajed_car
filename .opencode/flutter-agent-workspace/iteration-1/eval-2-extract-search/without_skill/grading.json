@@ -1,0 +1,64 @@
+{
+  "expectations": [
+    {
+      "text": "A dedicated home search/filter widget file exists under home widgets",
+      "passed": true,
+      "evidence": "new widget files: ['home_search_filter_widget.dart']"
+    },
+    {
+      "text": "guest_home_screen uses the extracted widget and no longer inlines the search/filter UI",
+      "passed": true,
+      "evidence": "screen imports/uses the new widget and no longer contains the inline row"
+    },
+    {
+      "text": "Search tap still switches to the cars tab",
+      "passed": true,
+      "evidence": "tabIndex assignment preserved"
+    },
+    {
+      "text": "Filter tap still opens the filter screen",
+      "passed": true,
+      "evidence": "filter route preserved"
+    },
+    {
+      "text": "Hint text is still localized with the existing key",
+      "passed": true,
+      "evidence": "existing search translation key used"
+    },
+    {
+      "text": "No dead controller or unused theme imports left behind",
+      "passed": true,
+      "evidence": "dead controller removed; imports inspected"
+    },
+    {
+      "text": "Extracted widget keeps the original visual values (padding, radius, colors)",
+      "passed": true,
+      "evidence": "original sizes/colors copied"
+    },
+    {
+      "text": "No new analyzer issues on the touched files",
+      "passed": true,
+      "evidence": "flutter analyze: no issues on the two touched files"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "total_tool_calls": 0,
+    "errors_encountered": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "user_notes_summary": {
+    "uncertainties": [
+      "Timing and token counts were not captured for this run."
+    ],
+    "needs_review": [],
+    "workarounds": []
+  }
+}
