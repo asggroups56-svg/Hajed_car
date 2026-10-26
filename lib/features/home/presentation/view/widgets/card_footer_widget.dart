@@ -138,7 +138,8 @@ class CardFooter extends StatelessWidget {
     // حساب السعر شامل الضريبة
     String priceWithVatText = '0';
     if (hasPrice) {
-      final double paintingsVal = (car['PaintingsVal'] as num?)?.toDouble() ??
+      final double paintingsVal =
+          (car['PaintingsVal'] as num?)?.toDouble() ??
           (car['PAINTINGS_VAL'] as num?)?.toDouble() ??
           (car['paintingsVal'] as num?)?.toDouble() ??
           double.tryParse(car['PaintingsVal']?.toString() ?? '') ??
@@ -207,7 +208,6 @@ class CardFooter extends StatelessWidget {
                 icon: Icons.calendar_today_rounded,
                 text: car['year']?.toString() ?? 'N/A',
               ),
-              SpecBadgeWidget(icon: Icons.speed_rounded, text: car['mileage'] ?? '0 كم'),
               SpecBadgeWidget(
                 customIcon: _buildColorIcon(context, displayColor),
                 text: displayColor,

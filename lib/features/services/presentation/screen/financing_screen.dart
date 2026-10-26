@@ -4,6 +4,7 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/saudi_id_number.dart';
 import 'package:car/features/cars/presentation/widget/otp_bottom_sheet.dart';
 import 'package:car/features/home/data/model/add_loan_application_model.dart';
 import 'package:car/features/home/data/model/banks_data_model.dart';
@@ -365,6 +366,12 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         ? '$baseProgramName | البنك المحول له: $bank'
         : baseProgramName;
 
+    final String cleanIdNo = SaudiIdNumber.normalize(_idCtrl.text);
+    if (cleanIdNo.length != 10) {
+      _showSnack(AppLocaleKey.validateIdLength.tr());
+      return;
+    }
+
     final int repCode = int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
     final int bankCode = _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
 
@@ -374,7 +381,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       programName: programNameWithBank,
       customerNo: customerNoVal,
       REPRESCODE: repCode > 0 ? repCode : 1,
-      idNo: _idCtrl.text.trim(),
+      idNo: cleanIdNo,
       areaNo: '1',
       groupCode: (widget.car?.groupCode != null && widget.car!.groupCode > 0)
           ? widget.car!.groupCode.toString()
@@ -497,7 +504,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
                   'الدفعة الأخيرة: ${_lastPayment.toStringAsFixed(2)} ر.س\n'
                   'عدد السنوات: $_durationYears\n'
                   'اسم العميل: ${_fullNameCtrl.text.trim()}\n'
-                  'رقم الهوية: ${_idCtrl.text.trim()}\n'
+                  'رقم الهوية: ${SaudiIdNumber.normalize(_idCtrl.text)}\n'
                   'رقم التواصل: $phone\n'
                   'جهة العمل: ${_employerCtrl.text.trim()}\n'
                   'المسمى الوظيفي: ${_jobTitleCtrl.text.trim()}\n'

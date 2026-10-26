@@ -3,8 +3,8 @@ import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/saudi_id_number.dart';
 import 'package:car/features/services/presentation/widgets/car_summary_card.dart';
-
 import 'package:car/features/services/presentation/widgets/gender_button.dart';
 import 'package:car/features/services/presentation/widgets/info_banner.dart';
 import 'package:car/features/services/presentation/widgets/whats_app_consent_widget.dart';
@@ -53,8 +53,7 @@ class FinancingPersonalInfoTab extends StatefulWidget {
   });
 
   @override
-  State<FinancingPersonalInfoTab> createState() =>
-      _FinancingPersonalInfoTabState();
+  State<FinancingPersonalInfoTab> createState() => _FinancingPersonalInfoTabState();
 }
 
 class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
@@ -69,8 +68,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
   @override
   void initState() {
     super.initState();
-    _fullNameCtrl =
-        widget.fullNameCtrl ?? TextEditingController(text: name.toString());
+    _fullNameCtrl = widget.fullNameCtrl ?? TextEditingController(text: name.toString());
     _idCtrl = widget.idCtrl ?? TextEditingController();
     _phoneCtrl = widget.phoneCtrl ?? TextEditingController(text: phone ?? '');
     _selectedGender = widget.selectedGender;
@@ -112,28 +110,23 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             Gap(20.h),
             Text(
               AppLocaleKey.agentEnterDetails.tr(),
-              style: AppTextStyle.bodyMedium(
-                context,
-              ).copyWith(fontWeight: FontWeight.w700),
+              style: AppTextStyle.bodyMedium(context).copyWith(fontWeight: FontWeight.w700),
             ),
             Gap(10.h),
             CustomFormField(
               controller: _fullNameCtrl,
               hintText: AppLocaleKey.agentFullName.tr(),
               radius: 12,
-              validator: (v) => (v == null || v.isEmpty)
-                  ? AppLocaleKey.agentFullName.tr()
-                  : null,
+              validator: (v) => (v == null || v.isEmpty) ? AppLocaleKey.agentFullName.tr() : null,
             ),
             Gap(20.h),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
                 AppLocaleKey.agentGender.tr(),
-                style: AppTextStyle.bodyMedium(context).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColor.blackTextColor(context),
-                ),
+                style: AppTextStyle.bodyMedium(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w700, color: AppColor.blackTextColor(context)),
               ),
             ),
             Gap(10.h),
@@ -170,6 +163,18 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
               hintText: AppLocaleKey.agentNationalId.tr(),
               radius: 12,
               keyboardType: TextInputType.number,
+              maxLength: 10,
+              inputFormatters: const [SaudiIdInputFormatter()],
+              validator: (v) {
+                final val = SaudiIdNumber.normalize(v ?? '');
+                if (val.isEmpty) {
+                  return AppLocaleKey.agentNationalIdRequired.tr();
+                }
+                if (val.length != 10) {
+                  return AppLocaleKey.validateIdLength.tr();
+                }
+                return null;
+              },
             ),
             Gap(16.h),
             CustomFormField(
@@ -177,6 +182,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
               hintText: AppLocaleKey.agentPhones.tr(),
               radius: 12,
               keyboardType: TextInputType.phone,
+              maxLength: 10,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(10),
