@@ -1,9 +1,11 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/custom_widgets/developer_contact_bottom_sheet.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/features/settings/presentation/screen/widget/logout_button_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,10 +24,9 @@ class AccountScreen extends StatelessWidget {
         centerTitle: false,
         title: Text(
           AppLocaleKey.myAccount.tr(),
-          style: AppTextStyle.bodyLarge(context).copyWith(
-            color: AppColor.blackTextColor(context),
-            fontWeight: FontWeight.w900,
-          ),
+          style: AppTextStyle.bodyLarge(
+            context,
+          ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w900),
         ),
       ),
       body: ListView(
@@ -46,8 +47,7 @@ class AccountScreen extends StatelessWidget {
           _AccountItem(
             icon: Icons.settings_outlined,
             title: AppLocaleKey.settings.tr(),
-            onTap: () =>
-                Navigator.pushNamed(context, RoutesName.settingsScreen),
+            onTap: () => Navigator.pushNamed(context, RoutesName.settingsScreen),
           ),
           Gap(12.h),
           _AccountItem(
@@ -67,6 +67,8 @@ class AccountScreen extends StatelessWidget {
             title: AppLocaleKey.contactDeveloper.tr(),
             onTap: () => showDeveloperContactBottomSheet(context),
           ),
+          Gap(12.h),
+          FadeInUp(delay: const Duration(milliseconds: 200), child: const LogoutButtonWidget()),
         ],
       ),
     );
@@ -74,11 +76,7 @@ class AccountScreen extends StatelessWidget {
 }
 
 class _AccountItem extends StatelessWidget {
-  const _AccountItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
+  const _AccountItem({required this.icon, required this.title, required this.onTap});
 
   final IconData icon;
   final String title;
@@ -101,10 +99,9 @@ class _AccountItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyle.bodyMedium(context).copyWith(
-                    color: AppColor.blackTextColor(context),
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTextStyle.bodyMedium(
+                    context,
+                  ).copyWith(color: AppColor.blackTextColor(context), fontWeight: FontWeight.w700),
                 ),
               ),
               Icon(

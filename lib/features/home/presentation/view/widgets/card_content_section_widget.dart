@@ -44,19 +44,13 @@ class CardContentSection extends StatelessWidget {
 
     final added = HiveMethods.addToComparison(car);
     if (added) {
-      CommonMethods.showToast(
-        message: AppLocaleKey.added_to_compare.tr(),
-        type: ToastType.success,
-      );
+      CommonMethods.showToast(message: AppLocaleKey.added_to_compare.tr(), type: ToastType.success);
     }
   }
 
   String get formattedPriceWithVat {
     final rawPrice = car['price']?.toString();
-    if (rawPrice == null ||
-        rawPrice.isEmpty ||
-        rawPrice == 'null' ||
-        rawPrice == '---') {
+    if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
       return '---';
     }
     final double paintingsVal = _platesValue;
@@ -75,8 +69,7 @@ class CardContentSection extends StatelessWidget {
 
     // Raw price without VAT - add VAT + paintings/plates value
     final vatNumber = HiveMethods.getVatNumber();
-    final double vatPercentage =
-        double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
+    final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
     final double priceWithVat = parsedPrice * (1 + (vatPercentage / 100));
     final double totalCashPrice = priceWithVat + paintingsVal;
     return formatter.format(totalCashPrice);
@@ -87,8 +80,7 @@ class CardContentSection extends StatelessWidget {
   /// lowest available bank offer and finally the standard 60-month estimate.
   String? _formattedMonthlyInstallment(List<FinancingAdModel> offers) {
     final rawPrice = car['price']?.toString() ?? '';
-    final price =
-        double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    final price = double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
     if (price <= 0) return null;
 
     final formatter = NumberFormat('#,##0', 'en_US');
@@ -98,13 +90,9 @@ class CardContentSection extends StatelessWidget {
 
     final interestRate = _numberValue(car['interestRate']);
     if (interestRate > 0) {
-      final vatPercentage =
-          double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-      final carPrice =
-          (price + 3000) * (1 + vatPercentage / 100) + _platesValue;
-      return formatter.format(
-        (carPrice + carPrice * (interestRate / 100) * 5) / 60,
-      );
+      final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+      final carPrice = (price + 3000) * (1 + vatPercentage / 100) + _platesValue;
+      return formatter.format((carPrice + carPrice * (interestRate / 100) * 5) / 60);
     }
 
     final installments = car['installments']?.toString().trim();
@@ -128,15 +116,13 @@ class CardContentSection extends StatelessWidget {
       );
     }
 
-    final vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     final carPrice = (price + 3000) * (1 + vatPercentage / 100) + _platesValue;
     return formatter.format((carPrice * 1.225) / 60);
   }
 
-  double _numberValue(dynamic value) => value is num
-      ? value.toDouble()
-      : double.tryParse(value?.toString() ?? '') ?? 0;
+  double _numberValue(dynamic value) =>
+      value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
 
   List<Color> _parseCarColors(BuildContext context, String colorName) {
     final name = colorName.trim().toLowerCase();
@@ -238,235 +224,288 @@ class CardContentSection extends StatelessWidget {
     }
 
     // الحالة الافتراضية
-    return Icon(
-      Icons.palette_outlined,
-      color: AppColor.greyColor(context),
-      size: 14.w,
-    );
+    return Icon(Icons.palette_outlined, color: AppColor.greyColor(context), size: 14.w);
   }
 
   @override
   Widget build(BuildContext context) {
     final String rawColor =
-        (car['color'] ??
-                car['Color'] ??
-                car['bodyColor'] ??
-                car['BODY_COLOR'] ??
-                '')
+        (car['color'] ?? car['Color'] ?? car['bodyColor'] ?? car['BODY_COLOR'] ?? '')
             .toString()
             .trim();
-    final String displayColor =
-        rawColor.isNotEmpty && rawColor.toLowerCase() != 'null'
+    final String displayColor = rawColor.isNotEmpty && rawColor.toLowerCase() != 'null'
         ? rawColor
         : '—';
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Gap(5.h),
-          Text(
-            car['name']!,
-            style: AppTextStyle.bodyMedium(context).copyWith(
-              color: AppColor.blackTextColor(context),
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 3,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxHeight = constraints.maxHeight;
+        final bool isShort = maxHeight.isFinite && maxHeight < 210;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 8.w,
+            vertical: isShort ? 4.h : 6.h,
           ),
-          Gap(5.h),
-          Row(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MiniDetailWidget(
-                icon: Icons.calendar_today_outlined,
-                label: car['year'] ?? '—',
+              // اسم السيارة
+              Text(
+                car['name']?.toString() ?? '',
+                style: AppTextStyle.bodyMedium(
+                  context,
+                ).copyWith(
+                  color: AppColor.blackTextColor(context),
+                  fontWeight: FontWeight.bold,
+                  fontSize: isShort ? 11.sp : 12.sp,
+                ),
+                maxLines: isShort ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              MiniDetailWidget(
-                customIcon: _buildColorIcon(context, displayColor),
-                label: displayColor,
-              ),
-            ],
-          ),
-          Gap(5.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              // التفاصيل المصغرة (السنة واللون)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    AppLocaleKey.cash.tr(),
-                    style: AppTextStyle.bodySmall(context).copyWith(
-                      color: AppColor.greyColor(context),
-                      fontWeight: FontWeight.w900,
+                  MiniDetailWidget(
+                    icon: Icons.calendar_today_outlined,
+                    label: car['year']?.toString() ?? '—',
+                  ),
+                  MiniDetailWidget(
+                    customIcon: _buildColorIcon(context, displayColor),
+                    label: displayColor,
+                  ),
+                ],
+              ),
+
+              // صف الأسعار (كاش وتقسيط)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          AppLocaleKey.cash.tr(),
+                          style: AppTextStyle.bodySmall(
+                            context,
+                          ).copyWith(
+                            color: AppColor.greyColor(context),
+                            fontWeight: FontWeight.w900,
+                            fontSize: isShort ? 9.sp : 10.sp,
+                          ),
+                        ),
+                        Gap(2.h),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: RichText(
+                            text: TextSpan(
+                              style: AppTextStyle.bodyMedium(context).copyWith(
+                                color: AppColor.greenColor(context),
+                                fontWeight: FontWeight.w900,
+                                fontFamily: 'Arial',
+                                fontSize: isShort ? 12.sp : 14.sp,
+                              ),
+                              children: [
+                                TextSpan(text: formattedPriceWithVat),
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Padding(
+                                    padding: EdgeInsetsDirectional.only(start: 2.w),
+                                    child: SvgPicture.asset(
+                                      AppImages.sar,
+                                      width: isShort ? 14.w : 16.w,
+                                      height: isShort ? 14.h : 16.h,
+                                      colorFilter: ColorFilter.mode(
+                                        AppColor.greenColor(context),
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Gap(4.h),
-                  RichText(
-                    text: TextSpan(
-                      style: AppTextStyle.bodyMedium(context).copyWith(
-                        color: AppColor.greenColor(context),
-                        fontWeight: FontWeight.w900,
-
-                        fontFamily: 'Arial',
-                      ),
+                  Container(
+                    width: 1.5.w,
+                    color: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                    height: isShort ? 26.h : 32.h,
+                    margin: EdgeInsets.symmetric(horizontal: 6.w),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        TextSpan(text: formattedPriceWithVat),
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: SvgPicture.asset(
-                            AppImages.sar,
-                            width: 18.w,
-                            height: 18.h,
-                            color: AppColor.greenColor(context),
+                        Text(
+                          AppLocaleKey.agentInstallments.tr(),
+                          style: AppTextStyle.bodySmall(
+                            context,
+                          ).copyWith(
+                            color: AppColor.greyColor(context),
+                            fontWeight: FontWeight.w900,
+                            fontSize: isShort ? 9.sp : 10.sp,
                           ),
+                        ),
+                        Gap(2.h),
+                        BlocBuilder<HomeCubit, HomeState>(
+                          builder: (context, state) {
+                            final installment = _formattedMonthlyInstallment(
+                              state.normalFinancingStatus.data ?? const [],
+                            );
+                            if (installment == null) return const SizedBox.shrink();
+
+                            return FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: AlignmentDirectional.centerStart,
+                              child: RichText(
+                                text: TextSpan(
+                                  style: AppTextStyle.bodyMedium(context).copyWith(
+                                    color: AppColor.primaryColor(context),
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'Arial',
+                                    fontSize: isShort ? 12.sp : 14.sp,
+                                  ),
+                                  children: [
+                                    TextSpan(text: installment),
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: Padding(
+                                        padding: EdgeInsetsDirectional.only(start: 2.w),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SvgPicture.asset(
+                                              AppImages.sar,
+                                              width: isShort ? 14.w : 16.w,
+                                              height: isShort ? 14.h : 16.h,
+                                              colorFilter: ColorFilter.mode(
+                                                AppColor.primaryColor(context),
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
+                                            Gap(2.w),
+                                            Text(
+                                              '/ ${AppLocaleKey.month.tr()}',
+                                              style: AppTextStyle.bodySmall(context).copyWith(
+                                                color: AppColor.primaryColor(context),
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: isShort ? 8.sp : 9.sp,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              Gap(8.w),
-              Container(
-                width: 2.w,
-                color: AppColor.blackTextColor(context).withValues(alpha: 0.1),
-                height: 40.h,
-              ),
-              Gap(8.w),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              // ملاحظة شامل الضريبة
+              Row(
                 children: [
-                  Text(
-                    AppLocaleKey.agentInstallments.tr(),
-                    style: AppTextStyle.bodySmall(context).copyWith(
-                      color: AppColor.greyColor(context),
-                      fontWeight: FontWeight.w900,
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColor.greyColor(context),
+                    size: isShort ? 12.w : 14.w,
+                  ),
+                  Gap(4.w),
+                  Expanded(
+                    child: Text(
+                      'شامل الضريبة واللوحات، والقسط مبدئي 60 شهراً بدون دفعة أولى',
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        color: AppColor.greyColor(context),
+                        fontWeight: FontWeight.w800,
+                        fontSize: isShort ? 6.5.sp : 7.sp,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Gap(4.h),
-                  BlocBuilder<HomeCubit, HomeState>(
-                    builder: (context, state) {
-                      final installment = _formattedMonthlyInstallment(
-                        state.normalFinancingStatus.data ?? const [],
-                      );
-                      if (installment == null) return const SizedBox.shrink();
+                ],
+              ),
 
-                      return RichText(
-                        text: TextSpan(
-                          style: AppTextStyle.bodyMedium(context).copyWith(
-                            color: AppColor.primaryColor(context),
-                            fontWeight: FontWeight.w900,
-
-                            fontFamily: 'Arial',
+              // أزرار التحكم (التفاصيل والمقارنة)
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      onPressed: onTap,
+                      height: isShort ? 26.h : 30.h,
+                      color: AppColor.primaryColor(context),
+                      radius: 10.r,
+                      borderColor: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          AppLocaleKey.details.tr(),
+                          style: AppTextStyle.bodySmall(
+                            context,
+                          ).copyWith(
+                            color: AppColor.whiteColor(context),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11.sp,
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Gap(8.w),
+                  Expanded(
+                    child: CustomButton(
+                      radius: 10.r,
+                      onPressed: () => _toggleComparison(context),
+                      color: AppColor.whiteColor(context).withValues(alpha: 0.1),
+                      borderColor: AppColor.blackTextColor(context).withValues(alpha: 0.1),
+                      height: isShort ? 26.h : 30.h,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            TextSpan(text: installment),
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    AppImages.sar,
-                                    width: 18.w,
-                                    height: 18.h,
-                                    color: AppColor.primaryColor(context),
-                                  ),
-                                  Gap(4.w),
-                                  Text(
-                                    '/ ${AppLocaleKey.month.tr()}',
-                                    style: AppTextStyle.bodySmall(context)
-                                        .copyWith(
-                                          color: AppColor.primaryColor(context),
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                  ),
-                                ],
+                            Icon(
+                              Icons.add,
+                              color: AppColor.blackTextColor(context),
+                              size: isShort ? 13.w : 15.w,
+                            ),
+                            Gap(4.w),
+                            Text(
+                              AppLocaleKey.compare.tr(),
+                              style: AppTextStyle.bodySmall(context).copyWith(
+                                color: AppColor.blackTextColor(context),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11.sp,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-          Gap(10.h),
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: AppColor.greyColor(context),
-                size: 16.w,
-              ),
-              Gap(4.w),
-              Text(
-                'شامل الضريبه واللوحات . والقسط مبدئي60 شهر ا بدون دفعه اولي ',
-                style: AppTextStyle.bodySmall(context).copyWith(
-                  color: AppColor.greyColor(context),
-                  fontWeight: FontWeight.w900,
-                  fontSize: 8.sp,
-                ),
-              ),
-            ],
-          ),
-          Gap(5.h),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  onPressed: onTap,
-                  height: 30.h,
-                  color: AppColor.primaryColor(context),
-                  radius: 12.r,
-                  borderColor: AppColor.blackTextColor(
-                    context,
-                  ).withValues(alpha: 0.1),
-                  child: Text(
-                    AppLocaleKey.details.tr(),
-                    style: AppTextStyle.bodySmall(context).copyWith(
-                      color: AppColor.whiteColor(context),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              Gap(10.w),
-              Expanded(
-                child: CustomButton(
-                  radius: 12.r,
-                  onPressed: () => _toggleComparison(context),
-                  color: AppColor.whiteColor(context).withValues(alpha: 0.1),
-                  borderColor: AppColor.blackTextColor(
-                    context,
-                  ).withValues(alpha: 0.1),
-                  height: 30.h,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: AppColor.blackTextColor(context),
-                        size: 16.w,
-                      ),
-                      Gap(4.w),
-                      Text(
-                        AppLocaleKey.compare.tr(),
-                        style: AppTextStyle.bodyMedium(context).copyWith(
-                          color: AppColor.blackTextColor(context),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

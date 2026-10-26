@@ -38,7 +38,7 @@ class AgentInventoryScreenState extends State<AgentInventoryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       refresh();
@@ -226,9 +226,7 @@ class AgentInventoryScreenState extends State<AgentInventoryScreen>
                       _buildList(
                         agentCars.where((c) => c.availability == CarAvailability.reserved).toList(),
                       ),
-                      _buildList(
-                        agentCars.where((c) => c.availability == CarAvailability.sold).toList(),
-                      ),
+  
                     ],
                   );
                 },

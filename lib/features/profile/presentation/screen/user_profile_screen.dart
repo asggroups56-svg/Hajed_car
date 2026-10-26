@@ -5,7 +5,6 @@ import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
-import 'package:car/features/admin/presentation/screen/widgets/logout_button_widget.dart';
 import 'package:car/features/agent/data/model/customer_profile_model.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
 import 'package:car/features/agent/presentation/cubit/agent_state.dart';
@@ -58,9 +57,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
         return BlocBuilder<AgentCubit, AgentState>(
@@ -151,11 +147,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           FadeInUp(
                             delay: const Duration(milliseconds: 150),
                             child: const DeleteAccountButtonWidget(),
-                          ),
-                          Gap(32.h),
-                          FadeInUp(
-                            delay: const Duration(milliseconds: 200),
-                            child: const LogoutButtonWidget(),
                           ),
                           Gap(50.h),
                         ],

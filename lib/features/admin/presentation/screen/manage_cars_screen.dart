@@ -30,7 +30,7 @@ class ManageCarsScreen extends StatefulWidget {
 
 class _ManageCarsScreenState extends State<ManageCarsScreen> {
   String _selectedFilter = 'available';
-  static const Map<String, int> _filterToStatus = {'available': 1, 'reserved': 2, 'sold': 3};
+  static const Map<String, int> _filterToStatus = {'available': 1, 'reserved': 2};
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -248,7 +248,7 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
                           padding: EdgeInsets.all(16.w),
                           physics: const BouncingScrollPhysics(),
                           itemCount: cars.length,
-                          separatorBuilder: (_, __) => Gap(10.h),
+                          separatorBuilder: (_, _) => Gap(10.h),
                           itemBuilder: (context, i) {
                             final car = cars[i];
                             return FadeInUp(

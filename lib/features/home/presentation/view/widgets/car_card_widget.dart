@@ -27,6 +27,7 @@ class CarCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Card(
+          clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
           color: AppColor.secondAppColor(context),
           elevation: 4,

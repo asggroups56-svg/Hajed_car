@@ -16,7 +16,6 @@ class CarFilterChips extends StatelessWidget {
     final filters = [
       {'key': 'available', 'label': AppLocaleKey.agentCarAvailable.tr()},
       {'key': 'reserved', 'label': AppLocaleKey.adminPendingApprovals.tr()},
-      {'key': 'sold', 'label': AppLocaleKey.agentCarSold.tr()},
     ];
 
     return Padding(

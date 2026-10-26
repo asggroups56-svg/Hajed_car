@@ -21,9 +21,7 @@ class LogoutButtonWidget extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24.r),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
           backgroundColor: AppColor.scaffoldColor(dialogContext),
           child: Padding(
             padding: EdgeInsets.all(24.w),
@@ -33,9 +31,7 @@ class LogoutButtonWidget extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
-                    color: AppColor.redColor(
-                      dialogContext,
-                    ).withValues(alpha: 0.1),
+                    color: AppColor.redColor(dialogContext).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -57,11 +53,9 @@ class LogoutButtonWidget extends StatelessWidget {
                 Text(
                   AppLocaleKey.logoutConfirmation.tr(),
                   textAlign: TextAlign.center,
-                  style: AppTextStyle.bodyMedium(dialogContext).copyWith(
-                    color: AppColor.blackTextColor(
-                      context,
-                    ).withValues(alpha: 0.6),
-                  ),
+                  style: AppTextStyle.bodyMedium(
+                    dialogContext,
+                  ).copyWith(color: AppColor.blackTextColor(context).withValues(alpha: 0.6)),
                 ),
                 Gap(24.h),
                 Row(
@@ -70,12 +64,8 @@ class LogoutButtonWidget extends StatelessWidget {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                          ),
-                          side: BorderSide(
-                            color: AppColor.borderColor(dialogContext),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+                          side: BorderSide(color: AppColor.borderColor(dialogContext)),
                         ),
                         onPressed: () => Navigator.pop(dialogContext),
                         child: Text(
@@ -83,9 +73,7 @@ class LogoutButtonWidget extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppColor.blackTextColor(
-                              dialogContext,
-                            ).withValues(alpha: 0.7),
+                            color: AppColor.blackTextColor(dialogContext).withValues(alpha: 0.7),
                           ),
                         ),
                       ),
@@ -97,9 +85,7 @@ class LogoutButtonWidget extends StatelessWidget {
                           backgroundColor: AppColor.redColor(dialogContext),
                           foregroundColor: AppColor.whiteColor(dialogContext),
                           padding: EdgeInsets.symmetric(vertical: 14.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
                           elevation: 0,
                         ),
                         onPressed: () async {
@@ -161,9 +147,7 @@ class LogoutButtonWidget extends StatelessWidget {
             Gap(12.w),
             Text(
               isGuest ? AppLocaleKey.login.tr() : AppLocaleKey.logout.tr(),
-              style: AppTextStyle.bodyLarge(
-                context,
-              ).copyWith(fontWeight: FontWeight.bold),
+              style: AppTextStyle.bodyLarge(context).copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
