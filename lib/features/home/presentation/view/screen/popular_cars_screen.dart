@@ -119,6 +119,8 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'PaintingsVal': car.paintingsVal,
       'PAINTINGS_VAL': car.paintingsVal,
       'paintingsVal': car.paintingsVal,
+      'SPECIFIC_NAME': car.specificName,
+      'specificName': car.specificName,
     };
   }
 

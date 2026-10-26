@@ -298,7 +298,7 @@ pw.Widget _specsCell({
         _H.txt('المواصفات  :-', bold, size: _C.fsSpecs, align: pw.TextAlign.right),
         pw.SizedBox(height: _C.spXS),
         _H.txt(
-          '${car.carSpecification ?? '—'}$featuresAr',
+          '${(car.specificName != null && car.specificName!.trim().isNotEmpty) ? car.specificName! : (car.carSpecification ?? '—')}$featuresAr',
           regular,
           size: _C.fsSpecs,
           align: pw.TextAlign.right,

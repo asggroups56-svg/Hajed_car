@@ -117,6 +117,17 @@ class AgentCar {
   final String groupCode;
   final String? colorCode;
   final double? paintingsVal;
+  final String? specificName;
+
+  /// Returns individual specification items parsed from [specificName].
+  List<String> get specificSpecifications {
+    if (specificName == null || specificName!.trim().isEmpty) return [];
+    return specificName!
+        .split(RegExp(r'[;\n؛]+'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
 
   const AgentCar({
     required this.id,
@@ -138,6 +149,7 @@ class AgentCar {
     this.reservedName = '',
     this.colorCode,
     this.paintingsVal,
+    this.specificName,
   });
 
   double get priceWithVat {
@@ -188,6 +200,7 @@ class AgentCar {
       carImage: imageUrl,
       color: color,
       paintingsVal: paintingsVal,
+      specificName: specificName,
     );
   }
 
@@ -208,6 +221,7 @@ class AgentCar {
       colorCode: int.tryParse(colorCode ?? '') ?? 0,
       mobileShow: true,
       paintingsVal: paintingsVal,
+      specificName: specificName,
     );
   }
 

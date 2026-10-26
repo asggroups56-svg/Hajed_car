@@ -43,6 +43,17 @@ class CarModel extends Equatable {
   final String? lpoNo;
   final String? reservedName;
   final double? paintingsVal;
+  final String? specificName;
+
+  /// Returns individual specification items parsed from [specificName].
+  List<String> get specificSpecifications {
+    if (specificName == null || specificName!.trim().isEmpty) return [];
+    return specificName!
+        .split(RegExp(r'[;\n؛]+'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
 
   const CarModel({
     this.ADVANCED_AMOUNT,
@@ -67,6 +78,7 @@ class CarModel extends Equatable {
     this.carimage,
     this.color,
     this.paintingsVal,
+    this.specificName,
   });
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
@@ -110,6 +122,12 @@ class CarModel extends Equatable {
           double.tryParse(json['PaintingsVal']?.toString() ?? '') ??
           double.tryParse(json['PAINTINGS_VAL']?.toString() ?? '') ??
           double.tryParse(json['paintingsVal']?.toString() ?? ''),
+      specificName: () {
+        final raw = json['SPECIFIC_NAME']?.toString() ??
+            json['specificName']?.toString();
+        if (raw == null || raw.trim().isEmpty || raw.toLowerCase() == 'null') return null;
+        return raw.trim();
+      }(),
     );
   }
 
@@ -155,5 +173,6 @@ class CarModel extends Equatable {
     ADVANCED_AMOUNT,
     carimage,
     paintingsVal,
+    specificName,
   ];
 }

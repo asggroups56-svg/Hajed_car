@@ -63,10 +63,7 @@ class CategoriesWidget extends StatelessWidget {
                 return FadeInRight(
                   delay: Duration(milliseconds: index * 50),
                   child: _MoreCategoriesItem(
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      RoutesName.allBrandsScreen,
-                    ),
+                    onTap: () => Navigator.pushNamed(context, RoutesName.allBrandsScreen),
                   ),
                 );
               }
@@ -85,27 +82,18 @@ class CategoriesWidget extends StatelessWidget {
                           item.groupCode.toString(),
                         );
                       },
-                      child: CustomItemCategoriesWidget(
-                        isSelected: isSelected,
-                        item: item,
-                      ),
+                      child: CustomItemCategoriesWidget(isSelected: isSelected, item: item),
                     ),
                     Gap(10.h),
                     Text(
-                      context.locale.languageCode == 'ar'
-                          ? item.groupName
-                          : item.groupEName ?? '',
+                      context.locale.languageCode == 'ar' ? item.groupName : item.groupEName ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyle.bodySmall(context).copyWith(
                         color: isSelected
                             ? AppColor.primaryColor(context)
-                            : AppColor.blackTextColor(
-                                context,
-                              ).withValues(alpha: 0.8),
-                        fontWeight: isSelected
-                            ? FontWeight.w900
-                            : FontWeight.w700,
+                            : AppColor.blackTextColor(context).withValues(alpha: 0.8),
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
                       ),
                     ),
                   ],
@@ -131,10 +119,7 @@ class CategoriesWidget extends StatelessWidget {
               color: AppColor.blackTextColor(context).withValues(alpha: .1),
             ),
             Gap(16.h),
-            Text(
-              AppLocaleKey.agentNoCategoriesFound.tr(),
-              style: AppTextStyle.bodyMedium(context),
-            ),
+            Text(AppLocaleKey.agentNoCategoriesFound.tr(), style: AppTextStyle.bodyMedium(context)),
           ],
         ),
       ),
@@ -182,9 +167,7 @@ class _AllCategoriesItem extends StatelessWidget {
                   style: AppTextStyle.bodySmall(context).copyWith(
                     color: isSelected
                         ? AppColor.primaryColor(context)
-                        : AppColor.blackTextColor(
-                            context,
-                          ).withValues(alpha: 0.8),
+                        : AppColor.blackTextColor(context).withValues(alpha: 0.8),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -225,19 +208,14 @@ class _MoreCategoriesItem extends StatelessWidget {
               color: AppColor.primaryColor(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Icon(
-              Icons.add_rounded,
-              color: AppColor.primaryColor(context),
-              size: 28.sp,
-            ),
+            child: Icon(Icons.add_rounded, color: AppColor.primaryColor(context), size: 28.sp),
           ),
           Gap(10.h),
           Text(
             AppLocaleKey.more.tr(),
-            style: AppTextStyle.bodySmall(context).copyWith(
-              color: AppColor.primaryColor(context),
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTextStyle.bodySmall(
+              context,
+            ).copyWith(color: AppColor.primaryColor(context), fontWeight: FontWeight.w700),
           ),
         ],
       ),

@@ -25,6 +25,17 @@ class GetBrandCarsDataModel extends Equatable {
   final int carStatus;
   final int carType;
   final String? carSpecification;
+  final String? specificName;
+
+  /// Returns individual specification items parsed from [specificName].
+  List<String> get specificSpecifications {
+    if (specificName == null || specificName!.trim().isEmpty) return [];
+    return specificName!
+        .split(RegExp(r'[;\n؛]+'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
   final String chassisNo;
   final String? motorNo;
   final String bodyColor;
@@ -89,6 +100,7 @@ class GetBrandCarsDataModel extends Equatable {
     required this.carStatus,
     required this.carType,
     this.carSpecification,
+    this.specificName,
     required this.chassisNo,
     this.motorNo,
     required this.bodyColor,
@@ -223,6 +235,8 @@ class GetBrandCarsDataModel extends Equatable {
       'CAR_STATUS': carStatus,
       'CAR_TYPE': carType,
       'CAR_SPECIFICATION': carSpecification,
+      'SPECIFIC_NAME': specificName,
+      'specificName': specificName,
       'CHASSIS_NO': chassisNo,
       'MOTOR_NO': motorNo,
       'BODY_COLOR': bodyColor,
@@ -324,6 +338,9 @@ class GetBrandCarsDataModel extends Equatable {
       carStatus: carStatus != 0 ? carStatus : other.carStatus,
       carType: carType != 0 ? carType : other.carType,
       carSpecification: carSpecification ?? other.carSpecification,
+      specificName: (specificName != null && specificName!.trim().isNotEmpty)
+          ? specificName
+          : other.specificName,
       chassisNo: chassisNo,
       motorNo: motorNo ?? other.motorNo,
       bodyColor: bodyColor.isNotEmpty ? bodyColor : other.bodyColor,
@@ -380,6 +397,7 @@ class GetBrandCarsDataModel extends Equatable {
     bool? mobileShow,
     String? price,
     String? carSpecification,
+    String? specificName,
     double? interestRate,
     double? monthlyInstallment,
     String? groupName,
@@ -403,6 +421,7 @@ class GetBrandCarsDataModel extends Equatable {
       carStatus: carStatus,
       carType: carType,
       carSpecification: carSpecification ?? this.carSpecification,
+      specificName: specificName ?? this.specificName,
       chassisNo: chassisNo,
       motorNo: motorNo,
       bodyColor: bodyColor,
@@ -527,6 +546,13 @@ class GetBrandCarsDataModel extends Equatable {
       carSpecification:
           json['CAR_SPECIFICATION']?.toString() ??
           json['carSpecification']?.toString(),
+      specificName: () {
+        final raw = json['SPECIFIC_NAME']?.toString() ??
+            json['specificName']?.toString() ??
+            getString('SPECIFIC_NAME', 'specificName');
+        if (raw.isEmpty || raw.toLowerCase() == 'null') return null;
+        return raw;
+      }(),
       chassisNo: getString('CHASSIS_NO', 'chassisNo'),
       motorNo: json['MOTOR_NO']?.toString() ?? json['motorNo']?.toString(),
       bodyColor: getString('BODY_COLOR', 'bodyColor', 'interiorColor'),
@@ -695,6 +721,7 @@ class GetBrandCarsDataModel extends Equatable {
     carStatus,
     carType,
     carSpecification,
+    specificName,
     chassisNo,
     motorNo,
     bodyColor,
@@ -758,6 +785,7 @@ class GetBrandCarsDataModel extends Equatable {
       colorCode: colorCode,
       mobileShow: mobileShow,
       paintingsVal: paintingsVal,
+      specificName: specificName,
     );
   }
 }

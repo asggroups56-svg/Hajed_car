@@ -149,6 +149,8 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'PaintingsVal': car.paintingsVal,
       'PAINTINGS_VAL': car.paintingsVal,
       'paintingsVal': car.paintingsVal,
+      'SPECIFIC_NAME': car.specificName,
+      'specificName': car.specificName,
     };
   }
 
