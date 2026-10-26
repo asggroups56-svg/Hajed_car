@@ -242,6 +242,7 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
       colorCode: car.colorCode?.toString(),
       customerName: car.customerName ?? '',
       reservedName: car.reservedName ?? '',
+      paintingsVal: car.paintingsVal,
     );
 
     Navigator.push(

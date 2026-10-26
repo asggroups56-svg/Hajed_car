@@ -8,6 +8,8 @@ class CreatOfferModel extends Equatable {
   final String? listDesc;
   final String? analytical;
   final int customerNo;
+  final String? customerName;
+  final String? customerMobile;
   final int represCode;
   final String taamedDate;
   final String lastDate;
@@ -35,6 +37,8 @@ class CreatOfferModel extends Equatable {
     this.listDesc,
     this.analytical,
     required this.customerNo,
+    this.customerName,
+    this.customerMobile,
     required this.represCode,
     required this.taamedDate,
     required this.lastDate,
@@ -64,6 +68,14 @@ class CreatOfferModel extends Equatable {
       listDesc: json['LISTDESC'],
       analytical: json['ANALYTICAL'],
       customerNo: json['CUSTOMERNO'] ?? 0,
+      customerName:
+          json['CUSTOMERNAME']?.toString() ??
+          json['CUSTOMER_NAME']?.toString() ??
+          json['LISTDESC']?.toString(),
+      customerMobile:
+          json['CUSTOMERMOBILE']?.toString() ??
+          json['CUSTOMER_MOBILE']?.toString() ??
+          json['ANALYTICAL']?.toString(),
       represCode: json['REPRESCODE'] ?? 0,
       taamedDate: json['TAAMEDDATE'] ?? '',
       lastDate: json['LASTDATE'] ?? '',
@@ -93,9 +105,17 @@ class CreatOfferModel extends Equatable {
       'LISTNO': listNo,
       'LISTDATE': listDate,
       'ACTLISTNO': actListNo ?? '',
-      'LISTDESC': listDesc ?? '',
-      'ANALYTICAL': analytical ?? '',
+      'LISTDESC': (customerName != null && customerName!.isNotEmpty)
+          ? customerName
+          : (listDesc ?? ''),
+      'ANALYTICAL': (customerMobile != null && customerMobile!.isNotEmpty)
+          ? customerMobile
+          : (analytical ?? ''),
       'CUSTOMERNO': customerNo,
+      'CUSTOMERNAME': customerName ?? '',
+      'CUSTOMER_NAME': customerName ?? '',
+      'CUSTOMERMOBILE': customerMobile ?? '',
+      'CUSTOMER_MOBILE': customerMobile ?? '',
       'REPRESCODE': represCode,
       'TAAMEDDATE': taamedDate,
       'LASTDATE': lastDate,
@@ -126,6 +146,8 @@ class CreatOfferModel extends Equatable {
     listDesc,
     analytical,
     customerNo,
+    customerName,
+    customerMobile,
     represCode,
     taamedDate,
     lastDate,

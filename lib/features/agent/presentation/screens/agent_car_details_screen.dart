@@ -235,13 +235,36 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
 
                             Gap(12.h),
 
-                            ValueWithCurrencyIcon(
-                              text:
-                                  '${NumberFormat('#,##0', 'en_US').format(widget.car.price)} ${AppLocaleKey.sar.tr()}',
-                              textStyle: AppTextStyle.titleLarge(context).copyWith(
-                                color: AppColor.whiteColor(context),
-                                fontWeight: FontWeight.w900,
-                              ),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8.w,
+                              runSpacing: 4.h,
+                              children: [
+                                ValueWithCurrencyIcon(
+                                  text:
+                                      '${NumberFormat('#,##0', 'en_US').format(widget.car.priceWithVat)} ${AppLocaleKey.sar.tr()}',
+                                  textStyle: AppTextStyle.titleLarge(context).copyWith(
+                                    color: AppColor.whiteColor(context),
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6.r),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                                  ),
+                                  child: Text(
+                                    isArabic ? 'شامل الضريبة واللوحات' : 'Inc. VAT & Plates',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -615,10 +638,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                           ? 'المبلغ لا يمكن أن يكون سالباً'
                                           : 'Amount cannot be negative';
                                     }
-                                    if (amount > widget.car.price) {
+                                    if (amount > widget.car.priceWithVat) {
                                       return isArabic
-                                          ? 'المبلغ لا يمكن أن يتجاوز سعر السيارة'
-                                          : 'Amount cannot exceed the car price';
+                                          ? 'المبلغ لا يمكن أن يتجاوز سعر السيارة الإجمالي'
+                                          : 'Amount cannot exceed the total car price';
                                     }
                                   }
                                   return null;

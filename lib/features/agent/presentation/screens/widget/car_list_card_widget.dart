@@ -1,4 +1,3 @@
-import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -19,11 +18,7 @@ class CarListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final availabilityColor = car.getAvailabilityColor(context);
-    final double basePrice = car.price;
-    final double vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double priceWithVat =
-        basePrice * (1 + vatPercentage / 100) + (car.paintingsVal ?? 0.0);
+    final double priceWithVat = car.priceWithVat;
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -112,13 +107,36 @@ class CarListCard extends StatelessWidget {
                   Gap(14.h),
 
                   /// Price
-                  ValueWithCurrencyIcon(
-                    text: '${NumberFormat('#,###').format(priceWithVat)} ${AppLocaleKey.sar.tr()}',
-                    textStyle: AppTextStyle.bodyLarge(context).copyWith(
-                      color: AppColor.blueColor(context),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 24.sp,
-                    ),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8.w,
+                    runSpacing: 4.h,
+                    children: [
+                      ValueWithCurrencyIcon(
+                        text:
+                            '${NumberFormat('#,###').format(priceWithVat)} ${AppLocaleKey.sar.tr()}',
+                        textStyle: AppTextStyle.bodyLarge(context).copyWith(
+                          color: AppColor.blueColor(context),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 22.sp,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+                        decoration: BoxDecoration(
+                          color: AppColor.blueColor(context).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          'شامل الضريبة واللوحات',
+                          style: TextStyle(
+                            color: AppColor.blueColor(context),
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   Gap(18.h),

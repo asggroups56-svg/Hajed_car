@@ -54,7 +54,10 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
   final _termsController = TextEditingController();
   final _notesController = TextEditingController();
 
-  final ValueNotifier<CustomerModel?> _selectedCustomer = ValueNotifier(null);
+  // Customer
+  final _customerNameController = TextEditingController();
+  final _customerMobileController = TextEditingController();
+
   final ValueNotifier<ColorModel?> _selectedColor = ValueNotifier(null);
   final ValueNotifier<Set<String>> _selectedTerms = ValueNotifier(<String>{});
   final ValueNotifier<String> _paymentType = ValueNotifier('CSH');
@@ -131,10 +134,11 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       _receivePlaceController,
       _termsController,
       _notesController,
+      _customerNameController,
+      _customerMobileController,
     ]) {
       c.dispose();
     }
-    _selectedCustomer.dispose();
     _selectedColor.dispose();
     _selectedTerms.dispose();
     _paymentType.dispose();
@@ -160,19 +164,6 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
 
   // ───────────────────────── Pickers ─────────────────────────
 
-  Future<void> _openCustomerPicker() async {
-    final cubit = context.read<AgentCubit>();
-    FocusScope.of(context).unfocus();
-    final picked = await showModalBottomSheet<CustomerModel>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) =>
-          BlocProvider.value(value: cubit, child: const ExternalQuoteCustomerPickerSheet()),
-    );
-    if (picked != null) _selectedCustomer.value = picked;
-  }
 
   Future<void> _openColorPicker() async {
     final cubit = context.read<AgentCubit>();
@@ -234,11 +225,24 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       _toastError(AppLocaleKey.externalQuoteRequiredFields);
       return;
     }
-    final customer = _selectedCustomer.value;
-    if (customer == null) {
+    final customerName = _customerNameController.text.trim();
+    if (customerName.isEmpty) {
       _toastError(AppLocaleKey.externalQuoteSelectCustomer);
       return;
     }
+    final customerMobile = _customerMobileController.text.trim();
+    int matchedCustomerNo = 0;
+    final customerList = context.read<AgentCubit>().state.customersStatus.data ?? [];
+    if (customerList.isNotEmpty) {
+      final match = customerList.firstWhere(
+        (c) =>
+            (c.customerName ?? '').trim().toLowerCase() == customerName.toLowerCase() ||
+            (customerMobile.isNotEmpty && c.customerMobile.trim() == customerMobile),
+        orElse: () => const CustomerModel(),
+      );
+      matchedCustomerNo = match.customerNo ?? 0;
+    }
+
     final color = _selectedColor.value;
     if (color == null) {
       _toastError(AppLocaleKey.externalQuoteSelectColor);
@@ -282,7 +286,9 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       listDate: _today,
       taamedDate: _today,
       lastDate: _lastDate,
-      customerNo: customer.customerNo ?? 0,
+      customerNo: matchedCustomerNo,
+      customerName: customerName,
+      customerMobile: customerMobile,
       represCode: _represNo,
       resType: _resType,
       paymentType: _paymentType.value,
@@ -316,7 +322,8 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
     _receivePlaceController.clear();
     _termsController.clear();
     _notesController.clear();
-    _selectedCustomer.value = null;
+    _customerNameController.clear();
+    _customerMobileController.clear();
     _selectedColor.value = null;
     _selectedTerms.value = <String>{};
     _paymentType.value = 'CSH';
@@ -604,54 +611,28 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
   // ───────────────────────── Sections ─────────────────────────
 
   Widget _buildCustomerSection() {
-    return ValueListenableBuilder<CustomerModel?>(
-      valueListenable: _selectedCustomer,
-      builder: (context, customer, _) {
-        final hasMobile = (customer?.customerMobile ?? '').isNotEmpty;
-        return _card(
-          icon: Icons.person_rounded,
-          title: AppLocaleKey.externalQuoteCustomerSection.tr(),
-          trailing: customer != null
-              ? Icon(Icons.check_circle_rounded, color: AppColor.greenColor(context), size: 18.sp)
-              : null,
-          children: [
-            _selector(
-              label: '${AppLocaleKey.customer.tr()} *',
-              hint: AppLocaleKey.externalQuoteCustomerHint.tr(),
-              icon: Icons.person_search_rounded,
-              valueText: customer == null
-                  ? null
-                  : (customer.customerName ?? AppLocaleKey.externalQuoteCustomerFallback.tr()),
-              onTap: _openCustomerPicker,
-              onClear: () => _selectedCustomer.value = null,
-            ),
-            if (customer != null) ...[
-              Gap(8.h),
-              Row(
-                children: [
-                  Icon(Icons.tag_rounded, size: 13.sp, color: _grey),
-                  Gap(3.w),
-                  Text(
-                    AppLocaleKey.externalQuoteCode.tr(
-                      namedArgs: {'code': '${customer.customerNo ?? '—'}'},
-                    ),
-                    style: _t(11.5, color: _grey, weight: FontWeight.w600),
-                  ),
-                  if (hasMobile) ...[
-                    Gap(14.w),
-                    Icon(Icons.phone_iphone_rounded, size: 13.sp, color: _primary),
-                    Gap(3.w),
-                    Text(
-                      customer.customerMobile,
-                      style: _t(11.5, color: _primary, weight: FontWeight.w700),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ],
-        );
-      },
+    return _card(
+      icon: Icons.person_rounded,
+      title: AppLocaleKey.externalQuoteCustomerSection.tr(),
+      children: [
+        _field(
+          label: '${AppLocaleKey.customerName.tr()} *',
+          controller: _customerNameController,
+          hint: AppLocaleKey.agentFullCustomerName.tr(),
+          icon: Icons.person_outline_rounded,
+          validator: (v) => _required(v, AppLocaleKey.externalQuoteSelectCustomer),
+        ),
+        Gap(10.h),
+        _field(
+          label: AppLocaleKey.mobileNumber.tr(),
+          controller: _customerMobileController,
+          hint: '05xxxxxxxx',
+          icon: Icons.phone_iphone_rounded,
+          keyboardType: TextInputType.phone,
+          maxLength: 10,
+          formatters: [FilteringTextInputFormatter.digitsOnly],
+        ),
+      ],
     );
   }
 

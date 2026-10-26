@@ -1,3 +1,4 @@
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/features/admin/data/model/cars_response_model.dart';
@@ -139,6 +140,18 @@ class AgentCar {
     this.paintingsVal,
   });
 
+  double get priceWithVat {
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    return price * (1 + vatPercentage / 100) + (paintingsVal ?? 0.0);
+  }
+
+  double get taxAmount {
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    return price * (vatPercentage / 100);
+  }
+
   GetBrandCarsDataModel toBrandCar() {
     return GetBrandCarsDataModel(
       groupCode: groupCode.isNotEmpty ? int.tryParse(groupCode) ?? 0 : 0,
@@ -259,7 +272,7 @@ List<AgentLead> getAgentLeads() => [
     id: '1',
     customerName: AppLocaleKey.agentSimName1.tr(),
     phoneNumber: '0501234567',
-    carInterest: AppLocaleKey.agentSimCarCamry.tr() + " 2024",
+    carInterest: '${AppLocaleKey.agentSimCarCamry.tr()} 2024',
     status: LeadStatus.newLead,
     lastContact: DateTime.now().subtract(const Duration(hours: 2)),
     budget: 95000,
@@ -268,7 +281,7 @@ List<AgentLead> getAgentLeads() => [
     id: '2',
     customerName: AppLocaleKey.agentSimName2.tr(),
     phoneNumber: '0559876543',
-    carInterest: AppLocaleKey.agentSimCarPatrol.tr() + " 2023",
+    carInterest: '${AppLocaleKey.agentSimCarPatrol.tr()} 2023',
     status: LeadStatus.inProgress,
     lastContact: DateTime.now().subtract(const Duration(days: 1)),
     budget: 185000,
@@ -277,7 +290,7 @@ List<AgentLead> getAgentLeads() => [
     id: '3',
     customerName: AppLocaleKey.agentSimName3.tr(),
     phoneNumber: '0534567890',
-    carInterest: AppLocaleKey.agentSimCarX5.tr() + " 2024",
+    carInterest: '${AppLocaleKey.agentSimCarX5.tr()} 2024',
     status: LeadStatus.closed,
     lastContact: DateTime.now().subtract(const Duration(days: 2)),
     budget: 285000,
@@ -286,7 +299,7 @@ List<AgentLead> getAgentLeads() => [
     id: '4',
     customerName: AppLocaleKey.agentSimName4.tr(),
     phoneNumber: '0521112233',
-    carInterest: AppLocaleKey.agentSimCarTucson.tr() + " 2024",
+    carInterest: '${AppLocaleKey.agentSimCarTucson.tr()} 2024',
     status: LeadStatus.newLead,
     lastContact: DateTime.now().subtract(const Duration(hours: 5)),
     budget: 75000,
@@ -295,7 +308,7 @@ List<AgentLead> getAgentLeads() => [
     id: '5',
     customerName: AppLocaleKey.agentSimName5.tr(),
     phoneNumber: '0567891234',
-    carInterest: AppLocaleKey.agentSimCarLX600.tr() + " 2023",
+    carInterest: '${AppLocaleKey.agentSimCarLX600.tr()} 2023',
     status: LeadStatus.lost,
     lastContact: DateTime.now().subtract(const Duration(days: 5)),
     budget: 350000,
@@ -306,7 +319,7 @@ List<AgentAppointment> getAgentAppointments() => [
   AgentAppointment(
     id: '1',
     customerName: AppLocaleKey.agentSimName1.tr(),
-    carModel: AppLocaleKey.agentSimCarCamry.tr() + " 2024",
+    carModel: '${AppLocaleKey.agentSimCarCamry.tr()} 2024',
     dateTime: DateTime.now().add(const Duration(hours: 2)),
     location: AppLocaleKey.agentSimLocationRiyadh.tr(),
     status: AppointmentStatus.upcoming,
@@ -314,7 +327,7 @@ List<AgentAppointment> getAgentAppointments() => [
   AgentAppointment(
     id: '2',
     customerName: AppLocaleKey.agentSimName2.tr(),
-    carModel: AppLocaleKey.agentSimCarPatrol.tr() + " 2023",
+    carModel: '${AppLocaleKey.agentSimCarPatrol.tr()} 2023',
     dateTime: DateTime.now().add(const Duration(hours: 5)),
     location: AppLocaleKey.agentSimLocationJeddah.tr(),
     status: AppointmentStatus.upcoming,
@@ -322,7 +335,7 @@ List<AgentAppointment> getAgentAppointments() => [
   AgentAppointment(
     id: '3',
     customerName: AppLocaleKey.agentSimName3.tr(),
-    carModel: AppLocaleKey.agentSimCarX5.tr() + " 2024",
+    carModel: '${AppLocaleKey.agentSimCarX5.tr()} 2024',
     dateTime: DateTime.now().subtract(const Duration(hours: 3)),
     location: AppLocaleKey.agentSimLocationKhobar.tr(),
     status: AppointmentStatus.done,

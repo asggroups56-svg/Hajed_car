@@ -131,4 +131,5 @@ class AppImages {
   /// assets/images/porsche.png
   static const String assetsImagesPorsche = "assets/images/porsche.png";
   static const String sar = "assets/svg/sar.svg";
+  static const String assetsImagesDeltaLogo = "assets/images/delta_loge.jpg";
 }
