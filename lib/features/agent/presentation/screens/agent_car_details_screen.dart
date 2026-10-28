@@ -152,14 +152,12 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                           context,
                           car: widget.car.toCarModel(),
                           existingSpecs: {
-                            AppLocaleKey.agentYearMade.tr(): widget.car.year,
-                            AppLocaleKey.agentSimNumber.tr(): widget.car.chassisNo,
-                            AppLocaleKey.agentColor.tr(): widget.car.color,
-                            AppLocaleKey.agentTransmission.tr(): AppLocaleKey.agentAutomatic.tr(),
                             if (widget.car.luxury != null && widget.car.luxury!.trim().isNotEmpty)
-                              (isArabic ? 'درجة الفخامة' : 'Luxury'): widget.car.luxury!.trim(),
-                            if (widget.car.specificName != null && widget.car.specificName!.trim().isNotEmpty)
-                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!.trim(),
+                              (isArabic ? 'المواصفات' : 'Luxury'): widget.car.luxury!.trim(),
+                            if (widget.car.specificName != null &&
+                                widget.car.specificName!.trim().isNotEmpty)
+                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!
+                                  .trim(),
                           },
                         );
                         if (success == true && context.mounted) {

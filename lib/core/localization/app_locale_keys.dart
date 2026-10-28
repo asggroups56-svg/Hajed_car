@@ -1651,6 +1651,7 @@ class AppLocaleKey {
   static const String makeYear = 'make_year';
   static const String colorCodeTitle = 'color_code_title';
   static const String carSpecsNotes = 'car_specs_notes';
+  static const String carAdditionalSpecs = 'car_additional_specs';
   static const String quantity = 'quantity';
   static const String baseCarPrice = 'base_car_price';
   static const String taxAmountLabel = 'tax_amount_label';

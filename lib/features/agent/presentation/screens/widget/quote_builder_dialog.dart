@@ -177,7 +177,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
     context.read<AgentCubit>().getCustomer(null);
 
     final isArabic = HiveMethods.getLang() == 'ar';
-    final luxuryLabel = isArabic ? 'درجة الفخامة' : 'Luxury';
+    final luxuryLabel = isArabic ? 'المواصفات' : 'Luxury';
     final specsLabel = isArabic ? 'المواصفات' : 'Specifications';
 
     final specsMap = Map<String, String>.from(widget.existingSpecs);
@@ -187,7 +187,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
         carLuxury.trim().isNotEmpty &&
         !specsMap.containsKey(luxuryLabel) &&
         !specsMap.containsKey('Luxury') &&
-        !specsMap.containsKey('درجة الفخامة')) {
+        !specsMap.containsKey('المواصفات')) {
       specsMap[luxuryLabel] = carLuxury.trim();
     }
 

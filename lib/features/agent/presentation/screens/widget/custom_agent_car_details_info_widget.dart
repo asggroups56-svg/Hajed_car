@@ -1,4 +1,5 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/additional_specs/additional_specs_section.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -203,67 +204,9 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
           ),
         if (car.specificSpecifications.isNotEmpty) ...[
           Gap(24.h),
-          Text(
-            isArabic ? 'المواصفات والتجهيزات الإضافية' : 'Additional Specifications',
-            style: AppTextStyle.bodyLarge(context).copyWith(fontWeight: FontWeight.w900),
-          ),
-          Gap(12.h),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: car.specificSpecifications.length,
-            separatorBuilder: (_, _) => Gap(10.h),
-            itemBuilder: (context, index) {
-              final spec = car.specificSpecifications[index];
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-                decoration: BoxDecoration(
-                  color: AppColor.cardColor(context),
-                  borderRadius: BorderRadius.circular(14.r),
-                  border: Border.all(
-                    color: AppColor.borderColor(context).withValues(alpha: 0.15),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.blackColor(context).withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 30.w,
-                      height: 30.w,
-                      decoration: BoxDecoration(
-                        color: AppColor.primaryColor(context).withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check_rounded,
-                        color: AppColor.primaryColor(context),
-                        size: 16.sp,
-                      ),
-                    ),
-                    Gap(12.w),
-                    Expanded(
-                      child: Text(
-                        spec,
-                        style: AppTextStyle.bodyMedium(context).copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13.sp,
-                          color: AppColor.blackTextColor(context),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+          AdditionalSpecsSection(
+            title: AppLocaleKey.carAdditionalSpecs.tr(),
+            specs: car.specificSpecifications,
           ),
         ],
         Gap(120.h),
