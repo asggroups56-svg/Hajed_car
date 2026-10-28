@@ -243,6 +243,8 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
       customerName: car.customerName ?? '',
       reservedName: car.reservedName ?? '',
       paintingsVal: car.paintingsVal,
+      specificName: car.specificName,
+      luxury: car.Luxury,
     );
 
     Navigator.push(

@@ -70,6 +70,7 @@ class GetBrandCarsDataModel extends Equatable {
   final double? insurancePct;
   final double? insurancePctOther;
   final double? insuranceAmount;
+  final String? luxury;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -146,6 +147,7 @@ class GetBrandCarsDataModel extends Equatable {
     this.insurancePct,
     this.insurancePctOther,
     this.insuranceAmount,
+    this.luxury,
   });
 
   final String? customerName;
@@ -291,6 +293,8 @@ class GetBrandCarsDataModel extends Equatable {
       'insurancePct': insurancePct,
       'insurancePctOther': insurancePctOther,
       'insuranceAmount': insuranceAmount,
+      'LUXURY': luxury,
+      'luxury': luxury,
     };
   }
 
@@ -388,6 +392,7 @@ class GetBrandCarsDataModel extends Equatable {
       insurancePct: insurancePct ?? other.insurancePct,
       insurancePctOther: insurancePctOther ?? other.insurancePctOther,
       insuranceAmount: insuranceAmount ?? other.insuranceAmount,
+      luxury: luxury ?? other.luxury,
     );
   }
 
@@ -402,6 +407,7 @@ class GetBrandCarsDataModel extends Equatable {
     double? monthlyInstallment,
     String? groupName,
     String? grName,
+    String? luxury,
   }) {
     return GetBrandCarsDataModel(
       groupCode: groupCode,
@@ -467,6 +473,7 @@ class GetBrandCarsDataModel extends Equatable {
       insurancePct: insurancePct,
       insurancePctOther: insurancePctOther,
       insuranceAmount: insuranceAmount,
+      luxury: luxury ?? this.luxury,
     );
   }
 
@@ -638,6 +645,10 @@ class GetBrandCarsDataModel extends Equatable {
         'InsuranceAmount',
         'insuranceAmount',
       ),
+      luxury:
+          json['LUXURY']?.toString() ??
+          json['luxury']?.toString() ??
+          json['Luxury']?.toString(),
       customerName:
           json['CUSTOMER_NAME']?.toString() ??
           json['customerName']?.toString() ??
@@ -764,6 +775,7 @@ class GetBrandCarsDataModel extends Equatable {
     insurancePct,
     insurancePctOther,
     insuranceAmount,
+    luxury,
   ];
 
   CarModel toCarModel() {
@@ -786,6 +798,7 @@ class GetBrandCarsDataModel extends Equatable {
       mobileShow: mobileShow,
       paintingsVal: paintingsVal,
       specificName: specificName,
+      Luxury: luxury,
     );
   }
 }

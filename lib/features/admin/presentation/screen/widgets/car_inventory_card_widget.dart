@@ -189,6 +189,10 @@ class CarInventoryCardWidget extends StatelessWidget {
                                 existingSpecs: {
                                   AppLocaleKey.manufacturingYear.tr(): car.makeYear.toString(),
                                   AppLocaleKey.mileage.tr(): car.chassisNo,
+                                  if (car.luxury != null && car.luxury!.trim().isNotEmpty)
+                                    (context.locale.languageCode == 'ar' ? 'درجة الفخامة' : 'Luxury'): car.luxury!.trim(),
+                                  if (car.specificName != null && car.specificName!.trim().isNotEmpty)
+                                    (context.locale.languageCode == 'ar' ? 'المواصفات' : 'Specifications'): car.specificName!.trim(),
                                 },
                               );
                             },

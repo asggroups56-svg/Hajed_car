@@ -195,6 +195,12 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
           title: AppLocaleKey.agentTransmission.tr(),
           value: AppLocaleKey.agentAutomatic.tr(),
         ),
+        if (car.luxury != null && car.luxury!.trim().isNotEmpty)
+          SpecTile(
+            icon: Icons.workspace_premium_rounded,
+            title: isArabic ? 'درجة الفخامة' : 'Luxury',
+            value: car.luxury!.trim(),
+          ),
         if (car.specificSpecifications.isNotEmpty) ...[
           Gap(24.h),
           Text(

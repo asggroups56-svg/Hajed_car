@@ -176,7 +176,30 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
     _endDateController.text = DateFormat('yyyy-MM-dd', 'en').format(_endDate!);
     context.read<AgentCubit>().getCustomer(null);
 
-    final initialText = widget.existingSpecs.entries
+    final isArabic = HiveMethods.getLang() == 'ar';
+    final luxuryLabel = isArabic ? 'درجة الفخامة' : 'Luxury';
+    final specsLabel = isArabic ? 'المواصفات' : 'Specifications';
+
+    final specsMap = Map<String, String>.from(widget.existingSpecs);
+
+    final carLuxury = widget.car.Luxury ?? widget.car.luxury;
+    if (carLuxury != null &&
+        carLuxury.trim().isNotEmpty &&
+        !specsMap.containsKey(luxuryLabel) &&
+        !specsMap.containsKey('Luxury') &&
+        !specsMap.containsKey('درجة الفخامة')) {
+      specsMap[luxuryLabel] = carLuxury.trim();
+    }
+
+    if (widget.car.specificName != null &&
+        widget.car.specificName!.trim().isNotEmpty &&
+        !specsMap.containsKey(specsLabel) &&
+        !specsMap.containsKey('المواصفات') &&
+        !specsMap.containsKey('Specifications')) {
+      specsMap[specsLabel] = widget.car.specificName!.trim();
+    }
+
+    final initialText = specsMap.entries
         .where((e) => e.value.trim().isNotEmpty && e.value.trim() != '—' && e.value.trim() != '-')
         .map((e) => '${e.key}: ${e.value}')
         .join('\n');
@@ -195,7 +218,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
         _handled = true;
         final resMsg =
             state.bookingPermissionStatus.data?.message ?? state.bookingPermissionStatus.message;
-        final isArabic = context.locale.languageCode == 'ar';
+        final isArabic = HiveMethods.getLang() == 'ar';
         final successMsg = (resMsg != null && resMsg.trim().isNotEmpty)
             ? resMsg
             : (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
@@ -206,7 +229,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
       } else if (state.bookingPermissionStatus.isFailure) {
         final errMsg =
             state.bookingPermissionStatus.error ??
-            (context.locale.languageCode == 'ar'
+            (HiveMethods.getLang() == 'ar'
                 ? 'حدث خطأ أثناء حفظ عرض السعر'
                 : 'Error occurred while saving quote');
         context.read<AgentCubit>().resetBookingPermissionStatus();

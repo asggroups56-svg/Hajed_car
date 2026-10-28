@@ -53,7 +53,11 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
         } else if (status.isSuccess && (status.data == null || status.data?.success == false)) {
           setState(() => _isLoading = false);
           CommonMethods.showToast(
-            message: status.data?.msg ?? (isArabic ? 'فشل الحجز، يرجى المحاولة مجدداً' : 'Reservation failed. Please try again.'),
+            message:
+                status.data?.msg ??
+                (isArabic
+                    ? 'فشل الحجز، يرجى المحاولة مجدداً'
+                    : 'Reservation failed. Please try again.'),
             type: ToastType.error,
           );
         } else if (status.isFailure) {
@@ -152,6 +156,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                             AppLocaleKey.agentSimNumber.tr(): widget.car.chassisNo,
                             AppLocaleKey.agentColor.tr(): widget.car.color,
                             AppLocaleKey.agentTransmission.tr(): AppLocaleKey.agentAutomatic.tr(),
+                            if (widget.car.luxury != null && widget.car.luxury!.trim().isNotEmpty)
+                              (isArabic ? 'درجة الفخامة' : 'Luxury'): widget.car.luxury!.trim(),
+                            if (widget.car.specificName != null && widget.car.specificName!.trim().isNotEmpty)
+                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!.trim(),
                           },
                         );
                         if (success == true && context.mounted) {
@@ -251,14 +259,16 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: AppColor.whiteColor(context).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(6.r),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                                    border: Border.all(
+                                      color: AppColor.whiteColor(context).withValues(alpha: 0.3),
+                                    ),
                                   ),
                                   child: Text(
                                     isArabic ? 'شامل الضريبة واللوحات' : 'Inc. VAT & Plates',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: AppColor.whiteColor(context),
                                       fontSize: 10.sp,
                                       fontWeight: FontWeight.w700,
                                     ),

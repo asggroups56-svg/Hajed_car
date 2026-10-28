@@ -305,6 +305,15 @@ pw.Widget _specsCell({
         ),
         if (featuresEn.isNotEmpty)
           _H.txt(featuresEn, regular, size: _C.fsSpecs - 1, align: pw.TextAlign.right, rtl: false),
+        if (car.luxury != null && car.luxury!.trim().isNotEmpty) ...[
+          pw.SizedBox(height: _C.spXS),
+          _H.txt(
+            'درجة الفخامة: ${car.luxury!.trim()}',
+            bold,
+            size: _C.fsSpecs,
+            align: pw.TextAlign.right,
+          ),
+        ],
       ],
     ),
   );

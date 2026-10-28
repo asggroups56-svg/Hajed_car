@@ -47,6 +47,7 @@ class OfferModel extends Equatable {
   final double taxVal;
   final double paintingsVal;
   final String? colorName;
+  final String? luxury;
 
   const OfferModel({
     required this.listNo,
@@ -92,6 +93,7 @@ class OfferModel extends Equatable {
     required this.taxVal,
     required this.paintingsVal,
     this.colorName,
+    this.luxury,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -139,6 +141,9 @@ class OfferModel extends Equatable {
       taxVal: _toDouble(json['TAX_VAL']),
       paintingsVal: _toDouble(json['PAINTINGS_VAL']),
       colorName: json['COLOR_NAME']?.toString(),
+      luxury: json['LUXURY']?.toString() ??
+          json['luxury']?.toString() ??
+          json['Luxury']?.toString(),
     );
   }
 
@@ -217,5 +222,6 @@ class OfferModel extends Equatable {
     taxVal,
     paintingsVal,
     colorName,
+    luxury,
   ];
 }

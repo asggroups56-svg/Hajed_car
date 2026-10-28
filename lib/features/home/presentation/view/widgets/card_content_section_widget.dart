@@ -243,10 +243,7 @@ class CardContentSection extends StatelessWidget {
         final bool isShort = maxHeight.isFinite && maxHeight < 210;
 
         return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 8.w,
-            vertical: isShort ? 4.h : 6.h,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: isShort ? 4.h : 6.h),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,9 +251,7 @@ class CardContentSection extends StatelessWidget {
               // اسم السيارة
               Text(
                 car['name']?.toString() ?? '',
-                style: AppTextStyle.bodyMedium(
-                  context,
-                ).copyWith(
+                style: AppTextStyle.bodyMedium(context).copyWith(
                   color: AppColor.blackTextColor(context),
                   fontWeight: FontWeight.bold,
                   fontSize: isShort ? 11.sp : 12.sp,
@@ -291,9 +286,7 @@ class CardContentSection extends StatelessWidget {
                       children: [
                         Text(
                           AppLocaleKey.cash.tr(),
-                          style: AppTextStyle.bodySmall(
-                            context,
-                          ).copyWith(
+                          style: AppTextStyle.bodySmall(context).copyWith(
                             color: AppColor.greyColor(context),
                             fontWeight: FontWeight.w900,
                             fontSize: isShort ? 9.sp : 10.sp,
@@ -348,9 +341,7 @@ class CardContentSection extends StatelessWidget {
                       children: [
                         Text(
                           AppLocaleKey.agentInstallments.tr(),
-                          style: AppTextStyle.bodySmall(
-                            context,
-                          ).copyWith(
+                          style: AppTextStyle.bodySmall(context).copyWith(
                             color: AppColor.greyColor(context),
                             fontWeight: FontWeight.w900,
                             fontSize: isShort ? 9.sp : 10.sp,
@@ -435,7 +426,8 @@ class CardContentSection extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         fontSize: isShort ? 6.5.sp : 7.sp,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
+                      softWrap: true,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -456,9 +448,7 @@ class CardContentSection extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           AppLocaleKey.details.tr(),
-                          style: AppTextStyle.bodySmall(
-                            context,
-                          ).copyWith(
+                          style: AppTextStyle.bodySmall(context).copyWith(
                             color: AppColor.whiteColor(context),
                             fontWeight: FontWeight.bold,
                             fontSize: 11.sp,

@@ -38,6 +38,7 @@ class CarModel extends Equatable {
   final String? ADVANCED_AMOUNT;
   final String? carimage;
   final String? color;
+  final String? Luxury;
 
   /// LPO number returned by the reserved-cars endpoint (LPONO field).
   final String? lpoNo;
@@ -79,6 +80,7 @@ class CarModel extends Equatable {
     this.color,
     this.paintingsVal,
     this.specificName,
+    this.Luxury,
   });
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
@@ -123,13 +125,17 @@ class CarModel extends Equatable {
           double.tryParse(json['PAINTINGS_VAL']?.toString() ?? '') ??
           double.tryParse(json['paintingsVal']?.toString() ?? ''),
       specificName: () {
-        final raw = json['SPECIFIC_NAME']?.toString() ??
-            json['specificName']?.toString();
+        final raw = json['SPECIFIC_NAME']?.toString() ?? json['specificName']?.toString();
         if (raw == null || raw.trim().isEmpty || raw.toLowerCase() == 'null') return null;
         return raw.trim();
       }(),
+      Luxury: json['LUXURY']?.toString() ??
+          json['luxury']?.toString() ??
+          json['Luxury']?.toString(),
     );
   }
+
+  String? get luxury => Luxury;
 
   List<String> get imageUrls {
     if (carimage == null || carimage!.trim().isEmpty || carimage!.trim().toLowerCase() == 'null') {
@@ -174,5 +180,6 @@ class CarModel extends Equatable {
     carimage,
     paintingsVal,
     specificName,
+    Luxury,
   ];
 }

@@ -108,6 +108,8 @@ class _ManageCarsScreenState extends State<ManageCarsScreen> {
       customerName: car.customerName,
       reservedName: car.reservedName,
       paintingsVal: car.paintingsVal,
+      specificName: car.specificName,
+      luxury: car.Luxury,
     );
   }
 

@@ -431,14 +431,18 @@ class PremiumCarCardWidget extends StatelessWidget {
               RoutesName.financingScreen,
               arguments: {'car': car},
             ),
-            icon: Icon(Icons.calculate_outlined, size: 18.sp),
-            label: Text(
-              context.locale.languageCode == 'ar' ? 'احسب قسطك' : 'Calculate installment',
+            icon: Icon(Icons.calculate_outlined, size: 16.sp),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                context.locale.languageCode == 'ar' ? 'احسب قسطك' : 'Calculate installment',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColor.primaryColor(context),
               backgroundColor: AppColor.primaryColor(context).withValues(alpha: 0.15),
-
               minimumSize: Size.fromHeight(38.h),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
             ),
@@ -475,11 +479,16 @@ class PremiumCarCardWidget extends StatelessWidget {
                     );
                   }
                 },
-                icon: Icon(isInCompare ? Icons.check_circle_rounded : Icons.add, size: 18.sp),
-                label: Text(
-                  context.locale.languageCode == 'ar'
-                      ? (isInCompare ? 'في المقارنة' : 'أضف للمقارنة')
-                      : (isInCompare ? 'In comparison' : 'Add to comparison'),
+                icon: Icon(isInCompare ? Icons.check_circle_rounded : Icons.add, size: 16.sp),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    context.locale.languageCode == 'ar'
+                        ? (isInCompare ? 'في المقارنة' : 'أضف للمقارنة')
+                        : (isInCompare ? 'In comparison' : 'Add to comparison'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: color,

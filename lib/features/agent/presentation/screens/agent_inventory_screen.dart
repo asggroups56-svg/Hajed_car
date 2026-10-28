@@ -116,6 +116,7 @@ class AgentInventoryScreenState extends State<AgentInventoryScreen>
       reservedName: car.reservedName ?? '',
       paintingsVal: car.paintingsVal,
       specificName: car.specificName,
+      luxury: car.Luxury,
     );
   }
 

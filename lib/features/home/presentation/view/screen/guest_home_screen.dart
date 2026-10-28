@@ -21,8 +21,7 @@ class HomeGuestScreen extends StatefulWidget {
   State<HomeGuestScreen> createState() => _HomeGuestScreenState();
 }
 
-class _HomeGuestScreenState extends State<HomeGuestScreen>
-    with WidgetsBindingObserver {
+class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -51,9 +50,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
     return RefreshIndicator(
       onRefresh: () => context.read<HomeCubit>().refreshHomeData(),
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -97,9 +94,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12.r),
                                   borderSide: BorderSide(
-                                    color: AppColor.dividerColor(
-                                      context,
-                                    ).withValues(alpha: .5),
+                                    color: AppColor.dividerColor(context).withValues(alpha: .5),
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -117,10 +112,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
                       Gap(10.w),
                       // ── Filter button ──────────────────────────────────
                       GestureDetector(
-                        onTap: () => NavigatorMethods.pushNamed(
-                          context,
-                          RoutesName.filterScreen,
-                        ),
+                        onTap: () => NavigatorMethods.pushNamed(context, RoutesName.filterScreen),
                         child: Container(
                           padding: EdgeInsets.all(14.w),
                           decoration: BoxDecoration(
@@ -149,12 +141,9 @@ class _HomeGuestScreenState extends State<HomeGuestScreen>
                   const CategoriesWidget(),
                   Gap(15.h),
                   SectionTitleWidget(
-                    title: AppLocaleKey.recent.tr(),
+                    title: AppLocaleKey.trending_now.tr(),
                     onSeeAll: () {
-                      NavigatorMethods.pushNamed(
-                        context,
-                        RoutesName.popularCarsScreen,
-                      );
+                      NavigatorMethods.pushNamed(context, RoutesName.popularCarsScreen);
                     },
                   ),
                   Gap(15.h),

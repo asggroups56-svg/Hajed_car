@@ -20,7 +20,7 @@ class ServiceInitialize {
     await EasyLocalization.ensureInitialized();
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     await NotificationService.initialize();
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20; // 60MB
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20;
     PaintingBinding.instance.imageCache.maximumSize = 120;
     await initDependencies();
   }

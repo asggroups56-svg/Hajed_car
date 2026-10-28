@@ -118,6 +118,7 @@ class AgentCar {
   final String? colorCode;
   final double? paintingsVal;
   final String? specificName;
+  final String? luxury;
 
   /// Returns individual specification items parsed from [specificName].
   List<String> get specificSpecifications {
@@ -150,6 +151,7 @@ class AgentCar {
     this.colorCode,
     this.paintingsVal,
     this.specificName,
+    this.luxury,
   });
 
   double get priceWithVat {
@@ -201,6 +203,7 @@ class AgentCar {
       color: color,
       paintingsVal: paintingsVal,
       specificName: specificName,
+      luxury: luxury,
     );
   }
 
@@ -222,6 +225,7 @@ class AgentCar {
       mobileShow: true,
       paintingsVal: paintingsVal,
       specificName: specificName,
+      Luxury: luxury,
     );
   }
 

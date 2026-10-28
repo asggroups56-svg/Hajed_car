@@ -309,6 +309,9 @@ pw.Widget _specsCell({
   if (offer.itemCode != null && offer.itemCode!.isNotEmpty) {
     specs.add('كود الصنف: ${offer.itemCode}');
   }
+  if (offer.luxury != null && offer.luxury!.trim().isNotEmpty) {
+    specs.add('درجة الفخامة: ${offer.luxury!.trim()}');
+  }
 
   final specsText = specs.isNotEmpty ? specs.join(' - ') : '—';
 
@@ -322,6 +325,10 @@ pw.Widget _specsCell({
         _H.txt('المواصفات :-', bold, size: _C.fsSpecs, align: pw.TextAlign.right),
         pw.SizedBox(height: _C.spXS),
         _H.txt(_H.arabicDigits(specsText), regular, size: _C.fsSpecs, align: pw.TextAlign.right),
+        if (offer.note != null && offer.note!.trim().isNotEmpty) ...[
+          pw.SizedBox(height: _C.spXS),
+          _H.txt(_H.arabicDigits(offer.note!.trim()), regular, size: _C.fsSpecs, align: pw.TextAlign.right),
+        ],
       ],
     ),
   );
