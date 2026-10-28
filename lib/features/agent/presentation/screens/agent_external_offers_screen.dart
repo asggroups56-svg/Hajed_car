@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/agent/data/model/offer_model.dart';
 import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
 import 'package:car/features/agent/presentation/cubit/agent_state.dart';
@@ -56,6 +60,19 @@ class _AgentExternalOffersScreenState extends State<AgentExternalOffersScreen> {
     final showChassis = await showQuotationChassisChoiceDialog(context);
 
     if (showChassis == null || !mounted) return;
+    final printResult = await context.read<AgentCubit>().printOfferPrice(
+      listNo: offer.listNo,
+      listType: 2,
+      withChassis: showChassis,
+    );
+    if (!mounted) return;
+    final failure = printResult.fold((failure) => failure, (_) => null);
+    if (failure != null) {
+      CommonMethods.showToast(message: failure.errMessage, type: ToastType.error);
+      return;
+    }
+    final pdfBytes = printResult.fold((_) => Uint8List(0), (bytes) => bytes);
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -64,6 +81,7 @@ class _AgentExternalOffersScreenState extends State<AgentExternalOffersScreen> {
           offers: offers,
           showChassis: showChassis,
           isExternalOffer: true,
+          pdfBytes: pdfBytes,
         ),
       ),
     );

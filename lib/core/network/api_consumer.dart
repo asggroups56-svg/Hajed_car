@@ -5,6 +5,7 @@ abstract class ApiConsumer {
     dynamic body,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
+    bool? asBytes,
   });
   Future<dynamic> post(
     String path, {

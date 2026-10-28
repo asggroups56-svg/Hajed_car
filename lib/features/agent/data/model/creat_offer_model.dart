@@ -137,6 +137,40 @@ class CreatOfferModel extends Equatable {
     };
   }
 
+  /// Request shape used only by DeltagroupService/Cars/AddExternalofferprice.
+  Map<String, dynamic> toExternalOfferJson() {
+    return {
+      'LISTNOs': listNos ?? 0,
+      'LISTNO': listNo,
+      'LISTDATE': listDate,
+      'ACTLISTNO': actListNo ?? '',
+      'LISTDESC': (customerName != null && customerName!.isNotEmpty)
+          ? customerName
+          : (listDesc ?? ''),
+      'ANALYTICAL': analytical ?? customerMobile ?? '',
+      'CUSTOMERNO': customerNo,
+      'CUSTOMERNAME': customerName ?? '',
+      'REPRESCODE': represCode,
+      'TAAMEDDATE': taamedDate,
+      'LASTDATE': lastDate,
+      'AREANO': areaNo ?? 0,
+      'RESTYPE': resType,
+      'PAYMENTTYPE': paymentType,
+      'TAAMEDNO': taamedNo ?? '',
+      'GUARPRIMARY': guarPrimary,
+      'GUARFINAL': guarFinal,
+      'DELIVERYPERIOD': deliveryPeriod,
+      'LISTPERIOD': listPeriod,
+      'BEGDATE': begDate ?? '',
+      'ENDDATE': endDate ?? '',
+      'RECEIVEPLACE': receivePlace ?? '',
+      'NOTES': notes ?? '',
+      'TERMS': terms ?? '',
+      'TOTAL': total,
+      'sub_list': subList.map((item) => item.toExternalOfferJson()).toList(),
+    };
+  }
+
   @override
   List<Object?> get props => [
     listNos,
@@ -225,6 +259,21 @@ class OfferItemModel extends Equatable {
       'TAX_VAL': taxVal,
       'PAINTINGS_VAL': paintingsVal,
       'GROUP_CODE': GROUP_CODE,
+    };
+  }
+
+  Map<String, dynamic> toExternalOfferJson() {
+    return {
+      'ITEM_CODE': itemCode,
+      'ITEM_NAME': itemName,
+      'COLOR_CODE': colorCode,
+      'CHASSIS_NO': chassisNo,
+      'MAKE_YEAR': makeYear,
+      'QNTY': qnty,
+      'PRICE': price,
+      'NOTE': note,
+      'TAX_VAL': taxVal,
+      'PAINTINGS_VAL': paintingsVal,
     };
   }
 

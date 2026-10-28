@@ -122,7 +122,8 @@ class OfferModel extends Equatable {
       notes: json['NOTES']?.toString(),
       terms: json['TERMS']?.toString(),
       total: _toDouble(json['TOTAL']),
-      customerName: json['CUSTOMERNAME']?.toString() ?? '',
+      customerName:
+          json['CUSTOMER_NAME']?.toString() ?? json['CUSTOMERNAME']?.toString() ?? '',
       represName: json['REPRES_NAME']?.toString() ?? '',
       areaName: json['AREA_NAME']?.toString(),
 

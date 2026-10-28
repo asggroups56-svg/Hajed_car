@@ -52,12 +52,18 @@ class DioConsumer implements ApiConsumer {
     dynamic body,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
+    bool? asBytes,
   }) async {
     final response = await client.request(
       path,
       data: body,
       queryParameters: queryParameters,
-      options: Options(method: 'GET', headers: headers, extra: extra),
+      options: Options(
+        method: 'GET',
+        headers: headers,
+        extra: extra,
+        responseType: asBytes == true ? ResponseType.bytes : null,
+      ),
     );
     return response.data;
   }

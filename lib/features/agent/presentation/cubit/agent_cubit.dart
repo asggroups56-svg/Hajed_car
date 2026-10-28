@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:car/core/network/status.state.dart';
+import 'package:car/core/error/failures.dart';
 import 'package:car/features/agent/data/model/creat_offer_model.dart';
 import 'package:car/features/agent/data/repo/agent_repo.dart';
 import 'package:car/features/agent/presentation/cubit/agent_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dartz/dartz.dart';
 
 class AgentCubit extends Cubit<AgentState> {
   final AgentRepo agentRepo;
@@ -75,6 +79,18 @@ class AgentCubit extends Cubit<AgentState> {
     );
   }
 
+  Future<Either<Failure, Uint8List>> printOfferPrice({
+    required int listNo,
+    required int listType,
+    required bool withChassis,
+  }) {
+    return agentRepo.printOfferPrice(
+      listNo: listNo,
+      listType: listType,
+      withChassis: withChassis,
+    );
+  }
+
   Future<void> addbookingpermission(CreatOfferModel offer) async {
     emit(state.copyWith(bookingPermissionStatus: const StatusState.loading()));
     final result = await agentRepo.addbookingpermission(offer);
@@ -126,3 +142,4 @@ class AgentCubit extends Cubit<AgentState> {
     emit(state.copyWith(customerProfileStatus: const StatusState.initial()));
   }
 }
+

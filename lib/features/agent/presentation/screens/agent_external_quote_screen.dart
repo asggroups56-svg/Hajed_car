@@ -56,7 +56,6 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
 
   // Customer
   final _customerNameController = TextEditingController();
-  final _customerMobileController = TextEditingController();
 
   final ValueNotifier<ColorModel?> _selectedColor = ValueNotifier(null);
   final ValueNotifier<Set<String>> _selectedTerms = ValueNotifier(<String>{});
@@ -135,7 +134,6 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       _termsController,
       _notesController,
       _customerNameController,
-      _customerMobileController,
     ]) {
       c.dispose();
     }
@@ -230,14 +228,11 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       _toastError(AppLocaleKey.externalQuoteSelectCustomer);
       return;
     }
-    final customerMobile = _customerMobileController.text.trim();
     int matchedCustomerNo = 0;
     final customerList = context.read<AgentCubit>().state.customersStatus.data ?? [];
     if (customerList.isNotEmpty) {
       final match = customerList.firstWhere(
-        (c) =>
-            (c.customerName ?? '').trim().toLowerCase() == customerName.toLowerCase() ||
-            (customerMobile.isNotEmpty && c.customerMobile.trim() == customerMobile),
+        (c) => (c.customerName ?? '').trim().toLowerCase() == customerName.toLowerCase(),
         orElse: () => const CustomerModel(),
       );
       matchedCustomerNo = match.customerNo ?? 0;
@@ -288,7 +283,7 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
       lastDate: _lastDate,
       customerNo: matchedCustomerNo,
       customerName: customerName,
-      customerMobile: customerMobile,
+      customerMobile: null,
       represCode: _represNo,
       resType: _resType,
       paymentType: _paymentType.value,
@@ -323,7 +318,6 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
     _termsController.clear();
     _notesController.clear();
     _customerNameController.clear();
-    _customerMobileController.clear();
     _selectedColor.value = null;
     _selectedTerms.value = <String>{};
     _paymentType.value = 'CSH';
@@ -621,16 +615,6 @@ class _AgentExternalQuoteScreenState extends State<AgentExternalQuoteScreen> {
           hint: AppLocaleKey.agentFullCustomerName.tr(),
           icon: Icons.person_outline_rounded,
           validator: (v) => _required(v, AppLocaleKey.externalQuoteSelectCustomer),
-        ),
-        Gap(10.h),
-        _field(
-          label: AppLocaleKey.mobileNumber.tr(),
-          controller: _customerMobileController,
-          hint: '05xxxxxxxx',
-          icon: Icons.phone_iphone_rounded,
-          keyboardType: TextInputType.phone,
-          maxLength: 10,
-          formatters: [FilteringTextInputFormatter.digitsOnly],
         ),
       ],
     );

@@ -1,14 +1,12 @@
-import 'package:car/core/cache/hive/hive_methods.dart';
+import 'dart:typed_data';
+
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/utils/car_quotation_offers_pdf_generator.dart';
 import 'package:car/features/agent/data/model/offer_model.dart';
-import 'package:car/features/agent/presentation/cubit/agent_cubit.dart';
-import 'package:car/features/agent/presentation/cubit/agent_state.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:printing/printing.dart';
 
@@ -17,6 +15,7 @@ class CarQuotationOffersPreviewScreen extends StatefulWidget {
   final int offerId;
   final bool showChassis;
   final bool isExternalOffer;
+  final Uint8List? pdfBytes;
 
   const CarQuotationOffersPreviewScreen({
     super.key,
@@ -24,6 +23,7 @@ class CarQuotationOffersPreviewScreen extends StatefulWidget {
     required this.offerId,
     this.showChassis = true,
     this.isExternalOffer = false,
+    this.pdfBytes,
   });
 
   @override
@@ -41,10 +41,6 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
     } catch (e) {
       _selectedOffer = null;
     }
-    if (!widget.isExternalOffer) {
-      final represNo = int.tryParse(HiveMethods.getUserCode() ?? '1') ?? 1;
-      context.read<AgentCubit>().getSingleOffer(represNo, widget.offerId);
-    }
   }
 
   @override
@@ -58,17 +54,15 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
         centerTitle: true,
         title: Text(AppLocaleKey.quotation_preview.tr()),
       ),
-      body: BlocListener<AgentCubit, AgentState>(
-        listener: (context, state) {
-          if (!widget.isExternalOffer &&
-              state.singleOfferStatus.isSuccess &&
-              state.singleOfferStatus.data != null) {
-            setState(() {
-              _selectedOffer = state.singleOfferStatus.data;
-            });
-          }
-        },
-        child: _selectedOffer == null
+      body: widget.pdfBytes != null
+          ? PdfPreview(
+                build: (_) async => widget.pdfBytes!,
+                pdfFileName: '${AppLocaleKey.quotation_file_name.tr()}_${widget.offerId}.pdf',
+                canChangeOrientation: false,
+                canChangePageFormat: false,
+                canDebug: false,
+              )
+          : !widget.isExternalOffer || _selectedOffer == null
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +87,7 @@ class _CarQuotationOffersPreviewScreenState extends State<CarQuotationOffersPrev
                 canChangePageFormat: false,
                 canDebug: false,
               ),
-      ),
     );
   }
 }
+
