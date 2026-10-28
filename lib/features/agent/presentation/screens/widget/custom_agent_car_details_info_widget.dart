@@ -199,7 +199,7 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
         if (car.luxury != null && car.luxury!.trim().isNotEmpty)
           SpecTile(
             icon: Icons.workspace_premium_rounded,
-            title: isArabic ? 'درجة الفخامة' : 'Luxury',
+            title: isArabic ? 'المواصفات' : 'Specifications',
             value: car.luxury!.trim(),
           ),
         if (car.specificSpecifications.isNotEmpty) ...[

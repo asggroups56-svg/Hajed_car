@@ -79,42 +79,26 @@ class _AdditionalSpecsSectionState extends State<AdditionalSpecsSection> {
               alignment: Alignment.topCenter,
               child: Padding(
                 padding: EdgeInsets.all(12.w),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final columns = constraints.maxWidth >= 620 ? 2 : 1;
-                    final gap = 10.w;
-                    final tileWidth =
-                        (constraints.maxWidth - gap * (columns - 1)) / columns;
-
-                    return Column(
-                      children: [
-                        Wrap(
-                          spacing: gap,
-                          runSpacing: 10.h,
-                          children: [
-                            for (var index = 0;
-                                index < visibleSpecs.length;
-                                index++)
-                              SizedBox(
-                                width: tileWidth,
-                                child: _SpecTile(
-                                  text: visibleSpecs[index],
-                                  index: index + 1,
-                                ),
-                              ),
-                          ],
+                child: Column(
+                  children: [
+                    for (var index = 0; index < visibleSpecs.length; index++) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: _SpecTile(
+                          text: visibleSpecs[index],
+                          index: index + 1,
                         ),
-                        if (canCollapse) ...[
-                          Gap(10.h),
-                          _ToggleRow(
-                            isExpanded: _isExpanded,
-                            onTap: () =>
-                                setState(() => _isExpanded = !_isExpanded),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
+                      ),
+                      if (index < visibleSpecs.length - 1) Gap(10.h),
+                    ],
+                    if (canCollapse) ...[
+                      Gap(10.h),
+                      _ToggleRow(
+                        isExpanded: _isExpanded,
+                        onTap: () => setState(() => _isExpanded = !_isExpanded),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
