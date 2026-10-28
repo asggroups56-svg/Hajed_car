@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/network/contants.dart';
+import 'package:car/core/utils/financing_calculator.dart';
+import 'package:car/features/home/data/model/banks_data_model.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
+import 'package:car/features/home/data/model/salary_transfer_type.dart';
 import 'package:equatable/equatable.dart';
 
 class FinancingAdModel extends Equatable {
@@ -279,6 +282,102 @@ class FinancingAdModel extends Equatable {
     );
   }
 
+  /// Builds the offer that a vehicle row carries on its own.
+  ///
+  /// [type] selects the standard or the non-transferred (`*Other`) terms. The
+  /// selected term set is copied into the standard fields so the financing
+  /// calculator and the financing screen keep using one set of terms.
+  factory FinancingAdModel.fromCarOffer(
+    GetBrandCarsDataModel car, [
+    SalaryTransferType type = SalaryTransferType.transferred,
+  ]) {
+    double? price;
+    // The offer endpoint's PRICE is the amount its percentages apply to.
+    // SALE_PRICE/effectivePrice belongs to the regular inventory presentation.
+    final rawPrice = (car.price ?? car.effectivePrice ?? '')
+        .replaceAll(',', '')
+        .replaceAll(RegExp(r'[^0-9.]'), '');
+    price = double.tryParse(rawPrice);
+    price = price != null && price > 0 ? price : null;
+
+    return FinancingAdModel(
+      programName: car.groupName,
+      modelName: car.itemName,
+      modelYear: car.makeYear,
+      price: price,
+      salePrice: car.SALE_PRICE?.toDouble(),
+      itemCode: car.itemCode,
+      itemName: car.itemName,
+      storeCode: car.storeCode,
+      carStatus: car.carStatus,
+      chassisNo: car.chassisNo,
+      motorNo: car.motorNo,
+      bodyColor: car.bodyColor,
+      kilometerReading: car.kilometerReading,
+      transmission: car.transmission,
+      cylinder: car.cylinder,
+      powerHourse: car.powerHourse,
+      fuelCapacity: car.fuelCapacity,
+      fuelType: car.fuelType,
+      seatNo: car.seatNo,
+      doorNo: car.doorNo,
+      addType: car.addType,
+      colorCode: car.colorCode,
+      boardNo: car.boardNo,
+      makeYear: car.makeYear,
+      mobileShow: car.mobileShow,
+      color: car.color,
+      carImage: car.carImage,
+      paintingsVal: car.platesCostWithVat,
+      isActive: car.isActive,
+      endDate: car.endDate,
+      totalMonths: 60,
+      bankOrProvider: car.bankCode,
+      bankCode: car.bankCode,
+      bankName: car.bankName,
+      displayBankName: car.bankName,
+      insuranceAmount: car.insuranceAmount,
+      // Keep both term sets: the salary bank selected in the calculator
+      // decides whether the transferred or the `*Other` (non-transferred)
+      // percentages apply.
+      firstInstallmentPct: car.firstInstallmentForType(type),
+      firstInstallmentPctOther: car.firstInstallmentPctOther,
+      lastInstallmentPct: car.lastInstallmentForType(type),
+      lastInstallmentPctOther: car.lastInstallmentPctOther,
+      adminFeesPct: car.adminFeesForType(type),
+      adminFeesPctOther: car.adminFeesPctOther,
+      insurancePct: car.insuranceForType(type),
+      insurancePctOther: car.insurancePctOther,
+      interestRate: car.interestRateForType(type),
+      interestRateOther: car.interestRateOther,
+    );
+  }
+
+  /// Monthly installment for an inventory row that carries its own offer
+  /// terms, or `null` when the row is regular inventory.
+  ///
+  /// This is the single entry point for every surface that shows an
+  /// installment taken from a vehicle row (home cards, budget list, comparison
+  /// and car details), so the offer always wins over standard bank offers.
+  static double? vehicleOfferMonthlyInstallment(
+    GetBrandCarsDataModel car, {
+    double? basePrice,
+    double financingFee = defaultFinancingFee,
+    double? platesVal,
+  }) {
+    if (!car.isVehicleOffer) return null;
+
+    final offer = FinancingAdModel.fromCarOffer(car);
+    final price = basePrice ?? offer.price ?? 0;
+    if (price <= 0) return null;
+
+    return offer.monthlyInstallmentForPrice(
+      price,
+      financingFee: financingFee,
+      platesVal: platesVal,
+    );
+  }
+
   static List<FinancingAdModel> listFromResponse(dynamic data) {
     if (data == null) return [];
     final List<dynamic> jsonList = data is String ? jsonDecode(data) : data;
@@ -358,20 +457,69 @@ class FinancingAdModel extends Equatable {
   }
 
   double getEffectiveInterestRate({String? userSalaryBank}) {
-    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-        interestRateOther != null) {
-      return interestRateOther!;
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return interestRateOther ?? interestRate ?? 0;
     }
-    return interestRate ?? 0;
+    return interestRate ?? interestRateOther ?? 0;
   }
 
-  /// The bank attached to the offer. Offer responses often expose the bank
-  /// only as an id (`BankOrProvider`) plus a localized name in one of these
-  /// fields.
-  String? get offerBankName {
-    final name = (displayBankName ?? bankName ?? bankNameEng)?.trim();
-    return name == null || name.isEmpty ? null : name;
+  /// Bank names from the banks endpoint, keyed by bank code.
+  ///
+  /// Vehicle rows usually expose the bank only as an id (`BankOrProvider`),
+  /// so this directory is what lets such an offer show the bank name and
+  /// decide whether the customer's salary bank is the offer bank (which is
+  /// what selects the `*Other` terms for a non-transferred salary).
+  static final Map<String, ({String? arabic, String? english})> _bankDirectory =
+      <String, ({String? arabic, String? english})>{};
+
+  static void registerBankDirectory(Iterable<BANKSDATAModel> banks) {
+    _bankDirectory.clear();
+    for (final bank in banks) {
+      final code = bank.bankCode?.toString().trim();
+      if (code == null || code.isEmpty) continue;
+      _bankDirectory[code] = (
+        arabic: bank.bankName?.trim(),
+        english: bank.bankNameEng?.trim(),
+      );
+    }
   }
+
+  static void clearBankDirectory() => _bankDirectory.clear();
+
+  ({String? arabic, String? english})? get _directoryBank {
+    final id = bankIdentifier;
+    if (id == null || id.isEmpty) return null;
+    return _bankDirectory[id];
+  }
+
+  /// Every name the directory knows for the offer bank (Arabic and English).
+  List<String> get resolvedBankNames {
+    final bank = _directoryBank;
+    if (bank == null) return const [];
+    return [
+      if (bank.arabic != null && bank.arabic!.isNotEmpty) bank.arabic!,
+      if (bank.english != null && bank.english!.isNotEmpty) bank.english!,
+    ];
+  }
+
+  /// The bank attached to the offer, localized when possible.
+  ///
+  /// Offer responses often expose the bank only as an id (`BankOrProvider`)
+  /// plus a localized name in one of these fields. When no name is supplied,
+  /// it is resolved from the bank directory.
+  String? localizedOfferBankName({bool english = false}) {
+    final explicit = (displayBankName ?? bankName ?? bankNameEng)?.trim();
+    if (explicit != null && explicit.isNotEmpty) return explicit;
+
+    final bank = _directoryBank;
+    if (bank == null) return null;
+    final name = english
+        ? (bank.english ?? bank.arabic)
+        : (bank.arabic ?? bank.english);
+    return (name == null || name.isEmpty) ? null : name;
+  }
+
+  String? get offerBankName => localizedOfferBankName();
 
   String? get bankIdentifier =>
       (bankCode ?? bankOrProvider ?? bankId?.toString())?.trim();
@@ -381,9 +529,15 @@ class FinancingAdModel extends Equatable {
   /// the customer picks the salary bank from a differently localized list.
   bool isOfferBank(String? candidate) {
     if (candidate == null || candidate.trim().isEmpty) return false;
-    return isSameBankName(candidate, bankName) ||
+    if (isSameBankName(candidate, bankName) ||
         isSameBankName(candidate, bankNameEng) ||
-        isSameBankName(candidate, displayBankName);
+        isSameBankName(candidate, displayBankName)) {
+      return true;
+    }
+    for (final name in resolvedBankNames) {
+      if (isSameBankName(candidate, name)) return true;
+    }
+    return false;
   }
 
   /// True when the user's salary bank is different from the offer bank (غير محول / بنك آخر),
@@ -410,37 +564,42 @@ class FinancingAdModel extends Equatable {
     return isOfferBank(salaryBank);
   }
 
-  double firstInstallmentForBank({String? userSalaryBank}) =>
-      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-          firstInstallmentPctOther != null
-      ? firstInstallmentPctOther!
-      : firstInstallmentPct ?? 0;
+  double firstInstallmentForBank({String? userSalaryBank}) {
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return firstInstallmentPctOther ?? firstInstallmentPct ?? 0;
+    }
+    return firstInstallmentPct ?? firstInstallmentPctOther ?? 0;
+  }
 
-  double lastInstallmentForBank({String? userSalaryBank}) =>
-      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-          lastInstallmentPctOther != null
-      ? lastInstallmentPctOther!
-      : lastInstallmentPct ?? 0;
+  double lastInstallmentForBank({String? userSalaryBank}) {
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return lastInstallmentPctOther ?? lastInstallmentPct ?? 0;
+    }
+    return lastInstallmentPct ?? lastInstallmentPctOther ?? 0;
+  }
 
-  double adminFeesForBank({String? userSalaryBank}) =>
-      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-          adminFeesPctOther != null
-      ? adminFeesPctOther!
-      : adminFeesPct ?? 0;
+  double adminFeesForBank({String? userSalaryBank}) {
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return adminFeesPctOther ?? adminFeesPct ?? 0;
+    }
+    return adminFeesPct ?? adminFeesPctOther ?? 0;
+  }
 
-  double insuranceForBank({String? userSalaryBank}) =>
-      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-          insurancePctOther != null
-      ? insurancePctOther!
-      : insurancePct ?? 0;
+  double insuranceForBank({String? userSalaryBank}) {
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return insurancePctOther ?? insurancePct ?? 0;
+    }
+    return insurancePct ?? insurancePctOther ?? 0;
+  }
 
   /// Absolute insurance amount when the API supplies one instead of (or in
   /// addition to) the percentage.
-  double insuranceValueForBank({String? userSalaryBank}) =>
-      usesNonTransferredTerms(userSalaryBank: userSalaryBank) &&
-          insuranceAmountOther != null
-      ? insuranceAmountOther!
-      : insuranceAmount ?? 0;
+  double insuranceValueForBank({String? userSalaryBank}) {
+    if (usesNonTransferredTerms(userSalaryBank: userSalaryBank)) {
+      return insuranceAmountOther ?? insuranceAmount ?? 0;
+    }
+    return insuranceAmount ?? insuranceAmountOther ?? 0;
+  }
 
   /// Plate/registration fee from the offer. It is the amount the customer
   /// pays and already includes VAT, so callers must not add VAT again.
@@ -448,7 +607,8 @@ class FinancingAdModel extends Equatable {
 
   /// Fixed financing fee. It is part of the taxable amount, so VAT applies to
   /// the car price plus this fee.
-  static const double defaultFinancingFee = 3000;
+  static const double defaultFinancingFee =
+      FinancingCalculator.defaultFinancingFee;
 
   double get _vatPercentage =>
       double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
@@ -468,7 +628,12 @@ class FinancingAdModel extends Equatable {
   }) {
     final priceExclVat = basePrice ?? price ?? 0;
     final plates = (platesVal ?? 0) > 0 ? platesVal! : platesCostWithVat;
-    return (priceExclVat + financingFee) * (1 + _vatPercentage / 100) + plates;
+    return FinancingCalculator.priceWithVat(
+      priceExcludingVat: priceExclVat,
+      vatPercentage: _vatPercentage,
+      financingFee: financingFee,
+      plates: plates,
+    );
   }
 
   /// Monthly installment for the offer terms.
@@ -484,40 +649,26 @@ class FinancingAdModel extends Equatable {
     double? platesVal,
     String? userSalaryBank,
   }) {
-    final months = totalMonths ?? 60;
-    if (months <= 0) return 0;
-    // Down and final payments are percentages of the VAT-inclusive car price.
     final carPrice = carPriceWithVat(
       basePrice: basePrice,
       financingFee: financingFee,
       platesVal: platesVal,
     );
-    final downPaymentPercent = firstInstallmentForBank(
-      userSalaryBank: userSalaryBank,
-    );
-    final finalPaymentPercent = lastInstallmentForBank(
-      userSalaryBank: userSalaryBank,
-    );
-    final flatRatePercent = getEffectiveInterestRate(
-      userSalaryBank: userSalaryBank,
-    );
-    final insurancePercent = insuranceForBank(userSalaryBank: userSalaryBank);
-    final adminFeesPercent = adminFeesForBank(userSalaryBank: userSalaryBank);
-    final financeYears = months / 12;
-
-    final downPaymentAmount = (carPrice * downPaymentPercent) / 100;
-    final finalPaymentAmount = (carPrice * finalPaymentPercent) / 100;
-    final netFinanceAmount = carPrice - downPaymentAmount;
-
-    final totalInterest =
-        netFinanceAmount * (flatRatePercent / 100) * financeYears;
-    // Insurance is charged on the full car price, not on the financed amount.
-    final totalInsurance = carPrice * (insurancePercent / 100) * financeYears;
-    final totalAdminFees = netFinanceAmount * (adminFeesPercent / 100);
-
-    final totalFinancedWithInterest =
-        netFinanceAmount + totalInterest + totalInsurance + totalAdminFees;
-    return (totalFinancedWithInterest - finalPaymentAmount) / months;
+    return FinancingCalculator(
+      carPriceWithVat: carPrice,
+      firstInstallmentPct: firstInstallmentForBank(
+        userSalaryBank: userSalaryBank,
+      ),
+      lastInstallmentPct: lastInstallmentForBank(
+        userSalaryBank: userSalaryBank,
+      ),
+      annualInterestPct: getEffectiveInterestRate(
+        userSalaryBank: userSalaryBank,
+      ),
+      annualInsurancePct: insuranceForBank(userSalaryBank: userSalaryBank),
+      adminFeesPct: adminFeesForBank(userSalaryBank: userSalaryBank),
+      months: totalMonths ?? 60,
+    ).monthlyInstallment;
   }
 
   List<String> get allCarImages {
@@ -534,10 +685,14 @@ class FinancingAdModel extends Equatable {
   GetBrandCarsDataModel toCarDataModel() {
     final images = allCarImages;
     final months = totalMonths ?? 60;
-    // Keep the card monthly identical to the shared offer formula (fee, VAT,
-    // plates, profit, insurance and admin fees included).
+    // Vehicle offers use their own row price and terms, with the financing fee
+    // that applies to both regular financing and vehicle offers.
     final monthlyInstallment = months > 0
-        ? monthlyInstallmentForPrice(price ?? 0)
+        ? monthlyInstallmentForPrice(
+            price ?? 0,
+            financingFee: defaultFinancingFee,
+            platesVal: platesCostWithVat,
+          )
         : null;
 
     return GetBrandCarsDataModel(
@@ -549,9 +704,20 @@ class FinancingAdModel extends Equatable {
       price: price?.toStringAsFixed(0),
       SALE_PRICE: salePrice ?? price,
       interestRate: getEffectiveInterestRate(),
+      interestRateOther: interestRateOther,
       monthlyInstallment: monthlyInstallment,
       bankName: offerBankName,
       bankCode: bankCode,
+      // Keep the offer's own payment terms on the rebuilt car: the car list,
+      // details page and calculator all read them from the vehicle row.
+      firstInstallmentPct: firstInstallmentPct,
+      firstInstallmentPctOther: firstInstallmentPctOther,
+      lastInstallmentPct: lastInstallmentPct,
+      lastInstallmentPctOther: lastInstallmentPctOther,
+      adminFeesPct: adminFeesPct,
+      adminFeesPctOther: adminFeesPctOther,
+      isActive: isActive,
+      endDate: endDate,
       insurancePct: insurancePct,
       insurancePctOther: insurancePctOther,
       insuranceAmount: insuranceAmount,

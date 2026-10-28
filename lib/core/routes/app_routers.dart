@@ -2,6 +2,18 @@ part of 'app_routers_import.dart';
 
 class AppRouters {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  /// True when [map] is a serialized car rather than a route-arguments
+  /// wrapper. Some cards pass the car map directly as the route arguments.
+  static bool _looksLikeCarMap(Map<String, dynamic> map) {
+    return map.containsKey('ITEM_CODE') ||
+        map.containsKey('itemCode') ||
+        map.containsKey('ITEM_NAME') ||
+        map.containsKey('itemName') ||
+        map.containsKey('CHASSIS_NO') ||
+        map.containsKey('chassisNo');
+  }
+
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     dynamic args;
     if (settings.arguments != null) args = settings.arguments;
@@ -105,6 +117,8 @@ class AppRouters {
       //   return MaterialPageRoute(builder: (_) => const RequestCarScreen());
       case RoutesName.financingScreen:
         GetBrandCarsDataModel? car;
+        FinancingAdModel? offer;
+        List<FinancingAdModel> offers = const [];
         if (args is GetBrandCarsDataModel) {
           car = args;
         } else if (args is Map<String, dynamic>) {
@@ -112,9 +126,18 @@ class AppRouters {
             car = args['car'];
           } else if (args['car'] is Map<String, dynamic>) {
             car = GetBrandCarsDataModel.fromJson(args['car']);
+          } else if (_looksLikeCarMap(args)) {
+            // Some cards pass the car map directly as the route arguments.
+            // Rebuild it so the calculator can use the offer terms carried on
+            // the row instead of falling back to standard financing data.
+            car = GetBrandCarsDataModel.fromJson(args);
           }
+          offer = args['offer'] is FinancingAdModel ? args['offer'] : null;
+          offers = (args['offers'] as List?)?.whereType<FinancingAdModel>().toList() ?? const [];
         }
-        return MaterialPageRoute(builder: (_) => FinancingScreen(car: car));
+        return MaterialPageRoute(
+          builder: (_) => FinancingScreen(car: car, offer: offer, offers: offers),
+        );
       // case RoutesName.bookingAppointmentScreen:
       //   return MaterialPageRoute(builder: (_) => const BookingAppointmentScreen());
       case RoutesName.serviceHistoryScreen:

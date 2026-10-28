@@ -41,25 +41,41 @@ class _BankInstallmentsBannerWidgetState
   /// Fixed fee that is part of the taxable car price.
   static const double _financingFee = FinancingAdModel.defaultFinancingFee;
 
-  /// Matches the pre-VAT amount used by [FinancingScreen]. Promotional cars can
-  /// expose their customer price in `SALE_PRICE`, so prefer the effective one.
+  /// Matches the pre-VAT amount used by [FinancingScreen]. An explicit offer
+  /// carries its own price; otherwise the car's effective price is used.
   double get _financingBasePrice {
+    final offerPrice = (_vehicleOffer ?? widget.offer)?.price ?? 0;
+    if (offerPrice > 0) return offerPrice;
+
     final priceString =
         (widget.car.effectivePrice ?? widget.car.price)?.replaceAll(
           RegExp(r'[^0-9.]'),
           '',
         ) ??
         '';
-    final rawPrice = double.tryParse(priceString) ?? 0;
-    return rawPrice;
+    return double.tryParse(priceString) ?? 0;
   }
+
+  /// Plate/registration fee (already VAT-inclusive). The explicit offer wins
+  /// over the car so the installment matches the offer's own terms.
+  double get _plates {
+    final offerPlates = (_vehicleOffer ?? widget.offer)?.platesCostWithVat ?? 0;
+    return offerPlates > 0 ? offerPlates : widget.car.platesCostWithVat;
+  }
+
+  /// The offer attached to the car row, when the row itself is an offer.
+  FinancingAdModel? get _vehicleOffer => widget.car.isVehicleOffer
+      ? FinancingAdModel.fromCarOffer(widget.car)
+      : null;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (widget.offers.isEmpty && widget.offer == null) {
+      if (widget.offers.isEmpty &&
+          widget.offer == null &&
+          !widget.car.isVehicleOffer) {
         try {
           final homeCubit = context.read<HomeCubit>();
           if (homeCubit.state.normalFinancingStatus.data == null ||
@@ -72,11 +88,14 @@ class _BankInstallmentsBannerWidgetState
   }
 
   FinancingAdModel? _getLowestOffer(List<FinancingAdModel> cubitOffers) {
-    final List<FinancingAdModel> candidates = widget.offers.isNotEmpty
-        ? widget.offers
-        : (widget.offer != null
-              ? <FinancingAdModel>[widget.offer!]
-              : cubitOffers);
+    final vehicleOffer = _vehicleOffer;
+    // A vehicle row that carries its own terms is the only valid source; the
+    // standard bank offers must never replace it.
+    final List<FinancingAdModel> candidates = vehicleOffer != null
+        ? <FinancingAdModel>[vehicleOffer]
+        : (widget.offers.isNotEmpty
+              ? widget.offers
+              : (widget.offer != null ? <FinancingAdModel>[widget.offer!] : cubitOffers));
 
     if (candidates.isEmpty) return null;
 
@@ -86,11 +105,11 @@ class _BankInstallmentsBannerWidgetState
         (a, b) =>
             a.monthlyInstallmentForPrice(
                   price,
-                  platesVal: widget.car.platesCostWithVat,
+                  platesVal: _plates,
                 ) <=
                 b.monthlyInstallmentForPrice(
                   price,
-                  platesVal: widget.car.platesCostWithVat,
+                  platesVal: _plates,
                 )
             ? a
             : b,
@@ -114,13 +133,13 @@ class _BankInstallmentsBannerWidgetState
     if (price <= 0) return null;
 
     // 1. Direct explicit offer passed to the car
-    if (widget.offers.isNotEmpty || widget.offer != null) {
+    if (widget.offers.isNotEmpty || widget.offer != null || _vehicleOffer != null) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
         return NumberFormat('#,##0', 'en_US').format(
           lowestOffer.monthlyInstallmentForPrice(
             price,
-            platesVal: widget.car.platesCostWithVat,
+            platesVal: _plates,
           ),
         );
       }
@@ -166,7 +185,7 @@ class _BankInstallmentsBannerWidgetState
         return NumberFormat('#,##0', 'en_US').format(
           lowestOffer.monthlyInstallmentForPrice(
             price,
-            platesVal: widget.car.platesCostWithVat,
+            platesVal: _plates,
           ),
         );
       }
@@ -203,9 +222,12 @@ class _BankInstallmentsBannerWidgetState
             if (HiveMethods.isGuest()) return;
 
             FinancingAdModel? selectedOffer = _getLowestOffer(cubitOffers);
-            List<FinancingAdModel> selectedOffers = widget.offers.isNotEmpty
-                ? widget.offers
-                : (widget.offer != null ? [widget.offer!] : cubitOffers);
+            final vehicleOffer = _vehicleOffer;
+            List<FinancingAdModel> selectedOffers = vehicleOffer != null
+                ? [vehicleOffer]
+                : (widget.offers.isNotEmpty
+                      ? widget.offers
+                      : (widget.offer != null ? [widget.offer!] : cubitOffers));
             if (selectedOffers.isEmpty) {
               final homeCubit = context.read<HomeCubit>();
               await homeCubit.getNormalFinancing();

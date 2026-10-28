@@ -49,6 +49,17 @@ class BudgetCarsListWidget extends StatelessWidget {
     GetBrandCarsDataModel car,
     List<FinancingAdModel> financingOffers,
   ) {
+    // The row's own offer terms always win over standard bank offers.
+    final offerInstallment = FinancingAdModel.vehicleOfferMonthlyInstallment(
+      car,
+      basePrice: _cashPrice(car),
+      financingFee: _financingFee,
+      platesVal: car.paintingsVal ?? 0,
+    );
+    if (offerInstallment != null && offerInstallment > 0) {
+      return offerInstallment;
+    }
+
     final cashPrice = _cashPrice(car);
     if (cashPrice == null) {
       return car.monthlyInstallment ?? _monthlyInstallment(car.installments);
@@ -82,7 +93,9 @@ class BudgetCarsListWidget extends StatelessWidget {
 
     return {
       ...car.toMap(),
-      'cashPrice': '${car.price ?? '0'} ر.س',
+      // Offer rows carry their customer price in SALE_PRICE; show the price
+      // that the installment was actually calculated from.
+      'cashPrice': '${car.effectivePrice ?? '0'} ر.س',
       'installmentPrice': formattedMonthlyInstallment,
       'installments': formattedMonthlyInstallment,
       'monthlyInstallment': monthlyInstallment,

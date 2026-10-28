@@ -29,17 +29,20 @@ class SpecTile extends StatelessWidget {
             child: Icon(icon, color: AppColor.primaryColor(context)),
           ),
           Gap(14.w),
-          Text(
-            title,
-            style: AppTextStyle.bodyMedium(context).copyWith(
-              color: AppColor.blackTextColor(context).withValues(alpha: 0.7),
+          Flexible(
+            child: Text(
+              title,
+              style: AppTextStyle.bodyMedium(context).copyWith(
+                color: AppColor.blackTextColor(context).withValues(alpha: 0.7),
+              ),
             ),
           ),
           Gap(12.w),
-          Expanded(
+          Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyle.bodyMedium(context).copyWith(fontWeight: FontWeight.w900),
             ),
           ),

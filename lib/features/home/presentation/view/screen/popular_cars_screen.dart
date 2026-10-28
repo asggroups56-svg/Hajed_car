@@ -119,6 +119,24 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'PaintingsVal': car.paintingsVal,
       'PAINTINGS_VAL': car.paintingsVal,
       'paintingsVal': car.paintingsVal,
+      // A vehicle row can carry its own offer terms. They must survive the
+      // map rebuild so the details page and calculator keep the offer instead
+      // of falling back to the standard bank financing.
+      'FirstInstallmentPct': car.firstInstallmentPct,
+      'FirstInstallmentPctother': car.firstInstallmentPctOther,
+      'LastInstallmentPct': car.lastInstallmentPct,
+      'LastInstallmentPctother': car.lastInstallmentPctOther,
+      'AdminFeesPct': car.adminFeesPct,
+      'AdminFeesPctother': car.adminFeesPctOther,
+      'InterestRate': car.interestRate,
+      'InterestRate_other': car.interestRateOther,
+      'InsurancePct': car.insurancePct,
+      'InsurancePctother': car.insurancePctOther,
+      'InsuranceVal': car.insuranceAmount,
+      'BankOrProvider': car.bankCode,
+      'BankName': car.bankName,
+      'IsActive': car.isActive,
+      'EndDate': car.endDate,
       'SPECIFIC_NAME': car.specificName,
       'specificName': car.specificName,
     };

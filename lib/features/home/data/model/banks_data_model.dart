@@ -47,7 +47,9 @@ class BANKSDATAModel extends Equatable {
 
   factory BANKSDATAModel.fromJson(Map<String, dynamic> json) {
     return BANKSDATAModel(
-      bankCode: json['BANK_CODE'],
+      // Some deployments serialize the code as a string; parsing it keeps the
+      // bank directory and the selected-bank lookups working.
+      bankCode: int.tryParse(json['BANK_CODE']?.toString().trim() ?? ''),
       bankName: json['BANK_NAME'],
       bankNameEng: json['BANK_NAME_ENG'],
       currencyName: json['CURRENCY_NAME'],

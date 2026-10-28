@@ -149,6 +149,23 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'PaintingsVal': car.paintingsVal,
       'PAINTINGS_VAL': car.paintingsVal,
       'paintingsVal': car.paintingsVal,
+      // Offer terms travel with the car so details and the financing
+      // calculator opened from this carousel still use the vehicle's offer.
+      'FirstInstallmentPct': car.firstInstallmentPct,
+      'FirstInstallmentPctother': car.firstInstallmentPctOther,
+      'LastInstallmentPct': car.lastInstallmentPct,
+      'LastInstallmentPctother': car.lastInstallmentPctOther,
+      'AdminFeesPct': car.adminFeesPct,
+      'AdminFeesPctother': car.adminFeesPctOther,
+      'InterestRate': car.interestRate,
+      'InterestRate_other': car.interestRateOther,
+      'InsurancePct': car.insurancePct,
+      'InsurancePctother': car.insurancePctOther,
+      'InsuranceVal': car.insuranceAmount,
+      'BankOrProvider': car.bankCode,
+      'BankName': car.bankName,
+      'IsActive': car.isActive,
+      'EndDate': car.endDate,
       'SPECIFIC_NAME': car.specificName,
       'specificName': car.specificName,
     };

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/network/contants.dart';
+import 'package:car/core/utils/financing_calculator.dart';
 import 'package:car/features/admin/data/model/cars_response_model.dart';
+import 'package:car/features/home/data/model/salary_transfer_type.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 
@@ -71,6 +73,19 @@ class GetBrandCarsDataModel extends Equatable {
   final double? insurancePctOther;
   final double? insuranceAmount;
   final String? luxury;
+
+  // Offer terms attached directly to the inventory row by GetprandcarsData.
+  // They are the standard (salary transferred to the same bank) terms; the
+  // `*Other` variants apply when the salary is transferred to another bank.
+  final double? firstInstallmentPct;
+  final double? firstInstallmentPctOther;
+  final double? lastInstallmentPct;
+  final double? lastInstallmentPctOther;
+  final double? adminFeesPct;
+  final double? adminFeesPctOther;
+  final double? interestRateOther;
+  final String? endDate;
+  final bool? isActive;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -148,6 +163,15 @@ class GetBrandCarsDataModel extends Equatable {
     this.insurancePctOther,
     this.insuranceAmount,
     this.luxury,
+    this.firstInstallmentPct,
+    this.firstInstallmentPctOther,
+    this.lastInstallmentPct,
+    this.lastInstallmentPctOther,
+    this.adminFeesPct,
+    this.adminFeesPctOther,
+    this.interestRateOther,
+    this.endDate,
+    this.isActive,
   });
 
   final String? customerName;
@@ -295,6 +319,24 @@ class GetBrandCarsDataModel extends Equatable {
       'insuranceAmount': insuranceAmount,
       'LUXURY': luxury,
       'luxury': luxury,
+      'FirstInstallmentPct': firstInstallmentPct,
+      'FirstInstallmentPctother': firstInstallmentPctOther,
+      'firstInstallmentPct': firstInstallmentPct,
+      'firstInstallmentPctOther': firstInstallmentPctOther,
+      'LastInstallmentPct': lastInstallmentPct,
+      'LastInstallmentPctother': lastInstallmentPctOther,
+      'lastInstallmentPct': lastInstallmentPct,
+      'lastInstallmentPctOther': lastInstallmentPctOther,
+      'AdminFeesPct': adminFeesPct,
+      'AdminFeesPctother': adminFeesPctOther,
+      'adminFeesPct': adminFeesPct,
+      'adminFeesPctOther': adminFeesPctOther,
+      'InterestRate_other': interestRateOther,
+      'interestRateOther': interestRateOther,
+      'EndDate': endDate,
+      'endDate': endDate,
+      'IsActive': isActive,
+      'isActive': isActive,
     };
   }
 
@@ -312,6 +354,7 @@ class GetBrandCarsDataModel extends Equatable {
   }
 
   bool get hasFinancing {
+    if (isVehicleOffer) return true;
     if (monthlyInstallment != null && monthlyInstallment! > 0) return true;
     if (interestRate != null && interestRate! > 0) return true;
     if (installments != null &&
@@ -321,6 +364,168 @@ class GetBrandCarsDataModel extends Equatable {
       return true;
     }
     return false;
+  }
+
+  /// True when the inventory row carries any offer/payment terms.
+  ///
+  /// Insurance alone is not treated as an offer: it can be attached to regular
+  /// inventory, while at least one of the payment/profit/fee terms only comes
+  /// back for actual offers. Zero placeholders do not count either, so rows
+  /// that only repeat `0` values are not marked as offers.
+  bool get hasOfferTerms {
+    // `BankOrProvider` and `EndDate` identify an attached offer even when its
+    // valid terms are explicitly zero (for example 0% profit or no admin fee).
+    // Ordinary inventory may include null/zero placeholders for percentages,
+    // so those values alone do not identify an offer.
+    final hasOfferIdentity = (bankCode?.trim().isNotEmpty ?? false) ||
+        (endDate?.trim().isNotEmpty ?? false);
+    return hasOfferIdentity ||
+        (firstInstallmentPct ?? 0) > 0 ||
+        (firstInstallmentPctOther ?? 0) > 0 ||
+        (lastInstallmentPct ?? 0) > 0 ||
+        (lastInstallmentPctOther ?? 0) > 0 ||
+        (adminFeesPct ?? 0) > 0 ||
+        (adminFeesPctOther ?? 0) > 0 ||
+        (interestRate ?? 0) > 0 ||
+        (interestRateOther ?? 0) > 0;
+  }
+
+  /// True when the offer has not expired. A missing end date or a missing
+  /// `IsActive` flag is treated as active, matching the server's defaults.
+  bool get isOfferActive {
+    if (isActive == false) return false;
+    final expiry = offerExpiryDate;
+    if (expiry == null) return true;
+    final endOfDay = DateTime(
+      expiry.year,
+      expiry.month,
+      expiry.day,
+      23,
+      59,
+      59,
+    );
+    return endOfDay.isAfter(DateTime.now());
+  }
+
+  /// The car row is a vehicle offer that can be presented on its own.
+  bool get isVehicleOffer => hasOfferTerms && isOfferActive;
+
+  DateTime? get offerExpiryDate {
+    final raw = endDate?.trim();
+    if (raw == null || raw.isEmpty || raw.toLowerCase() == 'null') return null;
+
+    final parts = raw.split(RegExp(r'[/-]'));
+    if (parts.length == 3) {
+      final first = int.tryParse(parts[0]);
+      final second = int.tryParse(parts[1]);
+      final third = int.tryParse(parts[2]);
+      if (first != null && second != null && third != null) {
+        // Accept both `dd/MM/yyyy` (the offer endpoint) and `yyyy-MM-dd`.
+        if (first > 31) return DateTime(first, second, third);
+        return DateTime(third, second, first);
+      }
+    }
+    return DateTime.tryParse(raw);
+  }
+
+  // Each term prefers the field for the requested salary-transfer type and
+  // falls back to the other type's field when it is missing. The endpoint does
+  // not always fill both sets, and a missing field must not turn a real offer
+  // term into zero (which would mix in standard financing behaviour).
+  double firstInstallmentForType(SalaryTransferType type) {
+    if (type == SalaryTransferType.nonTransferred) {
+      return firstInstallmentPctOther ?? firstInstallmentPct ?? 0;
+    }
+    return firstInstallmentPct ?? firstInstallmentPctOther ?? 0;
+  }
+
+  double lastInstallmentForType(SalaryTransferType type) {
+    if (type == SalaryTransferType.nonTransferred) {
+      return lastInstallmentPctOther ?? lastInstallmentPct ?? 0;
+    }
+    return lastInstallmentPct ?? lastInstallmentPctOther ?? 0;
+  }
+
+  double adminFeesForType(SalaryTransferType type) {
+    if (type == SalaryTransferType.nonTransferred) {
+      return adminFeesPctOther ?? adminFeesPct ?? 0;
+    }
+    return adminFeesPct ?? adminFeesPctOther ?? 0;
+  }
+
+  double insuranceForType(SalaryTransferType type) {
+    if (type == SalaryTransferType.nonTransferred) {
+      return insurancePctOther ?? insurancePct ?? 0;
+    }
+    return insurancePct ?? insurancePctOther ?? 0;
+  }
+
+  double interestRateForType(SalaryTransferType type) {
+    if (type == SalaryTransferType.nonTransferred) {
+      return interestRateOther ?? interestRate ?? 0;
+    }
+    return interestRate ?? interestRateOther ?? 0;
+  }
+
+  double get _vatPercentage =>
+      double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+
+  /// Base customer price before VAT. `SALE_PRICE` wins when it is set.
+  double get _basePrice {
+    final raw = (effectivePrice ?? '')
+        .replaceAll(',', '')
+        .replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(raw) ?? 0;
+  }
+
+  /// Total financing price: `(price + fee) × (1 + VAT) + plates`.
+  double carPriceWithVat({
+    double? basePrice,
+    double financingFee = FinancingCalculator.defaultFinancingFee,
+    double? platesVal,
+  }) {
+    final plates = (platesVal ?? 0) > 0 ? platesVal! : platesCostWithVat;
+    return FinancingCalculator.priceWithVat(
+      priceExcludingVat: basePrice ?? _basePrice,
+      vatPercentage: _vatPercentage,
+      financingFee: financingFee,
+      plates: plates,
+    );
+  }
+
+  FinancingCalculator financingCalculatorFor(
+    SalaryTransferType type, {
+    int months = 60,
+    double financingFee = FinancingCalculator.defaultFinancingFee,
+    double? platesVal,
+  }) {
+    return FinancingCalculator(
+      carPriceWithVat: carPriceWithVat(
+        financingFee: financingFee,
+        platesVal: platesVal,
+      ),
+      firstInstallmentPct: firstInstallmentForType(type),
+      lastInstallmentPct: lastInstallmentForType(type),
+      annualInterestPct: interestRateForType(type),
+      annualInsurancePct: insuranceForType(type),
+      adminFeesPct: adminFeesForType(type),
+      months: months,
+    );
+  }
+
+  /// Monthly installment for this car's own offer terms.
+  double monthlyInstallmentForType(
+    SalaryTransferType type, {
+    int months = 60,
+    double financingFee = FinancingCalculator.defaultFinancingFee,
+    double? platesVal,
+  }) {
+    return financingCalculatorFor(
+      type,
+      months: months,
+      financingFee: financingFee,
+      platesVal: platesVal,
+    ).monthlyInstallment;
   }
 
   GetBrandCarsDataModel merge(GetBrandCarsDataModel other) {
@@ -393,6 +598,17 @@ class GetBrandCarsDataModel extends Equatable {
       insurancePctOther: insurancePctOther ?? other.insurancePctOther,
       insuranceAmount: insuranceAmount ?? other.insuranceAmount,
       luxury: luxury ?? other.luxury,
+      firstInstallmentPct: firstInstallmentPct ?? other.firstInstallmentPct,
+      firstInstallmentPctOther:
+          firstInstallmentPctOther ?? other.firstInstallmentPctOther,
+      lastInstallmentPct: lastInstallmentPct ?? other.lastInstallmentPct,
+      lastInstallmentPctOther:
+          lastInstallmentPctOther ?? other.lastInstallmentPctOther,
+      adminFeesPct: adminFeesPct ?? other.adminFeesPct,
+      adminFeesPctOther: adminFeesPctOther ?? other.adminFeesPctOther,
+      interestRateOther: interestRateOther ?? other.interestRateOther,
+      endDate: endDate ?? other.endDate,
+      isActive: isActive ?? other.isActive,
     );
   }
 
@@ -405,6 +621,7 @@ class GetBrandCarsDataModel extends Equatable {
     String? specificName,
     double? interestRate,
     double? monthlyInstallment,
+    double? interestRateOther,
     String? groupName,
     String? grName,
     String? luxury,
@@ -474,6 +691,15 @@ class GetBrandCarsDataModel extends Equatable {
       insurancePctOther: insurancePctOther,
       insuranceAmount: insuranceAmount,
       luxury: luxury ?? this.luxury,
+      firstInstallmentPct: firstInstallmentPct,
+      firstInstallmentPctOther: firstInstallmentPctOther,
+      lastInstallmentPct: lastInstallmentPct,
+      lastInstallmentPctOther: lastInstallmentPctOther,
+      adminFeesPct: adminFeesPct,
+      adminFeesPctOther: adminFeesPctOther,
+      interestRateOther: interestRateOther ?? this.interestRateOther,
+      endDate: endDate,
+      isActive: isActive,
     );
   }
 
@@ -649,6 +875,54 @@ class GetBrandCarsDataModel extends Equatable {
           json['LUXURY']?.toString() ??
           json['luxury']?.toString() ??
           json['Luxury']?.toString(),
+      firstInstallmentPct: getDouble(
+        'FirstInstallmentPct',
+        'firstInstallmentPct',
+      ),
+      firstInstallmentPctOther: getDouble(
+        'FirstInstallmentPctother',
+        'FirstInstallmentPctOther',
+        'firstInstallmentPctOther',
+      ),
+      lastInstallmentPct: getDouble(
+        'LastInstallmentPct',
+        'lastInstallmentPct',
+      ),
+      lastInstallmentPctOther: getDouble(
+        'LastInstallmentPctother',
+        'LastInstallmentPctOther',
+        'lastInstallmentPctOther',
+      ),
+      adminFeesPct: getDouble(
+        'AdminFeesPct',
+        'adminFeesPct',
+      ),
+      adminFeesPctOther: getDouble(
+        'AdminFeesPctother',
+        'AdminFeesPctOther',
+        'adminFeesPctOther',
+      ),
+      interestRateOther: getDouble(
+        'InterestRate_other',
+        'InterestRateOther',
+        'interestRateOther',
+      ),
+      endDate:
+          json['EndDate']?.toString() ??
+          json['endDate']?.toString() ??
+          json['END_DATE']?.toString(),
+      isActive: () {
+        final raw =
+            json['IsActive'] ?? json['isActive'] ?? json['ISACTIVE'];
+        if (raw == null) return null;
+        if (raw is bool) return raw;
+        // Some deployments send 1/0 or "true"/"false" instead of a bool.
+        if (raw is num) return raw != 0;
+        final normalized = raw.toString().trim().toLowerCase();
+        if (normalized == '1' || normalized == 'true') return true;
+        if (normalized == '0' || normalized == 'false') return false;
+        return null;
+      }(),
       customerName:
           json['CUSTOMER_NAME']?.toString() ??
           json['customerName']?.toString() ??
@@ -776,6 +1050,15 @@ class GetBrandCarsDataModel extends Equatable {
     insurancePctOther,
     insuranceAmount,
     luxury,
+    firstInstallmentPct,
+    firstInstallmentPctOther,
+    lastInstallmentPct,
+    lastInstallmentPctOther,
+    adminFeesPct,
+    adminFeesPctOther,
+    interestRateOther,
+    endDate,
+    isActive,
   ];
 
   CarModel toCarModel() {

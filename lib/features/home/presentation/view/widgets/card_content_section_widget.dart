@@ -6,6 +6,7 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
+import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/widgets/mini_detail_widget.dart';
@@ -75,15 +76,28 @@ class CardContentSection extends StatelessWidget {
     return formatter.format(totalCashPrice);
   }
 
-  /// Uses the same financing priority as the cars page: a car-specific
-  /// installment, its interest rate, a supplied installment string, then the
-  /// lowest available bank offer and finally the standard 60-month estimate.
+  /// Uses the same financing priority as the cars page: the row's own offer
+  /// terms, a car-specific installment, its interest rate, a supplied
+  /// installment string, then the lowest available bank offer and finally the
+  /// standard 60-month estimate.
   String? _formattedMonthlyInstallment(List<FinancingAdModel> offers) {
     final rawPrice = car['price']?.toString() ?? '';
     final price = double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-    if (price <= 0) return null;
 
     final formatter = NumberFormat('#,##0', 'en_US');
+
+    // A row that carries its own offer terms is financed with those terms.
+    // Standard bank offers must never replace them.
+    final vehicle = GetBrandCarsDataModel.fromJson(car);
+    final offerInstallment = FinancingAdModel.vehicleOfferMonthlyInstallment(
+      vehicle,
+      platesVal: _platesValue,
+    );
+    if (offerInstallment != null && offerInstallment > 0) {
+      return formatter.format(offerInstallment);
+    }
+
+    if (price <= 0) return null;
 
     final monthlyInstallment = _numberValue(car['monthlyInstallment']);
     if (monthlyInstallment > 0) return formatter.format(monthlyInstallment);

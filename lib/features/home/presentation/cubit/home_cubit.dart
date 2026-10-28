@@ -367,6 +367,13 @@ class HomeCubit extends Cubit<HomeState> {
         );
       },
       (response) {
+        // Vehicle offers often carry the bank only as an id. Register the full
+        // directory so those offers can show the bank name and select the
+        // non-transferred (`*Other`) terms. A filtered search must not replace
+        // the full directory with a subset.
+        if (searchVal == null || searchVal.trim().isEmpty) {
+          FinancingAdModel.registerBankDirectory(response);
+        }
         emit(state.copyWith(banksStatus: StatusState.success(response)));
       },
     );

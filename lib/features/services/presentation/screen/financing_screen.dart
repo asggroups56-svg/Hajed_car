@@ -95,13 +95,19 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   double _lastPayment = 0;
   FinancingAdModel? _selectedOffer;
 
+  /// Offer terms carried by the vehicle row itself. They take precedence over
+  /// any standard financing offer passed alongside the car.
+  FinancingAdModel? _vehicleOffer;
+
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer;
   bool get _isOffer => _activeOffer != null;
 
-  /// Plate/registration fee (already VAT-inclusive) for the car or offer.
+  /// Plate/registration fee (already VAT-inclusive). The offer is the source
+  /// of truth when it carries one; otherwise the car's fee is used.
   double get _platesCost {
-    final carPlates = widget.car?.platesCostWithVat ?? 0;
-    return carPlates > 0 ? carPlates : (_activeOffer?.platesCostWithVat ?? 0);
+    final offerPlates = _activeOffer?.platesCostWithVat ?? 0;
+    if (offerPlates > 0) return offerPlates;
+    return widget.car?.platesCostWithVat ?? 0;
   }
 
   /// Total car price (fee + VAT + plates). Percentage-based payments
@@ -136,12 +142,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final offer = _activeOffer;
     if (offer == null) return _defaultApr;
     // The salary bank changes every offer term (profit, insurance, admin and
-    // the first/last payment percentages).
-    if (offer.usesNonTransferredTerms(userSalaryBank: _bankCtrl.text) &&
-        offer.interestRateOther != null) {
-      return offer.interestRateOther!;
-    }
-    return offer.interestRate ?? _defaultApr;
+    // the first/last payment percentages). An offer without a profit rate is
+    // still a 0% offer, so the standard APR must not be substituted.
+    return offer.getEffectiveInterestRate(userSalaryBank: _bankCtrl.text);
   }
 
   double get _insurancePercent =>
@@ -182,22 +185,36 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
 
-    _selectedOffer = widget.offer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
+    // Every entry point must end up with the vehicle's own offer, even when
+    // only the car was passed (details, favorites, budget list, named route).
+    // Otherwise the calculator would silently use standard bank financing.
+    _vehicleOffer = widget.car?.isVehicleOffer == true
+        ? FinancingAdModel.fromCarOffer(widget.car!)
+        : null;
+    _selectedOffer =
+        _vehicleOffer ??
+        widget.offer ??
+        (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
         if (mounted) setState(() {});
       });
 
     final raw = (widget.car?.effectivePrice ?? widget.car?.price)?.toString() ?? '150000';
+    final carPrice = double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000;
+    // The offer's own price wins: offer financing must not be calculated from
+    // the standard car price when the offer supplies a different one.
+    final offerPrice = _activeOffer?.price ?? 0;
     final basePrice =
-        widget.initialCarPrice ??
-        (double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000);
+        widget.initialCarPrice ?? (offerPrice > 0 ? offerPrice : carPrice);
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    // The financing fee applies to regular financing and vehicle offers.
+    const financingFee = FinancingAdModel.defaultFinancingFee;
     // (price + fee) + VAT + plates. The fee is taxed, and the plate fee is
     // added after VAT because it already includes it.
     final double priceWithVat = widget.initialPriceIncludesVat
-        ? basePrice + FinancingAdModel.defaultFinancingFee + _platesCost
-        : (basePrice + FinancingAdModel.defaultFinancingFee) * (1 + vatPercentage / 100) +
+        ? basePrice + financingFee + _platesCost
+        : (basePrice + financingFee) * (1 + vatPercentage / 100) +
               _platesCost;
     _priceWithVat = priceWithVat;
     _carPrice = priceWithVat;
@@ -215,7 +232,11 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       }
       if (homeCubit.state.normalFinancingStatus.data == null ||
           homeCubit.state.normalFinancingStatus.data!.isEmpty) {
-        homeCubit.getNormalFinancing();
+        // Standard bank offers are irrelevant when the screen was opened for
+        // a specific offer; the calculator must keep using that offer only.
+        if (_activeOffer == null) {
+          homeCubit.getNormalFinancing();
+        }
       }
     });
   }
@@ -276,7 +297,11 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
             ),
             adminFeesPct: _activeOffer?.adminFeesForBank(userSalaryBank: _bankCtrl.text),
             userSalaryBank: _bankCtrl.text.trim(),
-            offers: widget.offers,
+            // A vehicle's own offer is the only valid term set, so the
+            // standard bank offers must not be offered next to it.
+            offers: _vehicleOffer != null
+                ? <FinancingAdModel>[_vehicleOffer!]
+                : widget.offers,
             initialOffer: _activeOffer,
           ),
         ),

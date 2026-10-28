@@ -56,6 +56,13 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
   FinancingAdModel? _selectedOffer;
 
   List<FinancingAdModel> get _availableOffers {
+    // When the calculator was opened for a specific offer, that offer is the
+    // only source of terms. Falling back to the standard bank financing list
+    // would silently replace the offer's percentages.
+    final initial = widget.initialOffer;
+    if (initial != null) {
+      return widget.offers.isNotEmpty ? widget.offers : <FinancingAdModel>[initial];
+    }
     if (widget.offers.isNotEmpty) return widget.offers;
     try {
       final cubitOffers = context.read<HomeCubit>().state.normalFinancingStatus.data;
@@ -73,10 +80,12 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
 
   double get _apr {
     final offer = _activeOffer;
-    if (offer == null) return widget.interestRate ?? _defaultApr;
-    final rate = offer.getEffectiveInterestRate(userSalaryBank: widget.userSalaryBank);
-    if (rate > 0) return rate;
-    return offer.interestRate ?? widget.interestRate ?? _defaultApr;
+    if (offer != null) {
+      // An offer without a profit rate is a 0% offer; do not substitute the
+      // standard financing APR.
+      return offer.getEffectiveInterestRate(userSalaryBank: widget.userSalaryBank);
+    }
+    return widget.interestRate ?? _defaultApr;
   }
 
   static String _formatAmount(double val) {
@@ -293,8 +302,15 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
                               final offer = offersList[index];
                               final isSelected =
                                   identical(_activeOffer, offer) || _selectedOffer == offer;
+                              // An inventory offer may carry only the bank id,
+                              // so resolve the localized name from the bank
+                              // directory instead of falling back to the car
+                              // name.
                               final bankTitle =
-                                  offer.offerBankName ??
+                                  offer.localizedOfferBankName(
+                                    english:
+                                        context.locale.languageCode == 'en',
+                                  ) ??
                                   offer.programName ??
                                   AppLocaleKey.bank.tr();
 

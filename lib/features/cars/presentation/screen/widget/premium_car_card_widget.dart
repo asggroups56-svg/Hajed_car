@@ -36,6 +36,12 @@ class PremiumCarCardWidget extends StatelessWidget {
     this.financingOffers = const [],
   });
 
+  /// Renders whole percentages without a trailing `.0`.
+  static String _formatPercentage(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final String rawColor =
@@ -113,9 +119,10 @@ class PremiumCarCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isOffer && car.interestRate != null)
-                  Positioned(
-                    left: 70.w,
+                if (isOffer || car.isVehicleOffer)
+                  PositionedDirectional(
+                    start: 70.w,
+                    top: 0,
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                       decoration: BoxDecoration(
@@ -136,7 +143,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${car.interestRate}% ',
+                            '${_formatPercentage(car.interestRate ?? car.interestRateOther ?? 0)}% ',
                             style: AppTextStyle.bodySmall(context).copyWith(
                               color: AppColor.whiteColor(context),
                               fontSize: 11.sp,
@@ -429,7 +436,11 @@ class PremiumCarCardWidget extends StatelessWidget {
             onPressed: () => NavigatorMethods.pushNamed(
               context,
               RoutesName.financingScreen,
-              arguments: {'car': car},
+              arguments: {
+                'car': car,
+                'offer': offer,
+                'offers': financingOffers,
+              },
             ),
             icon: Icon(Icons.calculate_outlined, size: 16.sp),
             label: FittedBox(

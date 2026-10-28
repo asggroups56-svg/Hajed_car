@@ -8,6 +8,8 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
+import 'package:car/features/home/data/model/brand_cars_data_model.dart';
+import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -824,6 +826,26 @@ class _CarComparisonScreenState extends State<CarComparisonScreen> {
     if (price <= 0) return '—';
 
     final formatter = NumberFormat('#,##0', 'en_US');
+
+    // Comparison entries keep the raw car map, so a row that carries its own
+    // offer terms must be financed with those terms.
+    if (car is Map) {
+      final carModel = GetBrandCarsDataModel.fromJson(
+        Map<String, dynamic>.from(car),
+      );
+      final plates = _numberValue(
+        car['paintingsVal'] ?? car['PaintingsVal'] ?? car['PAINTINGS_VAL'] ?? 0,
+      );
+      final offerMonthly = FinancingAdModel.vehicleOfferMonthlyInstallment(
+        carModel,
+        basePrice: price,
+        platesVal: plates,
+      );
+      if (offerMonthly != null && offerMonthly > 0) {
+        return '${formatter.format(offerMonthly)} ${AppLocaleKey.sar.tr()}';
+      }
+    }
+
     final explicitMonthly = _numberValue(
       car['monthlyInstallment'] ?? car['MonthlyInstallment'],
     );

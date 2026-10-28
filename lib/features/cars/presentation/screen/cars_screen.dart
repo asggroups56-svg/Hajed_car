@@ -66,6 +66,43 @@ class _CarsScreenState extends State<CarsScreen> {
     return car;
   }
 
+  /// Finds the inventory row that a financing-program car came from.
+  ///
+  /// Program cars often have an empty `ITEM_CODE`, so matching on it alone can
+  /// pick the wrong row (or the first row of the brand). `ITEM_NAME` plus the
+  /// model year is the most reliable identity left in that case.
+  GetBrandCarsDataModel? _findInventoryRow(
+    List<GetBrandCarsDataModel> allCars,
+    GetBrandCarsDataModel offerCar,
+  ) {
+    final itemCode = offerCar.itemCode.trim();
+    if (itemCode.isNotEmpty) {
+      for (final car in allCars) {
+        if (car.itemCode.trim() == itemCode) return car;
+      }
+    }
+
+    final chassis = offerCar.chassisNo.trim();
+    if (chassis.isNotEmpty && chassis != 'null') {
+      for (final car in allCars) {
+        if (car.chassisNo.trim() == chassis) return car;
+      }
+    }
+
+    final name = offerCar.itemName.trim().toLowerCase();
+    if (name.isEmpty) return null;
+    for (final car in allCars) {
+      if (car.itemName.trim().toLowerCase() != name) continue;
+      if (offerCar.makeYear != 0 &&
+          car.makeYear != 0 &&
+          car.makeYear != offerCar.makeYear) {
+        continue;
+      }
+      return car;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -120,13 +157,17 @@ class _CarsScreenState extends State<CarsScreen> {
                 final allCars = state.allCarsStatus.data ?? [];
                 baseCarsList = state.programCarsStatus.data!.map((ad) {
                   final offerCar = ad.toCarDataModel();
-                  final originalCar = allCars
-                      .cast<GetBrandCarsDataModel?>()
-                      .firstWhere(
-                        (car) => car?.itemCode == offerCar.itemCode,
-                        orElse: () => null,
-                      );
-                  if (originalCar != null) return offerCar.merge(originalCar);
+                  final originalCar = _findInventoryRow(allCars, offerCar);
+                  if (originalCar != null) {
+                    // The inventory row can carry its own active offer. That
+                    // row-level offer is the one the customer sees on the car,
+                    // so the program car must not replace its terms (or its
+                    // `IsActive`/`EndDate`) and silently turn it into standard
+                    // financing.
+                    return originalCar.isVehicleOffer
+                        ? originalCar.merge(offerCar)
+                        : offerCar.merge(originalCar);
+                  }
 
                   final nameParts = offerCar.itemName.trim().split(
                     RegExp(r'\s+'),
@@ -317,18 +358,36 @@ class _CarsScreenState extends State<CarsScreen> {
                                   );
                                   final carId =
                                       HiveMethods.getCarUniqueId(car.toMap());
+
+                                  // A vehicle can belong to an offer on its own:
+                                  // GetprandcarsData returns the offer terms on
+                                  // the car row. Those terms must drive the card
+                                  // installment instead of the standard bank
+                                  // financing numbers.
+                                  final vehicleOffer = car.isVehicleOffer
+                                      ? FinancingAdModel.fromCarOffer(car)
+                                      : null;
+                                  final offer =
+                                      vehicleOffer ??
+                                      (car.itemCode.isNotEmpty
+                                              ? offersByItemCode[car.itemCode]
+                                              : null) ??
+                                      normalOffer;
+                                  // Passing an explicit offer list would make
+                                  // the banner pick the cheapest standard bank
+                                  // offer and ignore the vehicle's own terms.
+                                  final offers = vehicleOffer != null ||
+                                          isFilteredByOffer
+                                      ? const <FinancingAdModel>[]
+                                      : normalOffers;
+
                                   return PremiumCarCardWidget(
                                     car: car,
                                     heroTag:
                                         'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
                                     isOffer: isFilteredByOffer,
-                                    offer: (car.itemCode.isNotEmpty
-                                            ? offersByItemCode[car.itemCode]
-                                            : null) ??
-                                        normalOffer,
-                                    financingOffers: isFilteredByOffer
-                                        ? const []
-                                        : normalOffers,
+                                    offer: offer,
+                                    financingOffers: offers,
                                   );
                                 },
                               ),
