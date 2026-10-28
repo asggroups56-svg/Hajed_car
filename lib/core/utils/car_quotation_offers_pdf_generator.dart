@@ -294,21 +294,6 @@ pw.Widget _specsCell({
 }) {
   final specs = <String>[];
 
-  if (offer.groupName != null && offer.groupName!.isNotEmpty) {
-    specs.add('المجموعة: ${offer.groupName}');
-  }
-  if (offer.makeYear != null && offer.makeYear! > 0) {
-    specs.add('الموديل: ${offer.makeYear}');
-  }
-  if (offer.colorName != null && offer.colorName!.isNotEmpty) {
-    specs.add('اللون: ${offer.colorName}');
-  }
-  if (showChassis && offer.chassisNo != null && offer.chassisNo!.isNotEmpty) {
-    specs.add('رقم الهيكل: ${offer.chassisNo}');
-  }
-  if (offer.itemCode != null && offer.itemCode!.isNotEmpty) {
-    specs.add('كود الصنف: ${offer.itemCode}');
-  }
   if (offer.luxury != null && offer.luxury!.trim().isNotEmpty) {
     specs.add('درجة الفخامة: ${offer.luxury!.trim()}');
   }
@@ -322,12 +307,15 @@ pw.Widget _specsCell({
       children: [
         _H.txt(offer.itemName ?? 'غير محدد', bold, size: _C.fsTableBody, align: pw.TextAlign.right),
         pw.SizedBox(height: _C.spXS),
-        _H.txt('المواصفات :-', bold, size: _C.fsSpecs, align: pw.TextAlign.right),
-        pw.SizedBox(height: _C.spXS),
         _H.txt(_H.arabicDigits(specsText), regular, size: _C.fsSpecs, align: pw.TextAlign.right),
         if (offer.note != null && offer.note!.trim().isNotEmpty) ...[
           pw.SizedBox(height: _C.spXS),
-          _H.txt(_H.arabicDigits(offer.note!.trim()), regular, size: _C.fsSpecs, align: pw.TextAlign.right),
+          _H.txt(
+            _H.arabicDigits(offer.note!.trim()),
+            regular,
+            size: _C.fsSpecs,
+            align: pw.TextAlign.right,
+          ),
         ],
       ],
     ),

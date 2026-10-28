@@ -203,7 +203,7 @@ pw.Widget _buildHeader({required pw.Font bold, pw.ImageProvider? logo}) {
             ? pw.Container(width: 65, height: 65, child: pw.Image(logo, fit: pw.BoxFit.contain))
             : pw.SizedBox(width: 65, height: 65),
         _H.txt(
-          'شركة هاجد بن وزير المطيري واولادة للتجارة',
+          'شركة هاجد بن وزير واولادة للتجارة',
           bold,
           size: 16,
           color: PdfColors.black,
@@ -339,11 +339,9 @@ pw.Widget _buildTable({
           1: pw.FlexColumnWidth(1.0), // Plates
           2: pw.FlexColumnWidth(1.1), // VAT
           3: pw.FlexColumnWidth(1.1), // Price
-          4: pw.FlexColumnWidth(1.5), // Chassis
-          5: pw.FlexColumnWidth(0.9), // Model
-          6: pw.FlexColumnWidth(0.9), // Color
-          7: pw.FlexColumnWidth(4.0), // Specs
-          8: pw.FlexColumnWidth(0.5), // No.
+          4: pw.FlexColumnWidth(0.9), // Color
+          5: pw.FlexColumnWidth(5.5), // Specs
+          6: pw.FlexColumnWidth(0.5), // No.
         },
         children: [
           pw.TableRow(
@@ -353,8 +351,6 @@ pw.Widget _buildTable({
               _headerCell('قيمة اللوحات', bold),
               _headerCell('قيمة مضافة', bold),
               _headerCell('سعر الوحدة', bold),
-              _headerCell('رقم الهيكل', bold),
-              _headerCell('الموديل', bold),
               _headerCell('اللون', bold),
               _headerCell('نوع ومواصفات السيارة', bold),
               _headerCell('م', bold),
@@ -366,8 +362,6 @@ pw.Widget _buildTable({
               _bodyCell(plates.toStringAsFixed(0), bold),
               _bodyCell(vat.toStringAsFixed(0), bold),
               _bodyCell(price.toStringAsFixed(0), bold),
-              _bodyCell(car.chassisNo, bold),
-              _bodyCell(car.makeYear.toString(), bold),
               _bodyCell(car.bodyColor, bold, rtl: true),
               _specsCell(car: car, bold: bold, regular: regular),
               _bodyCell('1', bold),
