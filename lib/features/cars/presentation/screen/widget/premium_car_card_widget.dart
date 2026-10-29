@@ -52,7 +52,6 @@ class PremiumCarCardWidget extends StatelessWidget {
     final String displayColor = rawColor.isNotEmpty ? rawColor : '—';
     final String displayYear = car.makeYear > 0 ? '${car.makeYear}' : '—';
 
-
     return GestureDetector(
       onTap: () {
         NavigatorMethods.pushNamed(
@@ -152,7 +151,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                           ),
 
                           Text(
-                            context.locale.languageCode == 'ar' ? 'عرض' : 'Offer',
+                            context.locale.languageCode == 'ar' ? 'عرض \nتمويل' : 'Financing Offer',
                             style: AppTextStyle.bodySmall(
                               context,
                             ).copyWith(color: AppColor.whiteColor(context), fontSize: 14.sp),
@@ -436,11 +435,7 @@ class PremiumCarCardWidget extends StatelessWidget {
             onPressed: () => NavigatorMethods.pushNamed(
               context,
               RoutesName.financingScreen,
-              arguments: {
-                'car': car,
-                'offer': offer,
-                'offers': financingOffers,
-              },
+              arguments: {'car': car, 'offer': offer, 'offers': financingOffers},
             ),
             icon: Icon(Icons.calculate_outlined, size: 16.sp),
             label: FittedBox(
