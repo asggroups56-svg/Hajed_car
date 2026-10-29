@@ -44,6 +44,7 @@ class AgentDashboardScreenState extends State<AgentDashboardScreen> {
             SliverAppBar(
               expandedHeight: 80.h,
               pinned: true,
+              automaticallyImplyLeading: false,
               backgroundColor: AppColor.appBarColor(context),
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
