@@ -48,6 +48,7 @@ class RoutesName {
   static const String manageUsers = 'manageUsers';
   static const String revenueReport = 'revenueReport';
   static const String revenueReports = 'revenueReports';
+  static const String comparisonReports = 'comparisonReports';
   static const String addCar = 'addCar';
   static const String manageServices = 'manageServices';
   static const String inspectionReports = 'inspectionReports';
@@ -63,7 +64,8 @@ class RoutesName {
   static const String contactDeveloper = 'contactDeveloper';
   static const String adminLoanApplications = 'adminLoanApplications';
   static const String agentCustomerDetailsScreen = 'agentCustomerDetailsScreen';
-  static const String financingProgramOffersScreen = 'financingProgramOffersScreen';
+  static const String financingProgramOffersScreen =
+      'financingProgramOffersScreen';
   static const String offersScreen = 'offersScreen';
   static const String agentExternalQuoteScreen = 'agentExternalQuoteScreen';
 }

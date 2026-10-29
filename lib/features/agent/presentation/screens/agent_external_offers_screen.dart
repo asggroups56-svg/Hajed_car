@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:car/core/cache/hive/hive_methods.dart';
-import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
-import 'package:car/core/custom_widgets/custom_form_field/custom_form_field.dart';
+import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -127,19 +126,27 @@ class _AgentExternalOffersScreenState extends State<AgentExternalOffersScreen> {
                   Icon(Icons.search_rounded, color: AppColor.greyColor(context), size: 20.sp),
                   Gap(10.w),
                   Expanded(
-                    child: CustomFormField(
+                    child: TextFormField(
                       controller: _searchController,
                       onChanged: _onSearch,
-                      hintText: AppLocaleKey.search.tr(),
-                      hintStyle: AppTextStyle.bodyMedium(
+                      style: AppTextStyle.bodyMedium(
                         context,
-                      ).copyWith(color: AppColor.hintColor(context), fontSize: 14.sp),
+                      ).copyWith(color: AppColor.blackTextColor(context), fontSize: 14.sp),
+                      decoration: InputDecoration(
+                        hintText: AppLocaleKey.search.tr(),
+                        hintStyle: AppTextStyle.bodyMedium(
+                          context,
+                        ).copyWith(color: AppColor.hintColor(context), fontSize: 14.sp),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
                   ),
                   ValueListenableBuilder<TextEditingValue>(
                     valueListenable: _searchController,
-                    builder: (_, value, __) {
-                      if (value.text.isEmpty) return const SizedBox.shrink();
+                    builder: (_, val, __) {
+                      if (val.text.isEmpty) return const SizedBox.shrink();
                       return IconButton(
                         icon: Icon(
                           Icons.close_rounded,

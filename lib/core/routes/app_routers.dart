@@ -49,7 +49,11 @@ class AppRouters {
           }
           heroTag = args['heroTag'];
           offer = args['offer'] is FinancingAdModel ? args['offer'] : null;
-          offers = (args['offers'] as List?)?.whereType<FinancingAdModel>().toList() ?? const [];
+          offers =
+              (args['offers'] as List?)
+                  ?.whereType<FinancingAdModel>()
+                  .toList() ??
+              const [];
           isFromAdmin = args['isFromAdmin'] ?? false;
         }
 
@@ -75,14 +79,17 @@ class AppRouters {
           isFromLink = args['isFromLink'] ?? false;
         }
         return MaterialPageRoute(
-          builder: (_) => CarReservationScreen(car: car!, isFromLink: isFromLink),
+          builder: (_) =>
+              CarReservationScreen(car: car!, isFromLink: isFromLink),
         );
       case RoutesName.popularCarsScreen:
         return MaterialPageRoute(builder: (_) => const PopularCarsScreen());
       case RoutesName.filterScreen:
         return MaterialPageRoute(builder: (_) => const FilterScreen());
       case RoutesName.cartScreen:
-        final selectedCarId = args is Map<String, dynamic> ? args['id']?.toString() : null;
+        final selectedCarId = args is Map<String, dynamic>
+            ? args['id']?.toString()
+            : null;
         return MaterialPageRoute(
           builder: (ctx) => BlocProvider.value(
             value: ctx.read<CartCubit>(),
@@ -106,8 +113,12 @@ class AppRouters {
       case RoutesName.trackOrderScreen:
         final orderId = args is String
             ? args
-            : (args is Map<String, dynamic> ? args['orderId']?.toString() : null);
-        return MaterialPageRoute(builder: (_) => TrackOrderScreen(selectedOrderId: orderId));
+            : (args is Map<String, dynamic>
+                  ? args['orderId']?.toString()
+                  : null);
+        return MaterialPageRoute(
+          builder: (_) => TrackOrderScreen(selectedOrderId: orderId),
+        );
 
       case RoutesName.recentlyViewedScreen:
         return MaterialPageRoute(builder: (_) => const RecentlyViewedScreen());
@@ -133,10 +144,15 @@ class AppRouters {
             car = GetBrandCarsDataModel.fromJson(args);
           }
           offer = args['offer'] is FinancingAdModel ? args['offer'] : null;
-          offers = (args['offers'] as List?)?.whereType<FinancingAdModel>().toList() ?? const [];
+          offers =
+              (args['offers'] as List?)
+                  ?.whereType<FinancingAdModel>()
+                  .toList() ??
+              const [];
         }
         return MaterialPageRoute(
-          builder: (_) => FinancingScreen(car: car, offer: offer, offers: offers),
+          builder: (_) =>
+              FinancingScreen(car: car, offer: offer, offers: offers),
         );
       // case RoutesName.bookingAppointmentScreen:
       //   return MaterialPageRoute(builder: (_) => const BookingAppointmentScreen());
@@ -155,7 +171,9 @@ class AppRouters {
       // case RoutesName.shippingScreen:
       //   return MaterialPageRoute(builder: (_) => const ShippingScreen());
       case RoutesName.bespokeSelectionScreen:
-        return MaterialPageRoute(builder: (_) => const BespokeSelectionScreen());
+        return MaterialPageRoute(
+          builder: (_) => const BespokeSelectionScreen(),
+        );
       case RoutesName.carValuationScreen:
         return MaterialPageRoute(builder: (_) => const CarValuationScreen());
       case RoutesName.importOnDemandScreen:
@@ -172,22 +190,32 @@ class AppRouters {
         return MaterialPageRoute(builder: (_) => const ManageBookingsScreen());
       case RoutesName.manageUsers:
         return MaterialPageRoute(
-          builder: (_) =>
-              BlocProvider.value(value: sl<AdminCubit>(), child: const ManageUsersScreen()),
+          builder: (_) => BlocProvider.value(
+            value: sl<AdminCubit>(),
+            child: const ManageUsersScreen(),
+          ),
         );
       case RoutesName.revenueReport:
       case RoutesName.revenueReports:
         return MaterialPageRoute(builder: (_) => const RevenueReportScreen());
+      case RoutesName.comparisonReports:
+        return MaterialPageRoute(
+          builder: (_) => const AccountComparisonReportsScreen(),
+        );
       case RoutesName.addCar:
         return MaterialPageRoute(builder: (_) => const AddCarScreen());
       case RoutesName.inspectionReports:
-        return MaterialPageRoute(builder: (_) => const InspectionReportsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const InspectionReportsScreen(),
+        );
       case RoutesName.adminSettings:
         return MaterialPageRoute(builder: (_) => const AdminSettingsScreen());
       case RoutesName.allActivities:
         return MaterialPageRoute(builder: (_) => const AllActivitiesScreen());
       case RoutesName.adminNotifications:
-        return MaterialPageRoute(builder: (_) => const AdminNotificationsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const AdminNotificationsScreen(),
+        );
       case RoutesName.securitySettings:
         return MaterialPageRoute(builder: (_) => const AdminSecurityScreen());
       case RoutesName.systemAlerts:
@@ -199,16 +227,23 @@ class AppRouters {
       case RoutesName.adminSupport:
         return MaterialPageRoute(builder: (_) => const AdminSupportScreen());
       case RoutesName.contactDeveloper:
-        return MaterialPageRoute(builder: (_) => const ContactDeveloperScreen());
+        return MaterialPageRoute(
+          builder: (_) => const ContactDeveloperScreen(),
+        );
       case RoutesName.adminLoanApplications:
-        return MaterialPageRoute(builder: (_) => const AdminLoanApplicationsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const AdminLoanApplicationsScreen(),
+        );
 
       case RoutesName.agentCustomerDetailsScreen:
         return MaterialPageRoute(
-          builder: (_) => AgentCustomerDetailsScreen(customer: args as CustomerModel),
+          builder: (_) =>
+              AgentCustomerDetailsScreen(customer: args as CustomerModel),
         );
       case RoutesName.agentExternalQuoteScreen:
-        return MaterialPageRoute(builder: (_) => const AgentExternalQuoteScreen());
+        return MaterialPageRoute(
+          builder: (_) => const AgentExternalQuoteScreen(),
+        );
       case RoutesName.financingProgramOffersScreen:
       case RoutesName.offersScreen:
       default:

@@ -76,12 +76,17 @@ class DioConsumer implements ApiConsumer {
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
     bool? isFormData,
+    bool? asBytes,
   }) async {
     var response = await client.post(
       path,
       data: _processBody(body, isFormData),
       queryParameters: queryParameters,
-      options: Options(headers: headers, extra: extra),
+      options: Options(
+        headers: headers,
+        extra: extra,
+        responseType: asBytes == true ? ResponseType.bytes : null,
+      ),
     );
     return response.data;
   }

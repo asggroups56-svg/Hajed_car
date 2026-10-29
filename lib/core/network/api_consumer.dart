@@ -14,6 +14,7 @@ abstract class ApiConsumer {
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
     bool? isFormData,
+    bool? asBytes,
   });
   Future<dynamic> put(
     String path, {
