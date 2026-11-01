@@ -392,6 +392,7 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
         ),
         content: CustomFormField(
           controller: customCtrl,
+          title: context.locale.languageCode == 'ar' ? 'اسم البنك' : 'Bank Name',
           hintText:
               context.locale.languageCode == 'ar' ? 'اسم البنك' : 'Bank Name',
           radius: 10,
@@ -494,6 +495,7 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
             Gap(20.h),
             CustomFormField(
               controller: _employerCtrl,
+              title: AppLocaleKey.agentEmployer.tr(),
               hintText: AppLocaleKey.agentEmployer.tr(),
               radius: 12,
               validator: (v) => (v == null || v.isEmpty)
@@ -503,6 +505,7 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
             Gap(16.h),
             CustomFormField(
               controller: _jobTitleCtrl,
+              title: AppLocaleKey.agentJobTitle.tr(),
               hintText: AppLocaleKey.agentJobTitle.tr(),
               radius: 12,
               validator: (v) => (v == null || v.isEmpty)
@@ -512,6 +515,7 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
             Gap(16.h),
             CustomFormField(
               controller: _salaryCtrl,
+              title: AppLocaleKey.agentMonthlySalary.tr(),
               hintText: AppLocaleKey.agentMonthlySalary.tr(),
               radius: 12,
               keyboardType: TextInputType.number,
@@ -523,6 +527,7 @@ class _FinancingWorkInfoTabState extends State<FinancingWorkInfoTab> {
             Gap(16.h),
             CustomFormField(
               controller: _bankCtrl,
+              title: AppLocaleKey.selectTransferredBank.tr(),
               hintText: AppLocaleKey.selectTransferredBank.tr(),
               radius: 12,
               readOnly: true,

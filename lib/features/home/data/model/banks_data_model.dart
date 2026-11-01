@@ -60,7 +60,7 @@ class BANKSDATAModel extends Equatable {
       faxNo1: json['FAX_NO1'],
       faxNo2: json['FAX_NO2'],
       address: json['ADDRESS'],
-      collectPeriod: json['COLLECT_PERIOD'],
+      collectPeriod: json['COLLECT_PERIOD']?.toString(),
       bankAccNo: (json['BANK_ACC_NO'] as num?)?.toDouble(),
       currencyCode: json['CURRENCY_CODE'],
       poBox: json['P_O_BOX'],

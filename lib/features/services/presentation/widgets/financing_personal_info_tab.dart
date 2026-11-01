@@ -115,6 +115,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             Gap(10.h),
             CustomFormField(
               controller: _fullNameCtrl,
+              title: AppLocaleKey.agentFullName.tr(),
               hintText: AppLocaleKey.agentFullName.tr(),
               radius: 12,
               validator: (v) => (v == null || v.isEmpty) ? AppLocaleKey.agentFullName.tr() : null,
@@ -160,6 +161,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             Gap(20.h),
             CustomFormField(
               controller: _idCtrl,
+              title: AppLocaleKey.agentNationalId.tr(),
               hintText: AppLocaleKey.agentNationalId.tr(),
               radius: 12,
               keyboardType: TextInputType.number,
@@ -179,6 +181,7 @@ class _FinancingPersonalInfoTabState extends State<FinancingPersonalInfoTab> {
             Gap(16.h),
             CustomFormField(
               controller: _phoneCtrl,
+              title: AppLocaleKey.agentPhones.tr(),
               hintText: AppLocaleKey.agentPhones.tr(),
               radius: 12,
               keyboardType: TextInputType.phone,

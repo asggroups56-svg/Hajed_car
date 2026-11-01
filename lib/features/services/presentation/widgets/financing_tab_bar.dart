@@ -7,7 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class FinancingTabBar extends StatelessWidget {
   final TabController controller;
 
-  const FinancingTabBar({required this.controller});
+  const FinancingTabBar({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {

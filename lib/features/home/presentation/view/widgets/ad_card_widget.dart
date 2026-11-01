@@ -66,6 +66,15 @@ class AdCardWidget extends StatelessWidget {
                   Gap(2.h),
                   _buildHero(context),
                   const Spacer(),
+                  Text(
+                    ad.programName ?? '',
+                    style: AppTextStyle.bodyMedium(context).copyWith(
+                      color: AppColor.whiteColor(context),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                  Gap(10.h),
                   _buildStatsRow(context),
                   Gap(10.h),
                   _buildFooter(context),
@@ -131,9 +140,7 @@ class AdCardWidget extends StatelessWidget {
           height: 160.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [_gold.withValues(alpha: 0.15), Colors.transparent],
-            ),
+            gradient: RadialGradient(colors: [_gold.withValues(alpha: 0.15), Colors.transparent]),
           ),
         ),
       ),
@@ -159,9 +166,7 @@ class AdCardWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColor.whiteColor(context).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: AppColor.whiteColor(context).withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: AppColor.whiteColor(context).withValues(alpha: 0.2)),
             ),
             child: Text(
               '$_year',
@@ -206,12 +211,9 @@ class AdCardWidget extends StatelessWidget {
                 ),
                 TextSpan(
                   text: '$pctLabel%',
-                  style: AppTextStyle.bodyMedium(context).copyWith(
-                    color: _gold,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 34.sp,
-                    height: 1,
-                  ),
+                  style: AppTextStyle.bodyMedium(
+                    context,
+                  ).copyWith(color: _gold, fontWeight: FontWeight.w900, fontSize: 34.sp, height: 1),
                 ),
               ],
             ),
@@ -220,9 +222,7 @@ class AdCardWidget extends StatelessWidget {
             Padding(
               padding: EdgeInsets.only(top: 2.h),
               child: Text(
-                AppLocaleKey.adLastPayment.tr(
-                  namedArgs: {'value': _lastPct.toStringAsFixed(0)},
-                ),
+                AppLocaleKey.adLastPayment.tr(namedArgs: {'value': _lastPct.toStringAsFixed(0)}),
                 style: AppTextStyle.bodySmall(context).copyWith(
                   color: AppColor.whiteColor(context).withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
@@ -264,10 +264,7 @@ class AdCardWidget extends StatelessWidget {
       width: 0.6.sw,
       child: Row(
         children: [
-          for (int i = 0; i < chips.length; i++) ...[
-            if (i != 0) Gap(8.w),
-            chips[i],
-          ],
+          for (int i = 0; i < chips.length; i++) ...[if (i != 0) Gap(8.w), chips[i]],
         ],
       ),
     );
@@ -276,11 +273,7 @@ class AdCardWidget extends StatelessWidget {
   Widget _buildFooter(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          Icons.directions_car_filled_rounded,
-          color: AppColor.whiteColor(context),
-          size: 16.sp,
-        ),
+        Icon(Icons.directions_car_filled_rounded, color: AppColor.whiteColor(context), size: 16.sp),
         Gap(6.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,10 +299,9 @@ class AdCardWidget extends StatelessWidget {
         if ((ad.endDate ?? '').isNotEmpty)
           Text(
             AppLocaleKey.adUntil.tr(namedArgs: {'date': ad.endDate ?? ''}),
-            style: AppTextStyle.bodySmall(context).copyWith(
-              color: AppColor.whiteColor(context).withValues(alpha: 0.6),
-              fontSize: 9.sp,
-            ),
+            style: AppTextStyle.bodySmall(
+              context,
+            ).copyWith(color: AppColor.whiteColor(context).withValues(alpha: 0.6), fontSize: 9.sp),
           ),
       ],
     );
@@ -321,11 +313,7 @@ class _StatChip extends StatelessWidget {
   final String label;
   final Color gold;
 
-  const _StatChip({
-    required this.value,
-    required this.label,
-    required this.gold,
-  });
+  const _StatChip({required this.value, required this.label, required this.gold});
 
   @override
   Widget build(BuildContext context) {
@@ -335,19 +323,15 @@ class _StatChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColor.whiteColor(context).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: AppColor.whiteColor(context).withValues(alpha: 0.14),
-          ),
+          border: Border.all(color: AppColor.whiteColor(context).withValues(alpha: 0.14)),
         ),
         child: Column(
           children: [
             Text(
               value,
-              style: AppTextStyle.bodySmall(context).copyWith(
-                color: gold,
-                fontWeight: FontWeight.w800,
-                fontSize: 12.sp,
-              ),
+              style: AppTextStyle.bodySmall(
+                context,
+              ).copyWith(color: gold, fontWeight: FontWeight.w800, fontSize: 12.sp),
             ),
             Text(
               label,

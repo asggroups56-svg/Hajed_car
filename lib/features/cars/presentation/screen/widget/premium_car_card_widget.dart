@@ -36,10 +36,10 @@ class PremiumCarCardWidget extends StatelessWidget {
     this.financingOffers = const [],
   });
 
-  /// Renders whole percentages without a trailing `.0`.
+  /// Renders percentages without changing their precision.
   static String _formatPercentage(double value) {
     if (value == value.roundToDouble()) return value.toInt().toString();
-    return value.toStringAsFixed(1);
+    return value.toString();
   }
 
   @override
