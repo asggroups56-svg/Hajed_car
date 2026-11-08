@@ -2,11 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'app.dart';
 import 'core/cache/hive/hive_methods.dart';
 import 'core/config/app_config.dart';
 import 'core/theme/cubit/app_theme_cubit.dart';
 import 'service_initialize.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -14,8 +16,8 @@ void main() async {
   } catch (_) {
     AppConfig.init(
       appFlavor: AppFlavor.dev,
-      appBaseUrl: 'https://delta-asg.com:54510/',
-      appBaseImage: 'https://delta-asg.com:54510/MyVirtualDir/',
+      appBaseUrl: 'https://delta-icloud.com:54510/',
+      appBaseImage: 'https://delta-icloud.com:54510/MyVirtualDir/',
     );
   }
   await SystemChrome.setPreferredOrientations([
