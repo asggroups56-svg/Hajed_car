@@ -10,11 +10,15 @@ class MiniDetailWidget extends StatelessWidget {
     this.icon,
     this.customIcon,
     required this.label,
+    this.color,
+    this.iconColor,
   });
 
   final IconData? icon;
   final Widget? customIcon;
   final String label;
+  final Color? color;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -32,15 +36,16 @@ class MiniDetailWidget extends StatelessWidget {
           if (customIcon != null)
             customIcon!
           else if (icon != null)
-            Icon(icon, color: AppColor.greyColor(context), size: 14.w),
+            Icon(icon, color: iconColor ?? AppColor.greyColor(context), size: 14.w),
           Gap(4.w),
           Flexible(
             child: Text(
               label,
               style: AppTextStyle.bodySmall(context).copyWith(
-                color: AppColor.greyColor(context),
+                color: color ?? AppColor.greyColor(context),
+
                 fontSize: 10.sp,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w900,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

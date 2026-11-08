@@ -46,7 +46,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
         state.allPopularCarsStatus.data ?? {},
       );
     }
-    final brands = state.brands;
+    final brands = state.brands.expand((brand) => [brand, ...brand.children]);
     CarModel? selectedBrand;
     for (final b in brands) {
       if (b.groupCode == state.selectedBrandId) {
@@ -100,6 +100,8 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'isFavorite': false,
       'carStatus': car.carStatus,
       'carStatusText': car.carStatusText,
+      'isAvailable': car.carStatus == 1,
+      'isPopular': true,
       'CHASSIS_NO': car.chassisNo,
       'MOTOR_NO': car.motorNo,
       'KILOMETER_READING': car.kilometerReading,
@@ -157,7 +159,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
         final carsMap = _filteredCarsMap(state);
         CarModel? selectedBrand;
         if (isBrandSelected) {
-          for (final b in state.brands) {
+          for (final b in state.brands.expand((brand) => [brand, ...brand.children])) {
             if (b.groupCode == state.selectedBrandId) {
               selectedBrand = b;
               break;

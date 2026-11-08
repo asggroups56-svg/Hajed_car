@@ -278,9 +278,17 @@ class CardContentSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  MiniDetailWidget(
-                    icon: Icons.calendar_today_outlined,
-                    label: car['year']?.toString() ?? '—',
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColor.redColor(context),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: MiniDetailWidget(
+                      icon: Icons.calendar_today_outlined,
+                      label: car['year']?.toString() ?? '—',
+                      color: AppColor.whiteColor(context),
+                      iconColor: AppColor.whiteColor(context),
+                    ),
                   ),
                   MiniDetailWidget(
                     customIcon: _buildColorIcon(context, displayColor),
@@ -313,7 +321,7 @@ class CardContentSection extends StatelessWidget {
                           child: RichText(
                             text: TextSpan(
                               style: AppTextStyle.bodyMedium(context).copyWith(
-                                color: AppColor.greenColor(context),
+                                color: Colors.red,
                                 fontWeight: FontWeight.w900,
                                 fontFamily: 'Arial',
                                 fontSize: isShort ? 12.sp : 14.sp,
@@ -328,10 +336,7 @@ class CardContentSection extends StatelessWidget {
                                       AppImages.sar,
                                       width: isShort ? 14.w : 16.w,
                                       height: isShort ? 14.h : 16.h,
-                                      colorFilter: ColorFilter.mode(
-                                        AppColor.greenColor(context),
-                                        BlendMode.srcIn,
-                                      ),
+                                      colorFilter: ColorFilter.mode(Colors.red, BlendMode.srcIn),
                                     ),
                                   ),
                                 ),
@@ -375,7 +380,7 @@ class CardContentSection extends StatelessWidget {
                               child: RichText(
                                 text: TextSpan(
                                   style: AppTextStyle.bodyMedium(context).copyWith(
-                                    color: AppColor.primaryColor(context),
+                                    color: AppColor.greenColor(context),
                                     fontWeight: FontWeight.w900,
                                     fontFamily: 'Arial',
                                     fontSize: isShort ? 12.sp : 14.sp,
@@ -394,7 +399,7 @@ class CardContentSection extends StatelessWidget {
                                               width: isShort ? 14.w : 16.w,
                                               height: isShort ? 14.h : 16.h,
                                               colorFilter: ColorFilter.mode(
-                                                AppColor.primaryColor(context),
+                                                AppColor.greenColor(context),
                                                 BlendMode.srcIn,
                                               ),
                                             ),
@@ -402,7 +407,7 @@ class CardContentSection extends StatelessWidget {
                                             Text(
                                               '/ ${AppLocaleKey.month.tr()}',
                                               style: AppTextStyle.bodySmall(context).copyWith(
-                                                color: AppColor.primaryColor(context),
+                                                color: AppColor.greenColor(context),
                                                 fontWeight: FontWeight.w900,
                                                 fontSize: isShort ? 8.sp : 9.sp,
                                               ),

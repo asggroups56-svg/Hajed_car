@@ -37,7 +37,22 @@ class CategoriesWidget extends StatelessWidget {
           return bulidCategoriesEmpty(context);
         }
 
-        return SizedBox(
+        CarModel? expandedBrand;
+        for (final brand in brands) {
+          if (brand.groupCode == state.selectedBrandId ||
+              brand.children.any((child) => child.groupCode == state.selectedBrandId)) {
+            expandedBrand = brand;
+            break;
+          }
+        }
+        // Keep the first parent's model list visible on the initial "All"
+        // view too; otherwise the nested models appear only after a request
+        // has already selected a brand.
+        final selectedParent = expandedBrand ?? brands.first;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [SizedBox(
           height: 120.h,
           width: double.infinity,
           child: ListView.separated(
@@ -69,7 +84,7 @@ class CategoriesWidget extends StatelessWidget {
               }
 
               final item = brands[brandIndex];
-              final isSelected = state.selectedBrandId == item.groupCode;
+              final isSelected = expandedBrand?.groupCode == item.groupCode;
 
               return FadeInRight(
                 delay: Duration(milliseconds: index * 50),
@@ -101,7 +116,38 @@ class CategoriesWidget extends StatelessWidget {
               );
             },
           ),
-        );
+        ),
+        if (selectedParent.children.isNotEmpty)
+          SizedBox(
+            height: 48.h,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              itemCount: selectedParent.children.length,
+              separatorBuilder: (_, __) => Gap(8.w),
+              itemBuilder: (context, index) {
+                final model = selectedParent.children[index];
+                final selected = state.selectedBrandId == model.groupCode;
+                return ChoiceChip(
+                  label: Text(
+                    context.locale.languageCode == 'ar'
+                        ? model.groupName
+                        : (model.groupEName ?? model.groupName),
+                  ),
+                  selected: selected,
+                  onSelected: (_) => context.read<HomeCubit>().getBrandCars(
+                    model.groupCode.toString(),
+                  ),
+                  selectedColor: AppColor.primaryColor(context).withValues(alpha: .16),
+                  labelStyle: AppTextStyle.bodySmall(context).copyWith(
+                    color: selected ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                );
+              },
+            ),
+          ),
+        ]);
       },
     );
   }

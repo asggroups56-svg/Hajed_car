@@ -8,17 +8,32 @@ class CarsModelsResponse extends Equatable {
   const CarsModelsResponse({required this.cars});
 
   factory CarsModelsResponse.fromJson(Map<String, dynamic> json) {
-    final rawData = json['Data'];
-
-    List<CarModel> parsedList = [];
-
-    if (rawData != null && rawData is String) {
-      final decoded = jsonDecode(rawData) as List;
-
-      parsedList = decoded.map((e) => CarModel.fromJson(e)).toList();
+    dynamic rawData = json['Data'];
+    // Some API gateways serialize the response more than once.
+    while (rawData is String && rawData.isNotEmpty) {
+      rawData = jsonDecode(rawData);
     }
 
-    return CarsModelsResponse(cars: parsedList);
+    // The service currently spells the key "Parernt". Accept both that
+    // response and the corrected spelling, as well as a direct list.
+    dynamic rawParents = rawData;
+    if (rawData is Map) {
+      for (final entry in rawData.entries) {
+        final key = entry.key.toString().toLowerCase();
+        if (key == 'parernt' || key == 'parent') {
+          rawParents = entry.value;
+          break;
+        }
+      }
+    }
+    final parents = rawParents is List ? rawParents : const [];
+
+    return CarsModelsResponse(
+      cars: parents
+          .whereType<Map>()
+          .map((item) => CarModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+    );
   }
 
   @override
@@ -32,6 +47,7 @@ class CarModel extends Equatable {
   final int groupParent;
   final int groupLevel;
   final String picturePath;
+  final List<CarModel> children;
 
   const CarModel({
     required this.groupCode,
@@ -40,16 +56,30 @@ class CarModel extends Equatable {
     required this.groupParent,
     required this.groupLevel,
     required this.picturePath,
+    this.children = const [],
   });
 
+  static int _toInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+
   factory CarModel.fromJson(Map<String, dynamic> json) {
+    final rawChildren = json['children'] ?? json['CHILDREN'];
     return CarModel(
-      groupCode: json['GROUP_CODE'] ?? 0,
-      groupName: json['GROUP_NAME'] ?? '',
-      groupEName: json['GROUP_ENAME'],
-      groupParent: json['GROUP_PARENT'] ?? 0,
-      groupLevel: json['GROUP_LEVEL'] ?? 0,
-      picturePath: json['PICTUREPATH'] ?? '',
+      groupCode: _toInt(json['GROUP_CODE'] ?? json['group_code']),
+      groupName: (json['GROUP_NAME'] ?? json['group_name'] ?? '').toString(),
+      groupEName: (json['GROUP_ENAME'] ?? json['group_ename'])?.toString(),
+      groupParent: _toInt(
+        json['GROUP_PARENT'] ??
+            json['Child_GROUP_PARENT'] ??
+            json['child_group_parent'],
+      ),
+      groupLevel: _toInt(json['GROUP_LEVEL'] ?? json['group_level']),
+      picturePath: (json['PICTUREPATH'] ?? json['picturepath'] ?? '').toString(),
+      children: rawChildren is List
+          ? rawChildren
+                .whereType<Map>()
+                .map((item) => CarModel.fromJson(Map<String, dynamic>.from(item)))
+                .toList()
+          : const [],
     );
   }
 
@@ -61,5 +91,6 @@ class CarModel extends Equatable {
     groupParent,
     groupLevel,
     picturePath,
+    children,
   ];
 }
