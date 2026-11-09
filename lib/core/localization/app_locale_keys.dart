@@ -1724,4 +1724,6 @@ class AppLocaleKey {
   static const String Later = 'Later';
   static const String recent = 'recent';
   static const String trending_now = 'trending_now';
+  static const String lowestPrice = 'lowest_price';
+  static const String LowestPrice = 'Lowest Price';
 }

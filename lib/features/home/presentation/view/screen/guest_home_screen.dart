@@ -4,9 +4,12 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+import 'package:car/features/home/data/model/brand_cars_data_model.dart';
+import 'package:car/features/home/presentation/view/screen/lowest_price_cars_screen.dart';
 import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/categories_widget.dart';
+import 'package:car/features/home/presentation/view/widgets/lowest_price_cars_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/popular_cars_slider_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/section_title_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,6 +26,30 @@ class HomeGuestScreen extends StatefulWidget {
 
 class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
+
+  void _openAllLowestPriceCars() {
+    final state = context.read<HomeCubit>().state;
+    List<GetBrandCarsDataModel> cars = [];
+    if (state.allCarsStatus.data != null) {
+      cars = List<GetBrandCarsDataModel>.from(state.allCarsStatus.data!);
+    }
+    if (cars.isEmpty && state.brandCarsStatus.data != null) {
+      cars = List<GetBrandCarsDataModel>.from(state.brandCarsStatus.data!);
+    }
+    if (cars.isEmpty && state.allPopularCarsStatus.data != null) {
+      final grouped = Map<String, List<GetBrandCarsDataModel>>.from(
+        state.allPopularCarsStatus.data!,
+      );
+      cars = grouped.values.expand((items) => items).toList();
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => LowestPriceCarsScreen(cars: cars),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -148,6 +175,13 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
                   ),
                   Gap(15.h),
                   const PopularCarsSlider(),
+                  Gap(20.h),
+                  SectionTitleWidget(
+                    title: AppLocaleKey.lowestPrice.tr(),
+                    onSeeAll: _openAllLowestPriceCars,
+                  ),
+                  Gap(15.h),
+                  const LowestPriceCarsWidget(),
                   Gap(20.h),
                 ],
               ),

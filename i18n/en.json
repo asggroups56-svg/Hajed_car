@@ -65,6 +65,7 @@
   "latest_offers": "Latest Offers",
   "featured_deal": "Featured Deal",
   "trending_now": "Trending Now",
+  "lowest_price": "Lowest Price",
   "see_all": "See All",
   "suv": "SUV",
   "sedan": "Sedan",
@@ -1695,5 +1696,6 @@
     "new_update_text":"A new version of the car dealer app is available.\nPlease update the app to take advantage of the latest features and enhancements.",
     "update_now":"Update Now",
     "Later":"Later",
-    "recent":"Most requested"
+    "recent":"Most requested",
+    "Lowest Price":"Lowest Price"
 }

@@ -24,6 +24,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
 
   int _currentPage = 0;
   bool _controllerInitialized = false;
+  bool _showAllCars = false;
 
   static const _autoScrollInterval = Duration(seconds: 4);
   static const _animationDuration = Duration(milliseconds: 800);
@@ -58,8 +59,7 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   void _onTimerTick(Timer timer) {
     if (!mounted || !_pageController.hasClients) return;
 
-    final data = context.read<HomeCubit>().state.brandCarsStatus.data;
-    final totalCars = (data is List) ? data.length : 0;
+    final totalCars = _buildDisplayedCars(context.read<HomeCubit>().state).length;
     final length = totalCars.clamp(0, _maxDisplayedCars);
     if (length == 0) return;
 
@@ -80,18 +80,33 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   }
 
   List<Map<String, dynamic>> _buildDisplayedCars(HomeState state) {
+    if (state.allCarsStatus.isSuccess && state.allCarsStatus.data != null) {
+      final inventory = List<GetBrandCarsDataModel>.from(state.allCarsStatus.data!)
+        ..sort((a, b) => _priceOf(a).compareTo(_priceOf(b)));
+      if (inventory.isNotEmpty) return inventory.map(_carToMap).toList();
+    }
+
     final isBrandSelected = state.selectedBrandId != null;
     final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
 
     if (!status.isSuccess || status.data == null) return [];
 
     final List<GetBrandCarsDataModel> flatCars = isBrandSelected
-        ? (status.data as List<GetBrandCarsDataModel>).take(_maxDisplayedCars).toList()
+        ? List<GetBrandCarsDataModel>.from(status.data as List<GetBrandCarsDataModel>)
         : (status.data as Map<String, List<GetBrandCarsDataModel>>).values
-              .expand((cars) => cars.take(_maxDisplayedCars))
+              .expand((cars) => cars)
               .toList();
+    flatCars.sort((a, b) => _priceOf(a).compareTo(_priceOf(b)));
 
     return flatCars.map(_carToMap).toList();
+  }
+
+  double _priceOf(GetBrandCarsDataModel car) {
+    final raw = car.SALE_PRICE != null && car.SALE_PRICE! > 0
+        ? car.SALE_PRICE.toString()
+        : car.price ?? '';
+    final normalized = raw.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(normalized) ?? double.infinity;
   }
 
   Map<String, dynamic> _carToMap(GetBrandCarsDataModel car) {
