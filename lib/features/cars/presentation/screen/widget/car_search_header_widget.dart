@@ -11,8 +11,14 @@ import 'package:gap/gap.dart';
 class CarSearchHeaderWidget extends StatelessWidget {
   final TextEditingController? controller;
   final void Function(String)? onChanged;
+  final Widget? sortAction;
 
-  const CarSearchHeaderWidget({super.key, this.controller, this.onChanged});
+  const CarSearchHeaderWidget({
+    super.key,
+    this.controller,
+    this.onChanged,
+    this.sortAction,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +35,10 @@ class CarSearchHeaderWidget extends StatelessWidget {
               radius: 12.r,
             ),
           ),
+          if (sortAction != null) ...[
+            Gap(8.w),
+            sortAction!,
+          ],
           Gap(12.w),
           GestureDetector(
             onTap: () => NavigatorMethods.pushNamed(context, RoutesName.filterScreen),

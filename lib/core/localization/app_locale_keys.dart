@@ -776,6 +776,9 @@ class AppLocaleKey {
   static const String profitMargin = 'profitMargin';
   static const String totalAmount = 'totalAmount';
   static const String sortBy = 'sortBy';
+  static const String priceLowToHigh = 'price_low_to_high';
+  static const String priceHighToLow = 'price_high_to_low';
+  static const String defaultSort = 'default_sort';
   static const String lowestMargin = 'lowestMargin';
   static const String highestMargin = 'highestMargin';
   static const String lowestInstallment = 'lowestInstallment';

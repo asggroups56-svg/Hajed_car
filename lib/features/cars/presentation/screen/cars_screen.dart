@@ -23,9 +23,18 @@ class CarsScreen extends StatefulWidget {
   State<CarsScreen> createState() => _CarsScreenState();
 }
 
+enum _CarPriceSort { none, lowToHigh, highToLow }
+
 class _CarsScreenState extends State<CarsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  _CarPriceSort _priceSort = _CarPriceSort.none;
+
+  double _carPrice(GetBrandCarsDataModel car) {
+    final value = car.effectivePrice ?? '';
+    final normalized = value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(normalized) ?? double.infinity;
+  }
 
   @override
   void initState() {
@@ -196,7 +205,7 @@ class _CarsScreenState extends State<CarsScreen> {
                   .where((car) => !homeCubit.isCarLocallyReserved(car.itemCode))
                   .toList();
 
-              final availableCars = _searchQuery.isEmpty
+              final filteredCars = _searchQuery.isEmpty
                   ? baseCarsList
                   : baseCarsList.where((car) {
                       final name = car.itemName.toLowerCase();
@@ -206,11 +215,59 @@ class _CarsScreenState extends State<CarsScreen> {
                           brand.contains(_searchQuery) ||
                           year.contains(_searchQuery);
                     }).toList();
+              final availableCars = List<GetBrandCarsDataModel>.from(filteredCars);
+              if (_priceSort != _CarPriceSort.none) {
+                availableCars.sort((a, b) {
+                  final priceA = _carPrice(a);
+                  final priceB = _carPrice(b);
+                  if (priceA.isInfinite) return priceB.isInfinite ? 0 : 1;
+                  if (priceB.isInfinite) return -1;
+                  final comparison = priceA.compareTo(priceB);
+                  return _priceSort == _CarPriceSort.lowToHigh
+                      ? comparison
+                      : -comparison;
+                });
+              }
 
               return Column(
                 children: [
                   CarSearchHeaderWidget(
                     controller: _searchController,
+                    sortAction: PopupMenuButton<_CarPriceSort>(
+                      tooltip: AppLocaleKey.sortBy.tr(),
+                      initialValue: _priceSort,
+                      onSelected: (sort) => setState(() => _priceSort = sort),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: _CarPriceSort.lowToHigh,
+                          child: Text(AppLocaleKey.priceLowToHigh.tr()),
+                        ),
+                        PopupMenuItem(
+                          value: _CarPriceSort.highToLow,
+                          child: Text(AppLocaleKey.priceHighToLow.tr()),
+                        ),
+                        PopupMenuItem(
+                          value: _CarPriceSort.none,
+                          child: Text(AppLocaleKey.defaultSort.tr()),
+                        ),
+                      ],
+                      child: Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: AppColor.secondAppColor(context),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: AppColor.dividerColor(context),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.sort_rounded,
+                          color: _priceSort == _CarPriceSort.none
+                              ? AppColor.blackTextColor(context)
+                              : AppColor.primaryColor(context),
+                        ),
+                      ),
+                    ),
                     onChanged: (value) {
                       setState(() {
                         _searchQuery = value.trim().toLowerCase();
