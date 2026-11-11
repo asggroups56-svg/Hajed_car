@@ -20,12 +20,7 @@ class CarHeaderWidget extends StatefulWidget {
   final FinancingAdModel? offer;
   final List<FinancingAdModel> offers;
 
-  const CarHeaderWidget({
-    super.key,
-    required this.car,
-    this.offer,
-    this.offers = const [],
-  });
+  const CarHeaderWidget({super.key, required this.car, this.offer, this.offers = const []});
 
   @override
   State<CarHeaderWidget> createState() => _CarHeaderWidgetState();
@@ -71,16 +66,11 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                 children: [
                   if (widget.car.itemCode.isNotEmpty)
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 4.h,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
-                          color: AppColor.greenColor(
-                            context,
-                          ).withValues(alpha: (0.3)),
+                          color: AppColor.greenColor(context).withValues(alpha: (0.3)),
                         ),
                       ),
                       child: Text(
@@ -91,28 +81,23 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                         ),
                       ),
                     ),
-                  Gap(8.h),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: AppColor.greenColor(
-                          context,
-                        ).withValues(alpha: (0.3)),
-                      ),
-                    ),
-                    child: Text(
-                      widget.car.groupName,
-                      style: AppTextStyle.bodyMedium(context).copyWith(
-                        color: AppColor.blackTextColor(context),
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+
+                  // Container(
+                  //   padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  //   decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.circular(16.r),
+                  //     border: Border.all(
+                  //       color: AppColor.greenColor(context).withValues(alpha: (0.3)),
+                  //     ),
+                  //   ),
+                  //   child: Text(
+                  //     widget.car.groupName,
+                  //     style: AppTextStyle.bodyMedium(context).copyWith(
+                  //       color: AppColor.blackTextColor(context),
+                  //       fontWeight: FontWeight.w900,
+                  //     ),
+                  //   ),
+                  // ),
                   Gap(8.h),
                   Text(
                     widget.car.itemName,
@@ -128,19 +113,12 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 4.h,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(
-                              widget.car.carStatus,
-                            ).withValues(alpha: (0.1)),
+                            color: _getStatusColor(widget.car.carStatus).withValues(alpha: (0.1)),
                             borderRadius: BorderRadius.circular(8.r),
                             border: Border.all(
-                              color: _getStatusColor(
-                                widget.car.carStatus,
-                              ).withValues(alpha: (0.3)),
+                              color: _getStatusColor(widget.car.carStatus).withValues(alpha: (0.3)),
                             ),
                           ),
                           child: Text(
@@ -195,9 +173,7 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                 decoration: BoxDecoration(
                   color: isInCompare
                       ? AppColor.primaryColor(context).withValues(alpha: 0.15)
-                      : AppColor.blackTextColor(
-                          context,
-                        ).withValues(alpha: 0.05),
+                      : AppColor.blackTextColor(context).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: isInCompare
@@ -209,9 +185,7 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isInCompare
-                          ? Icons.compare_arrows_rounded
-                          : Icons.add_chart_rounded,
+                      isInCompare ? Icons.compare_arrows_rounded : Icons.add_chart_rounded,
                       color: isInCompare
                           ? AppColor.primaryColor(context)
                           : AppColor.greyColor(context),
@@ -240,18 +214,12 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
               // Cash Price (Right)
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 12.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                   decoration: BoxDecoration(
                     color: AppColor.secondAppColor(context),
                     borderRadius: BorderRadius.circular(6.r),
                     border: Border(
-                      right: BorderSide(
-                        color: AppColor.greenColor(context),
-                        width: 2.w,
-                      ),
+                      right: BorderSide(color: AppColor.greenColor(context), width: 2.w),
                     ),
                   ),
                   child: Column(
@@ -313,18 +281,12 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                         //   );
                         // },
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 12.h,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
                           decoration: BoxDecoration(
                             color: AppColor.secondAppColor(context),
                             borderRadius: BorderRadius.circular(6.r),
                             border: Border(
-                              right: BorderSide(
-                                color: AppColor.primaryColor(context),
-                                width: 2.w,
-                              ),
+                              right: BorderSide(color: AppColor.primaryColor(context), width: 2.w),
                             ),
                           ),
                           child: BankInstallmentsBannerWidget(

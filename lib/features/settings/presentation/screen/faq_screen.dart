@@ -14,7 +14,6 @@ class FAQScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final faqs = [
-      {'q': AppLocaleKey.faqQ1, 'a': AppLocaleKey.faqA1},
       {'q': AppLocaleKey.faqQ2, 'a': AppLocaleKey.faqA2},
       {'q': AppLocaleKey.faqQ3, 'a': AppLocaleKey.faqA3},
       {'q': AppLocaleKey.faqQ4, 'a': AppLocaleKey.faqA4},

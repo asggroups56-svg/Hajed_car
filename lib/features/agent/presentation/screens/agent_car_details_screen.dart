@@ -158,6 +158,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 widget.car.specificName!.trim().isNotEmpty)
                               (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!
                                   .trim(),
+                            if (widget.car.luxury != null && widget.car.luxury!.trim().isNotEmpty)
+                              (isArabic ? 'درجة الفخامة' : 'Luxury'): widget.car.luxury!.trim(),
+                            if (widget.car.specificName != null && widget.car.specificName!.trim().isNotEmpty)
+                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!.trim(),
                           },
                         );
                         if (success == true && context.mounted) {

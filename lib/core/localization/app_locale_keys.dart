@@ -137,6 +137,7 @@ class AppLocaleKey {
   static const String allBrands = 'all_brands';
   static const String more = 'more';
   static const String favorites = 'favorites';
+  static const String removeFromFavorites = 'remove_from_favorites';
   static const String noFavoritesYet = 'no_favorites_yet';
   static const String addCarsToFavorites = 'add_cars_to_favorites';
   static const String ourServices = 'our_services';
