@@ -170,7 +170,11 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
                   SectionTitleWidget(
                     title: AppLocaleKey.trending_now.tr(),
                     onSeeAll: () {
-                      NavigatorMethods.pushNamed(context, RoutesName.popularCarsScreen);
+                      NavigatorMethods.pushNamed(
+                        context,
+                        RoutesName.popularCarsScreen,
+                        arguments: {'bestSellersOnly': false},
+                      );
                     },
                   ),
                   Gap(15.h),

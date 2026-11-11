@@ -83,7 +83,10 @@ class AppRouters {
               CarReservationScreen(car: car!, isFromLink: isFromLink),
         );
       case RoutesName.popularCarsScreen:
-        return MaterialPageRoute(builder: (_) => const PopularCarsScreen());
+        final bestSellersOnly = args is Map && args['bestSellersOnly'] == true;
+        return MaterialPageRoute(
+          builder: (_) => PopularCarsScreen(bestSellersOnly: bestSellersOnly),
+        );
       case RoutesName.filterScreen:
         return MaterialPageRoute(builder: (_) => const FilterScreen());
       case RoutesName.cartScreen:

@@ -94,9 +94,12 @@ class HomeCubit extends Cubit<HomeState> {
         );
 
         if (fetchedBrands.isNotEmpty) {
-          // Always start the refreshed home screen with the first brand and
-          // wait for its cars, so the selected category never appears empty.
-          await getBrandCars(fetchedBrands.first.groupCode.toString());
+          // Keep the initial home view on "All". If the user had already
+          // selected a brand before a refresh, reload only that selection.
+          final selectedBrandId = state.selectedBrandId;
+          if (selectedBrandId != null) {
+            await getBrandCars(selectedBrandId.toString());
+          }
           await fetchAllBrandsCars(fetchedBrands);
         }
       },

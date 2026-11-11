@@ -125,6 +125,8 @@ class AppLocaleKey {
   static const String notifications = 'notifications';
   static const String welcomeToCarGroup = 'welcome_to_car_group';
   static const String popularCars = 'popular_cars';
+  static const String bestSellerCars = 'best_seller_cars';
+  static const String newCars = 'new_cars';
   static const String loadingLatestCars = 'loading_latest_cars';
   static const String orderNow = 'order_now';
   static const String details = 'details';

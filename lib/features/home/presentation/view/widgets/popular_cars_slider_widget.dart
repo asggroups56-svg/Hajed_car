@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PopularCarsSlider extends StatefulWidget {
-  const PopularCarsSlider({super.key});
+  const PopularCarsSlider({super.key, this.bestSellersOnly = false});
+
+  final bool bestSellersOnly;
 
   @override
   State<PopularCarsSlider> createState() => _PopularCarsSliderState();
@@ -59,8 +61,11 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   void _onTimerTick(Timer timer) {
     if (!mounted || !_pageController.hasClients) return;
 
-    final totalCars = _buildDisplayedCars(context.read<HomeCubit>().state).length;
-    final length = totalCars.clamp(0, _maxDisplayedCars);
+    final state = context.read<HomeCubit>().state;
+    final totalCars = _buildDisplayedCars(state).length;
+    final length = state.selectedBrandId != null
+        ? totalCars
+        : totalCars.clamp(0, _maxDisplayedCars);
     if (length == 0) return;
 
     final nextPage = (_currentPage + 1) % length;
@@ -80,26 +85,78 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   }
 
   List<Map<String, dynamic>> _buildDisplayedCars(HomeState state) {
-    if (state.allCarsStatus.isSuccess && state.allCarsStatus.data != null) {
-      final inventory = List<GetBrandCarsDataModel>.from(state.allCarsStatus.data!)
-        ..sort((a, b) => _priceOf(a).compareTo(_priceOf(b)));
-      if (inventory.isNotEmpty) return inventory.map(_carToMap).toList();
+    final flatCars = <GetBrandCarsDataModel>[];
+    if (state.selectedBrandId != null && state.brandCarsStatus.isSuccess) {
+      // A selected model's GetprandcarsData response is authoritative for the
+      // home carousel. Otherwise unrelated brands can push its best sellers
+      // out of the first visible cards.
+      flatCars.addAll(_carsFromResponse(state.brandCarsStatus.data));
+    } else if (state.selectedBrandId == null &&
+        state.allPopularCarsStatus.isSuccess) {
+      flatCars.addAll(_carsFromResponse(state.allPopularCarsStatus.data));
+      if (state.allCarsStatus.isSuccess) {
+        flatCars.addAll(_carsFromResponse(state.allCarsStatus.data));
+      }
+    } else if (state.selectedBrandId == null &&
+        state.allCarsStatus.isSuccess) {
+      flatCars.addAll(_carsFromResponse(state.allCarsStatus.data));
     }
 
-    final isBrandSelected = state.selectedBrandId != null;
-    final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
-
-    if (!status.isSuccess || status.data == null) return [];
-
-    final List<GetBrandCarsDataModel> flatCars = isBrandSelected
-        ? List<GetBrandCarsDataModel>.from(status.data as List<GetBrandCarsDataModel>)
-        : (status.data as Map<String, List<GetBrandCarsDataModel>>).values
-              .expand((cars) => cars)
-              .toList();
-    flatCars.sort((a, b) => _priceOf(a).compareTo(_priceOf(b)));
-
-    return flatCars.map(_carToMap).toList();
+    // The same inventory row can arrive from the aggregate, full inventory,
+    // and selected-brand calls. Keep one copy while retaining distinct colors.
+    final uniqueCars = <String, GetBrandCarsDataModel>{};
+    for (final car in flatCars) {
+      final key = car.chassisNo.isNotEmpty && car.chassisNo != 'null'
+          ? car.chassisNo
+          : '${car.groupCode}_${car.itemCode}_${car.makeYear}_${car.colorCode}_${car.price}';
+      uniqueCars.putIfAbsent(key, () => car);
+    }
+    final cars = uniqueCars.values.toList();
+    cars.sort((a, b) {
+      final bestSellerOrder = (b.isBestSeller ? 1 : 0).compareTo(
+        a.isBestSeller ? 1 : 0,
+      );
+      return bestSellerOrder != 0
+          ? bestSellerOrder
+          : _priceOf(a).compareTo(_priceOf(b));
+    });
+    return _applyBestSellerFilter(cars).map(_carToMap).toList();
   }
+
+  List<GetBrandCarsDataModel> _carsFromResponse(dynamic data) {
+    final cars = <GetBrandCarsDataModel>[];
+
+    void addCar(dynamic value) {
+      if (value is GetBrandCarsDataModel) {
+        cars.add(value);
+      } else if (value is Map) {
+        cars.add(
+          GetBrandCarsDataModel.fromJson(Map<String, dynamic>.from(value)),
+        );
+      }
+    }
+
+    if (data is Map) {
+      for (final brandCars in data.values) {
+        if (brandCars is Iterable) {
+          for (final car in brandCars) {
+            addCar(car);
+          }
+        }
+      }
+    } else if (data is Iterable) {
+      for (final car in data) {
+        addCar(car);
+      }
+    }
+    return cars;
+  }
+
+  List<GetBrandCarsDataModel> _applyBestSellerFilter(
+    List<GetBrandCarsDataModel> cars,
+  ) => widget.bestSellersOnly
+      ? cars.where((car) => car.isBestSeller).toList()
+      : cars;
 
   double _priceOf(GetBrandCarsDataModel car) {
     final raw = car.SALE_PRICE != null && car.SALE_PRICE! > 0
@@ -190,15 +247,23 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
-        final isBrandSelected = state.selectedBrandId != null;
-        final status = isBrandSelected ? state.brandCarsStatus : state.allPopularCarsStatus;
-        if (status.isLoading || status.isInitial) {
+        final cars = _buildDisplayedCars(state);
+        final isLoadingSelectedBrand = state.selectedBrandId != null &&
+            (state.brandCarsStatus.isLoading || state.brandCarsStatus.isInitial);
+        final isLoadingAllCars = state.selectedBrandId == null &&
+            cars.isEmpty &&
+            (state.allPopularCarsStatus.isLoading ||
+                state.allPopularCarsStatus.isInitial ||
+                state.allCarsStatus.isLoading ||
+                state.allCarsStatus.isInitial);
+        if (isLoadingSelectedBrand || isLoadingAllCars) {
           return const LoadingPlaceholder();
         }
-        final cars = _buildDisplayedCars(state);
         if (cars.isEmpty) return const EmptyState();
         if (_currentPage >= cars.length) _currentPage = 0;
-        final displayCount = cars.length.clamp(0, _maxDisplayedCars);
+        final displayCount = state.selectedBrandId != null
+            ? cars.length
+            : cars.length.clamp(0, _maxDisplayedCars);
         return SizedBox(
           height: (MediaQuery.of(context).size.height / 1.9).clamp(380.0, 520.0),
           child: PageView.builder(

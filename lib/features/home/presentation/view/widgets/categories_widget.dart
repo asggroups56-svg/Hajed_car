@@ -128,20 +128,35 @@ class CategoriesWidget extends StatelessWidget {
               itemBuilder: (context, index) {
                 final model = selectedParent.children[index];
                 final selected = state.selectedBrandId == model.groupCode;
-                return ChoiceChip(
-                  label: Text(
-                    context.locale.languageCode == 'ar'
-                        ? model.groupName
-                        : (model.groupEName ?? model.groupName),
-                  ),
-                  selected: selected,
-                  onSelected: (_) => context.read<HomeCubit>().getBrandCars(
+                return InkWell(
+                  borderRadius: BorderRadius.circular(22.r),
+                  onTap: () => context.read<HomeCubit>().getBrandCars(
                     model.groupCode.toString(),
                   ),
-                  selectedColor: AppColor.primaryColor(context).withValues(alpha: .16),
-                  labelStyle: AppTextStyle.bodySmall(context).copyWith(
-                    color: selected ? AppColor.primaryColor(context) : AppColor.blackTextColor(context),
-                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 9.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColor.primaryColor(context)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(22.r),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      context.locale.languageCode == 'ar'
+                          ? model.groupName
+                          : (model.groupEName ?? model.groupName),
+                      style: AppTextStyle.bodySmall(context).copyWith(
+                        color: selected
+                            ? AppColor.whiteColor(context)
+                            : AppColor.blackTextColor(context),
+                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      ),
+                    ),
                   ),
                 );
               },

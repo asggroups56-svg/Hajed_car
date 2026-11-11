@@ -16,8 +16,8 @@ void main() async {
   } catch (_) {
     AppConfig.init(
       appFlavor: AppFlavor.dev,
-      appBaseUrl: 'https://delta-icloud.com:54510/',
-      appBaseImage: 'https://delta-icloud.com:54510/MyVirtualDir/',
+      appBaseUrl: 'https://delta-asg.com:54513/',
+      appBaseImage: 'https://delta-asg.com:54513/MyVirtualDir/',
     );
   }
   await SystemChrome.setPreferredOrientations([

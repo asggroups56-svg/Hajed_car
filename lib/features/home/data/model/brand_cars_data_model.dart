@@ -86,6 +86,7 @@ class GetBrandCarsDataModel extends Equatable {
   final double? interestRateOther;
   final String? endDate;
   final bool? isActive;
+  final bool isBestSeller;
 
   // Mock/Extra fields for UI consistency
   final String? discount;
@@ -172,6 +173,7 @@ class GetBrandCarsDataModel extends Equatable {
     this.interestRateOther,
     this.endDate,
     this.isActive,
+    this.isBestSeller = false,
   });
 
   final String? customerName;
@@ -337,6 +339,7 @@ class GetBrandCarsDataModel extends Equatable {
       'endDate': endDate,
       'IsActive': isActive,
       'isActive': isActive,
+      'IsBestSeller': isBestSeller ? 1 : 0,
     };
   }
 
@@ -609,6 +612,7 @@ class GetBrandCarsDataModel extends Equatable {
       interestRateOther: interestRateOther ?? other.interestRateOther,
       endDate: endDate ?? other.endDate,
       isActive: isActive ?? other.isActive,
+      isBestSeller: isBestSeller || other.isBestSeller,
     );
   }
 
@@ -700,6 +704,7 @@ class GetBrandCarsDataModel extends Equatable {
       interestRateOther: interestRateOther ?? this.interestRateOther,
       endDate: endDate,
       isActive: isActive,
+      isBestSeller: isBestSeller,
     );
   }
 
@@ -923,6 +928,13 @@ class GetBrandCarsDataModel extends Equatable {
         if (normalized == '0' || normalized == 'false') return false;
         return null;
       }(),
+      isBestSeller: () {
+        final raw = json['IsBestSeller'] ?? json['isBestSeller'] ?? json['ISBESTSELLER'];
+        if (raw is bool) return raw;
+        if (raw is num) return raw != 0;
+        final normalized = raw?.toString().trim().toLowerCase();
+        return normalized == '1' || normalized == 'true';
+      }(),
       customerName:
           json['CUSTOMER_NAME']?.toString() ??
           json['customerName']?.toString() ??
@@ -1059,6 +1071,7 @@ class GetBrandCarsDataModel extends Equatable {
     interestRateOther,
     endDate,
     isActive,
+    isBestSeller,
   ];
 
   CarModel toCarModel() {
