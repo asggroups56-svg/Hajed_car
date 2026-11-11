@@ -2,14 +2,16 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/network/contants.dart';
+import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
+import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/cars_models_response.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/widgets/app_header_popular_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/brand_header_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/empty_state_widget.dart';
-import 'package:car/features/home/presentation/view/widgets/magazine_card_widget.dart';
+import 'package:car/features/home/presentation/view/widgets/car_card_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -230,7 +232,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
             ? AppLocaleKey.bestSellerCars.tr()
             : selectedBrand != null
             ? selectedBrand.groupName
-            : AppLocaleKey.popularCars.tr();
+            : AppLocaleKey.bestSellerCars.tr();
 
         return Scaffold(
           backgroundColor: AppColor.scaffoldColor(context),
@@ -328,11 +330,21 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final car = _carToMap(cars[index], selectedBrandName);
+          final heroTag = 'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index';
           return Padding(
             padding: EdgeInsets.only(bottom: 16.h),
-            child: MagazineCardWidget(
-              car: car,
-              heroTag: 'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index',
+            child: SizedBox(
+              height: (MediaQuery.sizeOf(context).height / 1.9).clamp(380.0, 520.0),
+              child: CarCard(
+                car: car,
+                isSelected: true,
+                heroTag: heroTag,
+                onTap: () => NavigatorMethods.pushNamed(
+                  context,
+                  RoutesName.carDetailsScreen,
+                  arguments: {'car': car, 'heroTag': heroTag},
+                ),
+              ),
             ),
           );
         }, childCount: cars.length),

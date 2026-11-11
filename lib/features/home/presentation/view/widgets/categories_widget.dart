@@ -45,24 +45,23 @@ class CategoriesWidget extends StatelessWidget {
             break;
           }
         }
-        // Keep the first parent's model list visible on the initial "All"
-        // view too; otherwise the nested models appear only after a request
-        // has already selected a brand.
-        final selectedParent = expandedBrand ?? brands.first;
+        // The "All" view has no parent brand, so only show model types after
+        // the user chooses a specific brand.
+        final selectedParent = expandedBrand;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [SizedBox(
-          height: 120.h,
+          height: 108.h,
           width: double.infinity,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 6.h),
             physics: const BouncingScrollPhysics(),
             // "All" is a separate item, followed by a preview of brands and
             // a button that opens the complete brands screen when needed.
             itemCount: 1 + brands.take(4).length + (brands.length > 4 ? 1 : 0),
-            separatorBuilder: (context, index) => Gap(20.w),
+            separatorBuilder: (context, index) => Gap(14.w),
             itemBuilder: (context, index) {
               if (index == 0) {
                 return FadeInRight(
@@ -99,7 +98,7 @@ class CategoriesWidget extends StatelessWidget {
                       },
                       child: CustomItemCategoriesWidget(isSelected: isSelected, item: item),
                     ),
-                    Gap(10.h),
+                    Gap(5.h),
                     Text(
                       context.locale.languageCode == 'ar' ? item.groupName : item.groupEName ?? '',
                       maxLines: 1,
@@ -117,12 +116,12 @@ class CategoriesWidget extends StatelessWidget {
             },
           ),
         ),
-        if (selectedParent.children.isNotEmpty)
+        if (selectedParent != null && selectedParent.children.isNotEmpty)
           SizedBox(
-            height: 48.h,
+            height: 44.h,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 2.h),
               itemCount: selectedParent.children.length,
               separatorBuilder: (_, __) => Gap(8.w),
               itemBuilder: (context, index) {
@@ -135,14 +134,16 @@ class CategoriesWidget extends StatelessWidget {
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 9.h,
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColor.primaryColor(context)
-                          : Colors.transparent,
+                          : AppColor.primaryColor(context).withValues(alpha: 0.07),
+                      border: Border.all(
+                        color: selected
+                            ? AppColor.primaryColor(context)
+                            : AppColor.primaryColor(context).withValues(alpha: 0.25),
+                      ),
                       borderRadius: BorderRadius.circular(22.r),
                     ),
                     alignment: Alignment.center,
@@ -153,8 +154,8 @@ class CategoriesWidget extends StatelessWidget {
                       style: AppTextStyle.bodySmall(context).copyWith(
                         color: selected
                             ? AppColor.whiteColor(context)
-                            : AppColor.blackTextColor(context),
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                            : AppColor.primaryColor(context),
+                        fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                       ),
                     ),
                   ),
