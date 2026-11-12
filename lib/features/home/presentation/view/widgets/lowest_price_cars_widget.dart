@@ -63,6 +63,11 @@ class _LowestPriceCarsWidgetState extends State<LowestPriceCarsWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.selectedBrandId != current.selectedBrandId ||
+          previous.brandCarsStatus != current.brandCarsStatus ||
+          previous.allPopularCarsStatus != current.allPopularCarsStatus ||
+          previous.allCarsStatus != current.allCarsStatus,
       builder: (context, state) {
         final cars = _carsFromState(state);
         if (cars.isEmpty) {

@@ -20,6 +20,9 @@ class CategoriesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.carsModelsStatus != current.carsModelsStatus ||
+          previous.selectedBrandId != current.selectedBrandId,
       builder: (context, state) {
         final status = state.carsModelsStatus;
 

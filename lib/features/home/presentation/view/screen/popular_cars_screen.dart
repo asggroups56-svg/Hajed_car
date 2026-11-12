@@ -32,18 +32,43 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = context.read<HomeCubit>().state;
-      if (widget.bestSellersOnly && !state.allPopularCarsStatus.isSuccess) {
-        context.read<HomeCubit>().getCarsModels();
-      } else if (state.selectedBrandId != null) {
-        context.read<HomeCubit>().getBrandCars(
-          state.selectedBrandId.toString(),
-        );
-      } else if (state.brands.isEmpty) {
-        context.read<HomeCubit>().getCarsModels();
+      final cubit = context.read<HomeCubit>();
+      final state = cubit.state;
+      if (state.selectedBrandId != null) {
+        cubit.getBrandCars(state.selectedBrandId.toString());
+      } else {
+        if (state.brands.isEmpty) {
+          cubit.getCarsModels();
+        }
+        // A screen opened directly (deep link or a cold app start) has no
+        // inventory yet. The home page normally loads it; make sure this
+        // screen can populate itself as well.
+        if (!state.allCarsStatus.isSuccess && !state.allCarsStatus.isLoading) {
+          cubit.fetchAllCars();
+        }
       }
-      context.read<HomeCubit>().getNormalFinancing();
+      cubit.getNormalFinancing();
     });
+  }
+
+  /// Groups the single full-inventory response by brand.
+  ///
+  /// The home cubit no longer requests each brand separately, so the aggregate
+  /// map can be empty while `allCarsStatus` already has all the data.
+  Map<String, List<GetBrandCarsDataModel>> _allCarsByBrand(HomeState state) {
+    final cars = state.allCarsStatus.data;
+    if (cars != null && cars.isNotEmpty) {
+      final grouped = <String, List<GetBrandCarsDataModel>>{};
+      for (final car in cars) {
+        grouped
+            .putIfAbsent(car.groupName, () => <GetBrandCarsDataModel>[])
+            .add(car);
+      }
+      return grouped;
+    }
+    return Map<String, List<GetBrandCarsDataModel>>.from(
+      state.allPopularCarsStatus.data ?? {},
+    );
   }
 
   Map<String, List<GetBrandCarsDataModel>> _filteredCarsMap(HomeState state) {
@@ -75,6 +100,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
           }
         }
       }
+
       addBestSellers(state.allPopularCarsStatus.data);
       addBestSellers(state.allCarsStatus.data);
       addBestSellers(state.brandCarsStatus.data);
@@ -91,9 +117,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     }
 
     if (state.selectedBrandId == null) {
-      return Map<String, List<GetBrandCarsDataModel>>.from(
-        state.allPopularCarsStatus.data ?? {},
-      );
+      return _allCarsByBrand(state);
     }
     final brands = state.brands.expand((brand) => [brand, ...brand.children]);
     CarModel? selectedBrand;
@@ -114,14 +138,15 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       return {brandName: brandCars};
     }
 
-    final allCarsMap = state.allPopularCarsStatus.data ?? {};
+    final allCarsMap = _allCarsByBrand(state);
     return {brandName: allCarsMap[brandName] ?? []};
   }
 
   List<GetBrandCarsDataModel> _sortBestSellersFirst(
     List<GetBrandCarsDataModel> cars,
-  ) => List<GetBrandCarsDataModel>.from(cars)
-    ..sort((a, b) => (b.isBestSeller ? 1 : 0).compareTo(a.isBestSeller ? 1 : 0));
+  ) => List<GetBrandCarsDataModel>.from(
+    cars,
+  )..sort((a, b) => (b.isBestSeller ? 1 : 0).compareTo(a.isBestSeller ? 1 : 0));
 
   Map<String, dynamic> _carToMap(
     GetBrandCarsDataModel car,
@@ -167,6 +192,7 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       'Color': car.color,
       'BODY_COLOR': car.bodyColor,
       'color': car.color.isNotEmpty ? car.color : car.bodyColor,
+      'COLOR_CODE': car.colorCode,
       'FUEL_TYPE': car.fuelType,
       'TRANSMISSION': car.transmission,
       'MAKE_YEAR': car.makeYear,
@@ -213,15 +239,22 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
             : isBrandSelected
             ? state.brandCarsStatus
             : state.allPopularCarsStatus;
-        final hasFallbackData =
-            state.allCarsStatus.isSuccess || state.brandCarsStatus.isSuccess;
-        final isLoading = widget.bestSellersOnly
-            ? (status.isLoading || status.isInitial) && !hasFallbackData
-            : status.isLoading || status.isInitial;
+        final hasLoadedData = widget.bestSellersOnly
+            ? (state.allPopularCarsStatus.isSuccess ||
+                  state.allCarsStatus.isSuccess ||
+                  state.brandCarsStatus.isSuccess)
+            : isBrandSelected
+            ? state.brandCarsStatus.isSuccess
+            : (state.allPopularCarsStatus.isSuccess ||
+                  state.allCarsStatus.isSuccess);
+        final isLoading =
+            (status.isLoading || status.isInitial) && !hasLoadedData;
         final carsMap = _filteredCarsMap(state);
         CarModel? selectedBrand;
         if (isBrandSelected) {
-          for (final b in state.brands.expand((brand) => [brand, ...brand.children])) {
+          for (final b in state.brands.expand(
+            (brand) => [brand, ...brand.children],
+          )) {
             if (b.groupCode == state.selectedBrandId) {
               selectedBrand = b;
               break;
@@ -263,7 +296,10 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
                       child: Center(child: CustomLoading()),
                     )
                   else if (_isCarsMapEmpty(carsMap))
-                    EmptyState(isBrandSelected: isBrandSelected && !widget.bestSellersOnly)
+                    EmptyState(
+                      isBrandSelected:
+                          isBrandSelected && !widget.bestSellersOnly,
+                    )
                   else
                     ..._buildCarsSlivers(
                       carsMap,
@@ -286,7 +322,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     String? selectedBrandName,
   ) {
     final slivers = <Widget>[];
-    for (final entry in carsMap.entries.where((entry) => entry.value.isNotEmpty)) {
+    for (final entry in carsMap.entries.where(
+      (entry) => entry.value.isNotEmpty,
+    )) {
       final cars = _sortBestSellersFirst(entry.value);
       final bestSellers = cars.where((car) => car.isBestSeller).toList();
       final otherCars = cars.where((car) => !car.isBestSeller).toList();
@@ -311,7 +349,9 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
             ),
           );
         }
-        slivers.add(_buildCarsList(otherCars, isBrandSelected, selectedBrandName));
+        slivers.add(
+          _buildCarsList(otherCars, isBrandSelected, selectedBrandName),
+        );
       }
     }
     return slivers;
@@ -330,11 +370,15 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final car = _carToMap(cars[index], selectedBrandName);
-          final heroTag = 'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index';
+          final heroTag =
+              'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index';
           return Padding(
             padding: EdgeInsets.only(bottom: 16.h),
             child: SizedBox(
-              height: (MediaQuery.sizeOf(context).height / 1.9).clamp(380.0, 520.0),
+              height: (MediaQuery.sizeOf(context).height / 1.9).clamp(
+                380.0,
+                520.0,
+              ),
               child: CarCard(
                 car: car,
                 isSelected: true,

@@ -91,15 +91,14 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       // home carousel. Otherwise unrelated brands can push its best sellers
       // out of the first visible cards.
       flatCars.addAll(_carsFromResponse(state.brandCarsStatus.data));
-    } else if (state.selectedBrandId == null &&
-        state.allPopularCarsStatus.isSuccess) {
-      flatCars.addAll(_carsFromResponse(state.allPopularCarsStatus.data));
+    } else if (state.selectedBrandId == null) {
+      // The full inventory is the primary source; the grouped map is a
+      // fallback for older cached state.
       if (state.allCarsStatus.isSuccess) {
         flatCars.addAll(_carsFromResponse(state.allCarsStatus.data));
+      } else if (state.allPopularCarsStatus.isSuccess) {
+        flatCars.addAll(_carsFromResponse(state.allPopularCarsStatus.data));
       }
-    } else if (state.selectedBrandId == null &&
-        state.allCarsStatus.isSuccess) {
-      flatCars.addAll(_carsFromResponse(state.allCarsStatus.data));
     }
 
     // The same inventory row can arrive from the aggregate, full inventory,
@@ -246,6 +245,11 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.selectedBrandId != current.selectedBrandId ||
+          previous.brandCarsStatus != current.brandCarsStatus ||
+          previous.allPopularCarsStatus != current.allPopularCarsStatus ||
+          previous.allCarsStatus != current.allCarsStatus,
       builder: (context, state) {
         final cars = _buildDisplayedCars(state);
         final isLoadingSelectedBrand = state.selectedBrandId != null &&

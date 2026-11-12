@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:car/core/utils/security_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -385,5 +387,73 @@ class HiveMethods {
 
   static String? getname() {
     return _box.get('name', defaultValue: '');
+  }
+
+  // ─── Home Cache (stale-while-revalidate) ───────────────────
+  // The home page shows its last known brands and inventory immediately on
+  // launch, while the network refresh runs in the background. Values are
+  // stored as JSON so Hive never has to deal with nested map types.
+  static const String _homeBrandsCacheKey = 'homeBrandsCache';
+  static const String _homeCarsCacheKey = 'homeCarsCache';
+  static const String _homeColorsCacheKey = 'homeColorsCache';
+
+  /// Returns the app box only when it is open. This keeps the cache usable
+  /// (and harmless) in tests that create a cubit without initializing Hive.
+  static Box<dynamic>? get _cacheBox {
+    try {
+      return Hive.isBoxOpen('app') ? Hive.box('app') : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static List<Map<String, dynamic>> getCachedHomeBrands() {
+    return _readCachedMaps(_homeBrandsCacheKey);
+  }
+
+  static void updateCachedHomeBrands(List<Map<String, dynamic>> brands) {
+    _writeCachedMaps(_homeBrandsCacheKey, brands);
+  }
+
+  static List<Map<String, dynamic>> getCachedHomeCars() {
+    return _readCachedMaps(_homeCarsCacheKey);
+  }
+
+  static void updateCachedHomeCars(List<Map<String, dynamic>> cars) {
+    _writeCachedMaps(_homeCarsCacheKey, cars);
+  }
+
+  static List<Map<String, dynamic>> getCachedCarColors() {
+    return _readCachedMaps(_homeColorsCacheKey);
+  }
+
+  static void updateCachedCarColors(List<Map<String, dynamic>> colors) {
+    _writeCachedMaps(_homeColorsCacheKey, colors);
+  }
+
+  static List<Map<String, dynamic>> _readCachedMaps(String key) {
+    final dynamic raw = _cacheBox?.get(key);
+    if (raw is! String || raw.isEmpty) return const [];
+    try {
+      final dynamic decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    } catch (_) {
+      // A stale or corrupted cache must never break the home flow.
+      return const [];
+    }
+  }
+
+  static void _writeCachedMaps(String key, List<Map<String, dynamic>> value) {
+    final box = _cacheBox;
+    if (box == null) return;
+    try {
+      box.put(key, jsonEncode(value));
+    } catch (_) {
+      // Caching is best-effort; a failure here must not surface to the user.
+    }
   }
 }

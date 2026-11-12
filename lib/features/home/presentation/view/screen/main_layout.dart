@@ -82,7 +82,9 @@ class _MainLayoutState extends State<MainLayout> {
     final List<Widget> screens = [
       HomeGuestScreen(key: ValueKey('home_${context.locale.languageCode}')),
       CarsScreen(key: ValueKey('cars_${context.locale.languageCode}')),
-      FavoritesScreen(key: ValueKey('favorites_${context.locale.languageCode}')),
+      FavoritesScreen(
+        key: ValueKey('favorites_${context.locale.languageCode}'),
+      ),
       const CarComparisonScreen(),
       const AccountScreen(),
     ];
@@ -107,12 +109,16 @@ class _MainLayoutState extends State<MainLayout> {
                 appBarColor: Colors.transparent,
                 //  leading: const ProfileIconWidget(),
                 title: ValueListenableBuilder(
-                  valueListenable: Hive.box('app').listenable(keys: ['userName', 'isGuest']),
+                  valueListenable: Hive.box(
+                    'app',
+                  ).listenable(keys: ['userName', 'isGuest']),
                   builder: (context, box, _) {
                     final isGuest = box.get('isGuest', defaultValue: false);
                     final userName = HiveMethods.getUserName() ?? '';
                     final welcomeText = AppLocaleKey.welcomeToCarGroup.tr();
-                    final separator = context.locale.languageCode == 'ar' ? '،' : ',';
+                    final separator = context.locale.languageCode == 'ar'
+                        ? '،'
+                        : ',';
 
                     if (_currentIndex == 1) {
                       return BlocBuilder<HomeCubit, HomeState>(
@@ -125,14 +131,20 @@ class _MainLayoutState extends State<MainLayout> {
                           final availableCarsCount = isFilteredByOffer
                               ? state.programCarsStatus.data!
                                     .where(
-                                      (car) => !homeCubit.isCarLocallyReserved(car.itemCode ?? ''),
+                                      (car) => !homeCubit.isCarLocallyReserved(
+                                        car.itemCode ?? '',
+                                      ),
                                     )
                                     .length
-                              : (state.allCarsStatus.data ?? [])
+                              : (state.selectedBrandId != null
+                                        ? (state.brandCarsStatus.data ?? [])
+                                        : (state.allCarsStatus.data ?? []))
                                     .where(
                                       (car) =>
                                           car.carStatus == 1 &&
-                                          !homeCubit.isCarLocallyReserved(car.itemCode),
+                                          !homeCubit.isCarLocallyReserved(
+                                            car.itemCode,
+                                          ),
                                     )
                                     .length;
 
@@ -191,11 +203,14 @@ class _MainLayoutState extends State<MainLayout> {
                 ],
               ),
         body: BlocListener<HomeCubit, HomeState>(
-          listenWhen: (prev, curr) => prev.notificationsStatus != curr.notificationsStatus,
+          listenWhen: (prev, curr) =>
+              prev.notificationsStatus != curr.notificationsStatus,
           listener: (context, state) {
             if (state.notificationsStatus.isSuccess) {
               final list = state.notificationsStatus.data ?? [];
-              context.read<NotificationsCubit>().loadFromApi(list.map((n) => n.toMap()).toList());
+              context.read<NotificationsCubit>().loadFromApi(
+                list.map((n) => n.toMap()).toList(),
+              );
             } else if (state.notificationsStatus.isFailure) {
               context.read<NotificationsCubit>().loadFromApi([]);
             }

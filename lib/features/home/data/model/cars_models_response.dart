@@ -59,7 +59,8 @@ class CarModel extends Equatable {
     this.children = const [],
   });
 
-  static int _toInt(dynamic value) => int.tryParse(value?.toString() ?? '') ?? 0;
+  static int _toInt(dynamic value) =>
+      int.tryParse(value?.toString() ?? '') ?? 0;
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
     final rawChildren = json['children'] ?? json['CHILDREN'];
@@ -73,15 +74,31 @@ class CarModel extends Equatable {
             json['child_group_parent'],
       ),
       groupLevel: _toInt(json['GROUP_LEVEL'] ?? json['group_level']),
-      picturePath: (json['PICTUREPATH'] ?? json['picturepath'] ?? '').toString(),
+      picturePath: (json['PICTUREPATH'] ?? json['picturepath'] ?? '')
+          .toString(),
       children: rawChildren is List
           ? rawChildren
                 .whereType<Map>()
-                .map((item) => CarModel.fromJson(Map<String, dynamic>.from(item)))
+                .map(
+                  (item) => CarModel.fromJson(Map<String, dynamic>.from(item)),
+                )
                 .toList()
           : const [],
     );
   }
+
+  /// Serializes the brand back to the API shape so it can be cached in Hive
+  /// and restored through [CarModel.fromJson] on the next launch.
+  Map<String, dynamic> toMap() => {
+    'GROUP_CODE': groupCode,
+    'GROUP_NAME': groupName,
+    'GROUP_ENAME': groupEName,
+    'GROUP_PARENT': groupParent,
+    'GROUP_LEVEL': groupLevel,
+    'PICTUREPATH': picturePath,
+    if (children.isNotEmpty)
+      'children': children.map((child) => child.toMap()).toList(),
+  };
 
   @override
   List<Object?> get props => [

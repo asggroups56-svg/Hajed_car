@@ -124,7 +124,7 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
                           width: 50.w,
                           decoration: BoxDecoration(color: AppColor.scaffoldColor(context)),
                           child: isNetwork
-                              ? CustomNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain)
+                              ? CustomNetworkImage(imageUrl: imageUrl, fit: BoxFit.fitWidth)
                               : Image.asset(
                                   imageUrl.isEmpty ? AppImages.assetsImagesPlaceholder : imageUrl,
                                   fit: BoxFit.contain,

@@ -106,12 +106,12 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
       builder: (ctx) => DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.85,
-        maxChildSize: 0.95,
+        maxChildSize: 0.90,
         minChildSize: 0.5,
 
         builder: (_, controller) => Container(
           padding: EdgeInsets.only(top: 12.h, bottom: 16.h),
-          height: 200,
+          height: 300.h,
           decoration: BoxDecoration(
             color: AppColor.scaffoldColor(ctx),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
@@ -161,7 +161,7 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
                   itemBuilder: (_, index) {
                     final ad = allAds[index];
                     return SizedBox(
-                      height: 200.h,
+                      height: 230.h,
                       child: AdCardWidget(
                         ad: ad,
                         onTap: () {
