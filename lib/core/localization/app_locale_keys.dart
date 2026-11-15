@@ -1500,6 +1500,7 @@ class AppLocaleKey {
   static const String agentFullAddress = 'agent_full_address';
   static const String agentAreaCity = 'agent_area_city';
   static const String agentNotesTitle = 'agent_notes_title';
+  static const String agentBookingNotesHint = 'agent_booking_notes_hint';
   static const String agentCustomerTag = 'agent_customer_tag';
   static const String noData = 'noData';
   static const String search = 'search';

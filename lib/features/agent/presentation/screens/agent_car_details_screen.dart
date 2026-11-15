@@ -19,6 +19,7 @@ import 'package:car/features/agent/presentation/screens/widget/icon_btn_widget.d
 import 'package:car/features/agent/presentation/screens/widget/quote_builder_dialog.dart';
 import 'package:car/features/cars/presentation/widget/reservation_terms_checkbox_widget.dart';
 import 'package:car/features/home/data/model/add_booking_permission_model.dart';
+import 'package:car/features/home/data/model/send_whatsapp_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -37,16 +38,45 @@ class AgentCarDetailsScreen extends StatefulWidget {
 class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
   bool _isLoading = false;
 
+  /// Customer details captured when the representative confirms the
+  /// reservation, kept until the booking response returns so the WhatsApp
+  /// message can be sent to the right number.
+  String? _pendingCustomerPhone;
+  double _pendingDeposit = 0;
+
+  void _sendBookingWhatsApp(String bookingNo) {
+    final phone = _pendingCustomerPhone?.trim();
+    if (phone == null || phone.isEmpty) return;
+    _pendingCustomerPhone = null;
+
+    final money = NumberFormat('#,##0', 'en_US');
+    final textMsg =
+        'حجز سيارة: ${widget.car.itemName}\n'
+        'رقم الحجز: ${bookingNo.isNotEmpty ? bookingNo : ''}\n'
+        'رقم السيارة: ${widget.car.itemCode}\n'
+        'المبلغ الإجمالي: ${money.format(widget.car.priceWithVat)} ر.س\n'
+        'العربون: ${money.format(_pendingDeposit)} ر.س\n';
+    context.read<HomeCubit>().sendWhatsApp(
+      SendWhatsAppModel(toNumber: phone, text: textMsg),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final availabilityColor = widget.car.getAvailabilityColor(context);
     final isArabic = context.locale.languageCode == 'ar';
 
     return BlocListener<HomeCubit, HomeState>(
+      listenWhen: (previous, current) =>
+          previous.addBookingPermissionResponseModel !=
+          current.addBookingPermissionResponseModel,
       listener: (context, state) {
         final status = state.addBookingPermissionResponseModel;
         if (status.isSuccess && status.data?.success == true) {
           setState(() => _isLoading = false);
+          // The booking is complete: notify the customer on WhatsApp, then
+          // leave the screen.
+          _sendBookingWhatsApp(status.data?.lpoNo ?? '');
           final msg = status.data?.msg ?? (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
           CommonMethods.showToast(message: msg, type: ToastType.success);
           Navigator.pop(context);
@@ -160,8 +190,10 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                   .trim(),
                             if (widget.car.luxury != null && widget.car.luxury!.trim().isNotEmpty)
                               (isArabic ? 'درجة الفخامة' : 'Luxury'): widget.car.luxury!.trim(),
-                            if (widget.car.specificName != null && widget.car.specificName!.trim().isNotEmpty)
-                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!.trim(),
+                            if (widget.car.specificName != null &&
+                                widget.car.specificName!.trim().isNotEmpty)
+                              (isArabic ? 'المواصفات' : 'Specifications'): widget.car.specificName!
+                                  .trim(),
                           },
                         );
                         if (success == true && context.mounted) {
@@ -302,6 +334,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
     final depositController = TextEditingController(text: '0');
+    final notesController = TextEditingController();
     final searchController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final isArabic = context.locale.languageCode == 'ar';
@@ -660,6 +693,18 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 },
                               ),
                               Gap(16.h),
+                              CustomFormField(
+                                controller: notesController,
+                                hintText: AppLocaleKey.agentBookingNotesHint.tr(),
+                                radius: 12.r,
+                                maxLines: 3,
+                                keyboardType: TextInputType.multiline,
+                                prefixIcon: Icon(
+                                  Icons.edit_note_rounded,
+                                  color: AppColor.hintColor(dialogContext),
+                                ),
+                              ),
+                              Gap(16.h),
                               ReservationTermsCheckboxWidget(
                                 value: isTermsAccepted,
                                 onChanged: (val) => setModalState(() {
@@ -717,6 +762,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                             depositAmount: deposit,
                                             customerNo: selectedCustomer?.customerNo,
                                             isBankReservation: isBankReservation,
+                                            notes: notesController.text.trim(),
                                           );
                                         }
                                       },
@@ -754,6 +800,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     required double depositAmount,
     int? customerNo,
     required bool isBankReservation,
+    required String notes,
   }) {
     setState(() => _isLoading = true);
 
@@ -774,7 +821,14 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
     final double basePrice = widget.car.price;
     final double totalWithTax = basePrice * ((100 + vatSerial) / 100);
     final double taxValue = double.parse((totalWithTax - basePrice).toStringAsFixed(2));
-    final noteType = isBankReservation ? 'حجز بنك (3 أيام)' : 'حجز فرد/معرض (12 ساعة)';
+    final noteType = isBankReservation ? "حجز من التطبيق " : "";
+    final representativeNotes = notes.trim();
+    final bookingNotes = representativeNotes.isEmpty ? '$noteType ' : ' $representativeNotes';
+
+    // Remember who to notify once the booking is confirmed.
+    _pendingCustomerPhone = customerPhone;
+    _pendingDeposit = depositAmount;
+
     final model = AddBookingPermissionModel(
       lpoNos: '',
       lpono: '',
@@ -789,7 +843,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
       taamedNo: '',
       payCond: '',
       guarFinal: 0,
-      notes: '$noteType - ($customerPhone)',
+      notes: "حجز من التطبيق " + bookingNotes,
       userAdd: (HiveMethods.getUserName() ?? '').substring(
         0,
         (HiveMethods.getUserName() ?? '').length.clamp(0, 50),

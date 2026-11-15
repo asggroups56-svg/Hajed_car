@@ -129,9 +129,8 @@ class CarModel extends Equatable {
         if (raw == null || raw.trim().isEmpty || raw.toLowerCase() == 'null') return null;
         return raw.trim();
       }(),
-      Luxury: json['LUXURY']?.toString() ??
-          json['luxury']?.toString() ??
-          json['Luxury']?.toString(),
+      Luxury:
+          json['LUXURY']?.toString() ?? json['luxury']?.toString() ?? json['Luxury']?.toString(),
     );
   }
 

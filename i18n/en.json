@@ -1469,6 +1469,7 @@
   "agent_full_address": "Full Address",
   "agent_area_city": "Area / City",
   "agent_notes_title": "Notes",
+  "agent_booking_notes_hint": "Notes (Optional)",
   "agent_customer_tag": "Customer",
   "agent_currency": "AgentCurrency",
    "agent_address":"Address",

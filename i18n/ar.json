@@ -1472,6 +1472,7 @@
   "agent_full_address": "العنوان بالكامل",
   "agent_area_city": "المنطقة / المدينة",
   "agent_notes_title": "ملاحظات",
+  "agent_booking_notes_hint": "ملاحظات (اختياري)",
   "agent_customer_tag": "عميل",
   "agent_currency": "العملة",
   "agent_address": "العنوان",

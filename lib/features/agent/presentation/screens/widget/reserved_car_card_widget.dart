@@ -31,6 +31,7 @@ class ReservedCarCard extends StatelessWidget {
     final year = car.makeYear != null ? car.makeYear.toString() : '—';
     final color = car.bodyColor ?? '—';
     final lpoNo = car.lpoNo ?? '';
+    final storeCode = car.storeCode ?? '';
 
     return Container(
       margin: EdgeInsets.only(bottom: 14.h),
@@ -265,7 +266,11 @@ class ReservedCarCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onCancelTap,
-                    icon: Icon(Icons.cancel_outlined, size: 16.sp, color: AppColor.redColor(context)),
+                    icon: Icon(
+                      Icons.cancel_outlined,
+                      size: 16.sp,
+                      color: AppColor.redColor(context),
+                    ),
                     label: Text(
                       AppLocaleKey.cancelReservation.tr(),
                       style: AppTextStyle.bodySmall(

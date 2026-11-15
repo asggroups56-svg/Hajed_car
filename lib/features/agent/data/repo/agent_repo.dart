@@ -109,7 +109,6 @@ class AgentImplRepo implements AgentRepo {
           headers: {'username': Uri.encodeComponent(HiveMethods.getUserName().toString())},
         );
         final result = CreatOfferResponseModel.fromJson(response);
-
         return result;
       },
     );
