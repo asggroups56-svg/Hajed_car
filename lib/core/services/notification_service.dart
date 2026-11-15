@@ -38,7 +38,11 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotificationsPlugin.initialize(initSettings);
+    await _localNotificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (_) =>
+          handleNotificationClick(const <String, dynamic>{}),
+    );
     _notificationsInitialized = true;
 
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation = _localNotificationsPlugin
@@ -69,9 +73,9 @@ class NotificationService {
     // Disable automatic foreground presentation to prevent duplicate notifications.
     // We manually show notifications via onMessage.listen → showLocalNotificationFromMessage.
     await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
+      alert: false,
+      badge: false,
+      sound: false,
     );
 
     FirebaseMessaging.onMessage.listen((message) async {

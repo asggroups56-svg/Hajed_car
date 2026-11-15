@@ -9,6 +9,11 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     loadNotifications();
   }
 
+  /// Notifications created locally (reservation created/cancelled) are kept
+  /// here so that a server refresh does not immediately remove them from the
+  /// list while the backend has not stored the matching record yet.
+  final List<Map<String, dynamic>> _localNotifications = [];
+
   void loadNotifications() {
     emit(NotificationsLoading());
     // Real data is loaded via HomeCubit.getNotificationsData
@@ -19,7 +24,20 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   /// Called externally (e.g., from a BlocListener) once HomeCubit
   /// returns the real notifications from the server.
   void loadFromApi(List<Map<String, dynamic>> notifications) {
-    _emitLoaded(notifications.where((notification) => notification['isRead'] != true).toList());
+    final serverList = notifications
+        .where((notification) => notification['isRead'] != true)
+        .toList();
+    final serverKeys = serverList.map(_dedupeKey).toSet();
+
+    // Drop local copies that are already on the server or that the user has
+    // read, then show the remaining local ones before the server list.
+    _localNotifications.removeWhere(
+      (notification) =>
+          notification['isRead'] == true ||
+          serverKeys.contains(_dedupeKey(notification)),
+    );
+
+    _emitLoaded([..._localNotifications, ...serverList]);
   }
 
   void addReservationNotification({required String title, required String body}) {
@@ -32,6 +50,8 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       'type': 'reservation',
     };
 
+    _localNotifications.insert(0, notification);
+
     if (state is NotificationsLoaded) {
       final currentState = state as NotificationsLoaded;
       _emitLoaded([notification, ...currentState.notifications]);
@@ -41,6 +61,11 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAsRead(String id) {
+    for (var i = 0; i < _localNotifications.length; i++) {
+      if (_localNotifications[i]['id'] == id) {
+        _localNotifications[i] = {..._localNotifications[i], 'isRead': true};
+      }
+    }
     if (state is NotificationsLoaded) {
       final currentState = state as NotificationsLoaded;
       final updatedList = currentState.notifications.map((n) {
@@ -52,6 +77,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAllAsRead() {
+    for (var i = 0; i < _localNotifications.length; i++) {
+      _localNotifications[i] = {..._localNotifications[i], 'isRead': true};
+    }
     if (state is NotificationsLoaded) {
       final currentState = state as NotificationsLoaded;
       final updatedList = currentState.notifications.map((n) => {...n, 'isRead': true}).toList();
@@ -60,6 +88,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void clearAll() {
+    _localNotifications.clear();
     _emitLoaded([]);
   }
 
@@ -67,6 +96,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final unreadCount = list.where((n) => n['isRead'] == false).length;
     emit(NotificationsLoaded(notifications: list, unreadCount: unreadCount));
   }
+
+  static String _dedupeKey(Map<String, dynamic> notification) =>
+      '${notification['title']}|${notification['body']}';
 
   /// Convenience: triggers HomeCubit to fetch and then feeds data here.
   static void fetchAndLoad(HomeCubit homeCubit) {

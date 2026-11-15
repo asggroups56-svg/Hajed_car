@@ -76,6 +76,10 @@
 	<string>نحتاج إلى الوصول للموقع لمساعدتك في تحديد أقرب فرع/معرض سيارات أو لحساب تكلفة الشحن بدقة.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>نحتاج إلى الوصول للموقع لخدمات التوصيل والشحن للسيارة بدقة.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

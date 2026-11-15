@@ -126,8 +126,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (type) {
       case 20:
       case 34:
+      case 40:
         Navigator.pushNamed(context, RoutesName.cartScreen, arguments: {'id': id});
         break;
+    }
+
+    if (type == null && notification['type'] == 'reservation') {
+      Navigator.pushNamed(context, RoutesName.cartScreen);
     }
   }
 

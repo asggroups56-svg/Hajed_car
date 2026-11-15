@@ -7,6 +7,7 @@ import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/notification_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/common_methods.dart';
@@ -77,6 +78,9 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
           // The booking is complete: notify the customer on WhatsApp, then
           // leave the screen.
           _sendBookingWhatsApp(status.data?.lpoNo ?? '');
+          NotificationService.showReservationCreatedNotification(
+            carName: widget.car.itemName,
+          );
           final msg = status.data?.msg ?? (isArabic ? 'تم الحفظ بنجاح' : 'Saved successfully');
           CommonMethods.showToast(message: msg, type: ToastType.success);
           Navigator.pop(context);
