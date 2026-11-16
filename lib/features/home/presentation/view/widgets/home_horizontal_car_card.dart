@@ -129,7 +129,11 @@ class HomeHorizontalCarCard extends StatelessWidget {
   }
 
   String? _formattedMonthlyInstallment(List<FinancingAdModel> offers) {
-    final rawPrice = car['price']?.toString() ?? '';
+    final salePrice = (car['SALE_PRICE'] as num?)?.toDouble() ??
+        double.tryParse(car['SALE_PRICE']?.toString() ?? '');
+    final rawPrice = (salePrice != null && salePrice > 0)
+        ? salePrice.toString()
+        : (car['price']?.toString() ?? '');
     final price = double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
     final formatter = NumberFormat('#,##0', 'en_US');
 
@@ -144,8 +148,10 @@ class HomeHorizontalCarCard extends StatelessWidget {
 
     if (price <= 0) return null;
 
-    final monthlyInstallment = _numberValue(car['monthlyInstallment']);
-    if (monthlyInstallment > 0) return formatter.format(monthlyInstallment);
+    // Skip pre-computed monthlyInstallment from API because it may have been
+    // calculated with the wrong (offer) price instead of this car's real price.
+    // Only use it when the car carries its own offer terms (isVehicleOffer),
+    // which is handled by vehicleOfferMonthlyInstallment above.
 
     final interestRate = _numberValue(car['interestRate']);
     if (interestRate > 0) {

@@ -637,7 +637,7 @@ class FinancingAdModel extends Equatable {
 
   /// Plate/registration fee from the offer. It is the amount the customer
   /// pays and already includes VAT, so callers must not add VAT again.
-  double get platesCostWithVat => paintingsVal ?? 0;
+  double get platesCostWithVat => paintingsVal ?? 0.0;
 
   /// Fixed financing fee. It is part of the taxable amount, so VAT applies to
   /// the car price plus this fee.
@@ -661,7 +661,7 @@ class FinancingAdModel extends Equatable {
     double? platesVal,
   }) {
     final priceExclVat = basePrice ?? price ?? 0;
-    final plates = (platesVal ?? 0) > 0 ? platesVal! : platesCostWithVat;
+    final plates = platesVal ?? platesCostWithVat;
     return FinancingCalculator.priceWithVat(
       priceExcludingVat: priceExclVat,
       vatPercentage: _vatPercentage,
@@ -722,16 +722,6 @@ class FinancingAdModel extends Equatable {
 
   GetBrandCarsDataModel toCarDataModel() {
     final images = allCarImages;
-    final months = totalMonths ?? 60;
-    // Vehicle offers use their own row price and terms, with the financing fee
-    // that applies to both regular financing and vehicle offers.
-    final monthlyInstallment = months > 0
-        ? monthlyInstallmentForPrice(
-            price ?? 0,
-            financingFee: defaultFinancingFee,
-            platesVal: platesCostWithVat,
-          )
-        : null;
 
     return GetBrandCarsDataModel(
       groupCode: 0,
@@ -743,7 +733,11 @@ class FinancingAdModel extends Equatable {
       SALE_PRICE: salePrice ?? price,
       interestRate: getEffectiveInterestRate(),
       interestRateOther: interestRateOther,
-      monthlyInstallment: monthlyInstallment,
+      // Do NOT pre-compute monthlyInstallment here using the offer's own price.
+      // The installment must be computed at display time using the ACTUAL car's
+      // price (from the inventory row), not the financing offer's price field.
+      // Setting it to null forces every card/screen to compute it correctly.
+      monthlyInstallment: null,
       bankName: offerBankName,
       bankCode: bankCode,
       // Keep the offer's own payment terms on the rebuilt car: the car list,

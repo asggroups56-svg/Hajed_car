@@ -327,7 +327,7 @@ pw.Widget _buildTable({
 }) {
   final price = double.tryParse(car.price?.replaceAll(',', '') ?? '0') ?? 0;
   final vat = price * 0.15;
-  const plates = 1250.0;
+  final plates = car.platesCostWithVat;
   final total = price + vat + plates;
 
   return pw.Column(

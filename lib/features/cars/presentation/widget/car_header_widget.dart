@@ -261,7 +261,7 @@ class _CarHeaderWidgetState extends State<CarHeaderWidget> {
                       ),
                       const Spacer(),
                       Text(
-                        AppLocaleKey.agentIncludesVat.tr(),
+                        AppLocaleKey.taxIncluded.tr(),
                         style: AppTextStyle.bodySmall(context),
                       ),
                     ],

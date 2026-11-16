@@ -97,6 +97,16 @@ class OfferModel extends Equatable {
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
+    final price = _toDouble(json['PRICE']);
+    final taxVal = _toDouble(json['TAX_VAL']);
+    final paintingsVal = _toDouble(json['PAINTINGS_VAL']);
+    final apiTotal = _toDouble(json['TOTAL']);
+    // Ensure the cost of the license plates is added to the base price + tax
+    final calculatedTotal = price + taxVal + paintingsVal;
+    final total = (paintingsVal > 0 && apiTotal < calculatedTotal - 0.01)
+        ? calculatedTotal
+        : (apiTotal > 0 ? apiTotal : calculatedTotal);
+
     return OfferModel(
       listNo: _toInt(json['LIST_NO']),
       listType: _toInt(json['LIST_TYPE']),
@@ -121,7 +131,7 @@ class OfferModel extends Equatable {
       receivePlace: json['RECEIVE_PLACE']?.toString(),
       notes: json['NOTES']?.toString(),
       terms: json['TERMS']?.toString(),
-      total: _toDouble(json['TOTAL']),
+      total: total,
       customerName:
           json['CUSTOMER_NAME']?.toString() ?? json['CUSTOMERNAME']?.toString() ?? '',
       represName: json['REPRES_NAME']?.toString() ?? '',
@@ -129,7 +139,7 @@ class OfferModel extends Equatable {
 
       // Car Details
       itemCode: json['ITEM_CODE']?.toString(),
-      price: _toDouble(json['PRICE']),
+      price: price,
       qnty: _toDouble(json['QNTY']),
       itemName: json['ITEM_NAME']?.toString(),
       totalEffect: _toDouble(json['TOTAL_EFFECT']),
@@ -139,8 +149,8 @@ class OfferModel extends Equatable {
       groupName: json['GROUP_NAME']?.toString(),
       chassisNo: json['CHASSIS_NO']?.toString(),
       makeYear: _toIntNullable(json['MAKE_YEAR']),
-      taxVal: _toDouble(json['TAX_VAL']),
-      paintingsVal: _toDouble(json['PAINTINGS_VAL']),
+      taxVal: taxVal,
+      paintingsVal: paintingsVal,
       colorName: json['COLOR_NAME']?.toString(),
       luxury: json['LUXURY']?.toString() ??
           json['luxury']?.toString() ??

@@ -154,10 +154,12 @@ class AgentCar {
     this.luxury,
   });
 
+  double get platesCost => paintingsVal ?? 0.0;
+
   double get priceWithVat {
     final double vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    return price * (1 + vatPercentage / 100) + (paintingsVal ?? 0.0);
+    return price * (1 + vatPercentage / 100) + platesCost;
   }
 
   double get taxAmount {

@@ -38,6 +38,7 @@ class GetBrandCarsDataModel extends Equatable {
         .where((s) => s.isNotEmpty)
         .toList();
   }
+
   final String chassisNo;
   final String? motorNo;
   final String bodyColor;
@@ -178,6 +179,10 @@ class GetBrandCarsDataModel extends Equatable {
 
   final String? customerName;
   final String? reservedName;
+  String? get effectivePrice {
+    if (SALE_PRICE != null && SALE_PRICE! > 0) return SALE_PRICE.toString();
+    return price;
+  }
 
   String _sanitizeImageUrl(String path) {
     final raw = path.trim();
@@ -195,10 +200,7 @@ class GetBrandCarsDataModel extends Equatable {
   /// gallery must show it once.
   static String _imageIdentity(String url) {
     final withoutQuery = url.split('?').first.split('#').first;
-    final normalized = withoutQuery
-        .trim()
-        .toLowerCase()
-        .replaceAll('\\', '/');
+    final normalized = withoutQuery.trim().toLowerCase().replaceAll('\\', '/');
     String decoded;
     try {
       decoded = Uri.decodeFull(normalized);
@@ -227,15 +229,12 @@ class GetBrandCarsDataModel extends Equatable {
     return images;
   }
 
-  /// Plate/registration fee attached to the offer. It already includes VAT.
-  double get platesCostWithVat => paintingsVal ?? 0;
+  /// Plate/registration fee returned from the vehicle API.
+  double get platesCostWithVat => paintingsVal ?? 0.0;
 
   String get formattedPriceWithVat {
     final rawPrice = effectivePrice;
-    if (rawPrice == null ||
-        rawPrice.isEmpty ||
-        rawPrice == 'null' ||
-        rawPrice == '---') {
+    if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
       return '---';
     }
     final isAlreadyFormatted = rawPrice.contains(',');
@@ -244,26 +243,19 @@ class GetBrandCarsDataModel extends Equatable {
     if (originalPrice <= 0) return '---';
 
     final formatter = NumberFormat('#,##0', 'en_US');
-    // Always add paintingsVal regardless of whether price is pre-formatted or not
-    final double plates = paintingsVal ?? 0;
+    final double plates = platesCostWithVat;
+
+    // السعر شامل الضريبة بالفعل: السعر + اللوحات
     if (isAlreadyFormatted) {
-      // Price already includes VAT — just add paintings/plates value
       return formatter.format(originalPrice + plates);
     }
 
-    final vatNumber = HiveMethods.getVatNumber();
-    final double vatPercentage =
-        double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
+    // السعر النهائي = السعر + القيمة المضافة + اللوحات (اللوحات مرة واحدة)
+    final double vatPercentage = _vatPercentage;
     final double priceWithVat = originalPrice * (1 + (vatPercentage / 100));
-    // Cash price = price + VAT + plates/paintings value
-    return formatter.format(priceWithVat + plates);
-  }
+    final double finalPrice = priceWithVat + plates;
 
-  /// Promotional inventory can supply its customer price in SALE_PRICE
-  /// without a corresponding PRICE field.
-  String? get effectivePrice {
-    if (SALE_PRICE != null && SALE_PRICE! > 0) return SALE_PRICE.toString();
-    return price;
+    return formatter.format(finalPrice);
   }
 
   Map<String, dynamic> toMap() {
@@ -407,8 +399,8 @@ class GetBrandCarsDataModel extends Equatable {
     // valid terms are explicitly zero (for example 0% profit or no admin fee).
     // Ordinary inventory may include null/zero placeholders for percentages,
     // so those values alone do not identify an offer.
-    final hasOfferIdentity = (bankCode?.trim().isNotEmpty ?? false) ||
-        (endDate?.trim().isNotEmpty ?? false);
+    final hasOfferIdentity =
+        (bankCode?.trim().isNotEmpty ?? false) || (endDate?.trim().isNotEmpty ?? false);
     return hasOfferIdentity ||
         (firstInstallmentPct ?? 0) > 0 ||
         (firstInstallmentPctOther ?? 0) > 0 ||
@@ -426,14 +418,7 @@ class GetBrandCarsDataModel extends Equatable {
     if (isActive == false) return false;
     final expiry = offerExpiryDate;
     if (expiry == null) return true;
-    final endOfDay = DateTime(
-      expiry.year,
-      expiry.month,
-      expiry.day,
-      23,
-      59,
-      59,
-    );
+    final endOfDay = DateTime(expiry.year, expiry.month, expiry.day, 23, 59, 59);
     return endOfDay.isAfter(DateTime.now());
   }
 
@@ -502,9 +487,7 @@ class GetBrandCarsDataModel extends Equatable {
 
   /// Base customer price before VAT. `SALE_PRICE` wins when it is set.
   double get _basePrice {
-    final raw = (effectivePrice ?? '')
-        .replaceAll(',', '')
-        .replaceAll(RegExp(r'[^0-9.]'), '');
+    final raw = (effectivePrice ?? '').replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
     return double.tryParse(raw) ?? 0;
   }
 
@@ -514,7 +497,7 @@ class GetBrandCarsDataModel extends Equatable {
     double financingFee = FinancingCalculator.defaultFinancingFee,
     double? platesVal,
   }) {
-    final plates = (platesVal ?? 0) > 0 ? platesVal! : platesCostWithVat;
+    final plates = platesVal ?? platesCostWithVat;
     return FinancingCalculator.priceWithVat(
       priceExcludingVat: basePrice ?? _basePrice,
       vatPercentage: _vatPercentage,
@@ -530,10 +513,7 @@ class GetBrandCarsDataModel extends Equatable {
     double? platesVal,
   }) {
     return FinancingCalculator(
-      carPriceWithVat: carPriceWithVat(
-        financingFee: financingFee,
-        platesVal: platesVal,
-      ),
+      carPriceWithVat: carPriceWithVat(financingFee: financingFee, platesVal: platesVal),
       firstInstallmentPct: firstInstallmentForType(type),
       lastInstallmentPct: lastInstallmentForType(type),
       annualInterestPct: interestRateForType(type),
@@ -618,9 +598,7 @@ class GetBrandCarsDataModel extends Equatable {
       videoId: videoId,
       customerName: customerName ?? other.customerName,
       reservedName: reservedName ?? other.reservedName,
-      SALE_PRICE: SALE_PRICE != null && SALE_PRICE! > 0
-          ? SALE_PRICE
-          : other.SALE_PRICE,
+      SALE_PRICE: SALE_PRICE != null && SALE_PRICE! > 0 ? SALE_PRICE : other.SALE_PRICE,
       paintingsVal: paintingsVal ?? other.paintingsVal,
       bankName: bankName ?? other.bankName,
       bankCode: bankCode ?? other.bankCode,
@@ -629,11 +607,9 @@ class GetBrandCarsDataModel extends Equatable {
       insuranceAmount: insuranceAmount ?? other.insuranceAmount,
       luxury: luxury ?? other.luxury,
       firstInstallmentPct: firstInstallmentPct ?? other.firstInstallmentPct,
-      firstInstallmentPctOther:
-          firstInstallmentPctOther ?? other.firstInstallmentPctOther,
+      firstInstallmentPctOther: firstInstallmentPctOther ?? other.firstInstallmentPctOther,
       lastInstallmentPct: lastInstallmentPct ?? other.lastInstallmentPct,
-      lastInstallmentPctOther:
-          lastInstallmentPctOther ?? other.lastInstallmentPctOther,
+      lastInstallmentPctOther: lastInstallmentPctOther ?? other.lastInstallmentPctOther,
       adminFeesPct: adminFeesPct ?? other.adminFeesPct,
       adminFeesPctOther: adminFeesPctOther ?? other.adminFeesPctOther,
       interestRateOther: interestRateOther ?? other.interestRateOther,
@@ -741,15 +717,9 @@ class GetBrandCarsDataModel extends Equatable {
 
       dynamic findInJson(String k) {
         if (json.containsKey(k)) return json[k];
-        final normalizedK = k.toLowerCase().replaceAll(
-          RegExp(r'[^a-z0-9]'),
-          '',
-        );
+        final normalizedK = k.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
         for (var entry in json.entries) {
-          final normalizedEntryKey = entry.key.toLowerCase().replaceAll(
-            RegExp(r'[^a-z0-9]'),
-            '',
-          );
+          final normalizedEntryKey = entry.key.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
           if (normalizedEntryKey == normalizedK) return entry.value;
         }
         return null;
@@ -759,8 +729,7 @@ class GetBrandCarsDataModel extends Equatable {
       if (val == null && key2 != null) val = findInJson(key2);
       if (val == null && key3 != null) val = findInJson(key3);
 
-      if (val == null || val.toString().toLowerCase().trim() == 'null')
-        return '';
+      if (val == null || val.toString().toLowerCase().trim() == 'null') return '';
       return val.toString().trim();
     }
 
@@ -768,11 +737,7 @@ class GetBrandCarsDataModel extends Equatable {
         (json['extraImages'] as List?)?.map((e) => e.toString()).toList() ?? [];
     final String rawImages = getString('carimage', 'image');
     final List<String> splitImages = rawImages.isNotEmpty
-        ? rawImages
-              .split(',')
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList()
+        ? rawImages.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
         : [];
 
     final Set<String> allUniqueImages = {...extraFromMap, ...splitImages};
@@ -809,10 +774,10 @@ class GetBrandCarsDataModel extends Equatable {
       carStatus: int.tryParse(getString('CAR_STATUS', 'carStatus')) ?? 0,
       carType: int.tryParse(getString('CAR_TYPE', 'carType')) ?? 0,
       carSpecification:
-          json['CAR_SPECIFICATION']?.toString() ??
-          json['carSpecification']?.toString(),
+          json['CAR_SPECIFICATION']?.toString() ?? json['carSpecification']?.toString(),
       specificName: () {
-        final raw = json['SPECIFIC_NAME']?.toString() ??
+        final raw =
+            json['SPECIFIC_NAME']?.toString() ??
             json['specificName']?.toString() ??
             getString('SPECIFIC_NAME', 'specificName');
         if (raw.isEmpty || raw.toLowerCase() == 'null') return null;
@@ -825,16 +790,14 @@ class GetBrandCarsDataModel extends Equatable {
           json['KILOMETER_READING']?.toString() ??
           json['kilometerReading'] ??
           json['mileage']?.toString(),
-      transmission:
-          int.tryParse(getString('TRANSMISSION', 'transmission')) ?? 0,
+      transmission: int.tryParse(getString('TRANSMISSION', 'transmission')) ?? 0,
       cylinder: getString('CYLINDER', 'cylinder', 'engine'),
       powerHourse: getString('POWER_HOURSE', 'powerHourse'),
       fuelCapacity: getString('FUEL_CAPACITY', 'fuelCapacity'),
       fuelType: getString('FUEL_TYPE', 'fuelType'),
       seatNo: int.tryParse(getString('SEAT_NO', 'seatNo')) ?? 0,
       doorNo: int.tryParse(getString('DOOR_NO', 'doorNo')) ?? 0,
-      usedClient:
-          json['USED_CLIENT']?.toString() ?? json['usedClient']?.toString(),
+      usedClient: json['USED_CLIENT']?.toString() ?? json['usedClient']?.toString(),
       addType: int.tryParse(getString('ADD_TYPE', 'addType')) ?? 0,
       // The service has returned this field using all of these spellings.
       // It is required by the booking endpoint, so never discard it merely
@@ -843,14 +806,11 @@ class GetBrandCarsDataModel extends Equatable {
       boardNo: json['BOARD_NO']?.toString() ?? json['boardNo']?.toString(),
       makeYear: int.tryParse(getString('MAKE_YEAR', 'makeYear', 'year')) ?? 0,
       notifyType: int.tryParse(getString('NOTIFY_TYPE', 'notifyType')) ?? 0,
-      notifyDate:
-          json['NOTIFY_DATE']?.toString() ?? json['notifyDate']?.toString(),
+      notifyDate: json['NOTIFY_DATE']?.toString() ?? json['notifyDate']?.toString(),
       supplierCd: int.tryParse(getString('SUPPLIER_CD', 'supplierCd')) ?? 0,
       buyDate: getString('BUY_DATE', 'buyDate'),
       trNo: int.tryParse(getString('TR_NO', 'trNo')) ?? 0,
-      customsCardNo:
-          json['CUSTOMS_CARD_NO']?.toString() ??
-          json['customsCardNo']?.toString(),
+      customsCardNo: json['CUSTOMS_CARD_NO']?.toString() ?? json['customsCardNo']?.toString(),
       reasonId: int.tryParse(getString('REASON_ID', 'reasonId')) ?? 0,
       mobileShow:
           json['MobileShow'] == true ||
@@ -861,17 +821,9 @@ class GetBrandCarsDataModel extends Equatable {
       extraImages: finalImagesList,
       discount: json['discount']?.toString(),
       oldPrice: json['oldPrice']?.toString(),
-      installments: getString(
-        'installments',
-        'installmentPrice',
-        'MonthlyInstallment',
-      ),
+      installments: getString('installments', 'installmentPrice', 'MonthlyInstallment'),
       cashPrice: getString('cashPrice'),
-      monthlyInstallment: getDouble(
-        'monthlyInstallment',
-        'MonthlyInstallment',
-        'installmentPrice',
-      ),
+      monthlyInstallment: getDouble('monthlyInstallment', 'MonthlyInstallment', 'installmentPrice'),
       interestRate: getDouble('interestRate', 'InterestRate'),
       paintingsVal:
           (json['PaintingsVal'] as num?)?.toDouble() ??
@@ -888,64 +840,32 @@ class GetBrandCarsDataModel extends Equatable {
           json['BANK_CODE']?.toString() ??
           json['bankCode']?.toString() ??
           json['BankOrProvider']?.toString(),
-      insurancePct: getDouble(
-        'InsurancePct',
-        'INSURANCE_PCT',
-        'insurancePct',
-      ),
-      insurancePctOther: getDouble(
-        'InsurancePctother',
-        'InsurancePctOther',
-        'insurancePctOther',
-      ),
-      insuranceAmount: getDouble(
-        'InsuranceVal',
-        'InsuranceAmount',
-        'insuranceAmount',
-      ),
+      insurancePct: getDouble('InsurancePct', 'INSURANCE_PCT', 'insurancePct'),
+      insurancePctOther: getDouble('InsurancePctother', 'InsurancePctOther', 'insurancePctOther'),
+      insuranceAmount: getDouble('InsuranceVal', 'InsuranceAmount', 'insuranceAmount'),
       luxury:
-          json['LUXURY']?.toString() ??
-          json['luxury']?.toString() ??
-          json['Luxury']?.toString(),
-      firstInstallmentPct: getDouble(
-        'FirstInstallmentPct',
-        'firstInstallmentPct',
-      ),
+          json['LUXURY']?.toString() ?? json['luxury']?.toString() ?? json['Luxury']?.toString(),
+      firstInstallmentPct: getDouble('FirstInstallmentPct', 'firstInstallmentPct'),
       firstInstallmentPctOther: getDouble(
         'FirstInstallmentPctother',
         'FirstInstallmentPctOther',
         'firstInstallmentPctOther',
       ),
-      lastInstallmentPct: getDouble(
-        'LastInstallmentPct',
-        'lastInstallmentPct',
-      ),
+      lastInstallmentPct: getDouble('LastInstallmentPct', 'lastInstallmentPct'),
       lastInstallmentPctOther: getDouble(
         'LastInstallmentPctother',
         'LastInstallmentPctOther',
         'lastInstallmentPctOther',
       ),
-      adminFeesPct: getDouble(
-        'AdminFeesPct',
-        'adminFeesPct',
-      ),
-      adminFeesPctOther: getDouble(
-        'AdminFeesPctother',
-        'AdminFeesPctOther',
-        'adminFeesPctOther',
-      ),
-      interestRateOther: getDouble(
-        'InterestRate_other',
-        'InterestRateOther',
-        'interestRateOther',
-      ),
+      adminFeesPct: getDouble('AdminFeesPct', 'adminFeesPct'),
+      adminFeesPctOther: getDouble('AdminFeesPctother', 'AdminFeesPctOther', 'adminFeesPctOther'),
+      interestRateOther: getDouble('InterestRate_other', 'InterestRateOther', 'interestRateOther'),
       endDate:
           json['EndDate']?.toString() ??
           json['endDate']?.toString() ??
           json['END_DATE']?.toString(),
       isActive: () {
-        final raw =
-            json['IsActive'] ?? json['isActive'] ?? json['ISACTIVE'];
+        final raw = json['IsActive'] ?? json['isActive'] ?? json['ISACTIVE'];
         if (raw == null) return null;
         if (raw is bool) return raw;
         // Some deployments send 1/0 or "true"/"false" instead of a bool.
@@ -996,9 +916,7 @@ class GetBrandCarsDataModel extends Equatable {
       return [];
     }
 
-    final allCars = decoded
-        .map((e) => GetBrandCarsDataModel.fromJson(e))
-        .toList();
+    final allCars = decoded.map((e) => GetBrandCarsDataModel.fromJson(e)).toList();
 
     final Map<String, GetBrandCarsDataModel> uniqueCars = {};
 
@@ -1114,9 +1032,7 @@ class GetBrandCarsDataModel extends Equatable {
       transmission: transmission,
       fuelType: fuelType,
       makeYear: makeYear,
-      costPrice: price != null
-          ? double.tryParse(price!.replaceAll(RegExp(r'[^0-9.]'), ''))
-          : null,
+      costPrice: price != null ? double.tryParse(price!.replaceAll(RegExp(r'[^0-9.]'), '')) : null,
       colorCode: colorCode,
       mobileShow: mobileShow,
       paintingsVal: paintingsVal,

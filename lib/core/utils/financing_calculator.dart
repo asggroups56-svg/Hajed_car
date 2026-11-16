@@ -50,16 +50,14 @@ class FinancingCalculator {
     double financingFee = defaultFinancingFee,
     double plates = 0,
   }) {
-    return (priceExcludingVat + financingFee) * (1 + vatPercentage / 100) +
-        plates;
+    return (priceExcludingVat + financingFee) * (1 + vatPercentage / 100) + plates;
   }
 
   double get _years => months / 12;
 
   double get downPaymentAmount => carPriceWithVat * firstInstallmentPct / 100;
 
-  double get finalPaymentAmount =>
-      carPriceWithVat * lastInstallmentPct / 100;
+  double get finalPaymentAmount => carPriceWithVat * lastInstallmentPct / 100;
 
   double get financedAmount {
     final financed = carPriceWithVat - downPaymentAmount;
@@ -69,18 +67,21 @@ class FinancingCalculator {
   double get totalInterest => financedAmount * (annualInterestPct / 100) * _years;
 
   /// Insurance is charged on the full car price, not on the financed amount.
-  double get totalInsurance =>
-      carPriceWithVat * (annualInsurancePct / 100) * _years;
+  double get totalInsurance => carPriceWithVat * (annualInsurancePct / 100) * _years;
 
   double get totalAdminFees => financedAmount * (adminFeesPct / 100);
 
-  double get totalFinancedWithInterest =>
-      financedAmount + totalInterest + totalInsurance + totalAdminFees;
+  double get totalFinancedWithInterest => financedAmount + totalInterest + totalInsurance;
 
-  double get totalPrice =>
-      carPriceWithVat + totalInterest + totalInsurance + totalAdminFees;
+  double get totalPrice => carPriceWithVat + totalInterest + totalInsurance + totalAdminFees;
 
   double get monthlyInstallment {
+    print(
+      'FinancingCalculator.monthlyInstallment carPriceWithVat=$carPriceWithVat, firstInstallmentPct=$firstInstallmentPct, lastInstallmentPct=$lastInstallmentPct, annualInterestPct=$annualInterestPct, annualInsurancePct=$annualInsurancePct, adminFeesPct=$adminFeesPct, months=$months',
+    );
+    print(
+      'FinancingCalculator.monthlyInstallment downPaymentAmount=$downPaymentAmount, finalPaymentAmount=$finalPaymentAmount, financedAmount=$financedAmount, totalInterest=$totalInterest, totalInsurance=$totalInsurance, totalAdminFees=$totalAdminFees, totalFinancedWithInterest=$totalFinancedWithInterest',
+    );
     if (months <= 0) return 0;
     final remaining = totalFinancedWithInterest - finalPaymentAmount;
     return remaining > 0 ? remaining / months : 0;

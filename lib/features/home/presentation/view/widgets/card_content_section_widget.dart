@@ -49,31 +49,37 @@ class CardContentSection extends StatelessWidget {
     }
   }
 
+  /// Customer price: SALE_PRICE wins when it is set, otherwise PRICE.
+  String? get _effectivePrice {
+    final sale = _numberValue(car['SALE_PRICE']);
+    if (sale > 0) return sale.toString();
+    return car['price']?.toString();
+  }
+
   String get formattedPriceWithVat {
-    final rawPrice = car['price']?.toString();
+    final rawPrice = _effectivePrice;
     if (rawPrice == null || rawPrice.isEmpty || rawPrice == 'null' || rawPrice == '---') {
       return '---';
     }
     final double paintingsVal = _platesValue;
 
-    // If price already contains commas (already formatted from formattedPriceWithVat),
-    // strip commas and return formatted adding paintingsVal
     final isAlreadyFormatted = rawPrice.contains(',');
     final numericStr = rawPrice.replaceAll(RegExp(r'[^0-9.]'), '');
     final double parsedPrice = double.tryParse(numericStr) ?? 0;
     if (parsedPrice <= 0) return rawPrice;
 
     final formatter = NumberFormat('#,##0', 'en_US');
+
+    // السعر شامل الضريبة بالفعل: السعر + اللوحات
     if (isAlreadyFormatted) {
       return formatter.format(parsedPrice + paintingsVal);
     }
 
-    // Raw price without VAT - add VAT + paintings/plates value
-    final vatNumber = HiveMethods.getVatNumber();
-    final double vatPercentage = double.tryParse(vatNumber?.toString() ?? '') ?? 15.0;
+    // السعر النهائي = السعر + القيمة المضافة + اللوحات
+    final double vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     final double priceWithVat = parsedPrice * (1 + (vatPercentage / 100));
-    final double totalCashPrice = priceWithVat + paintingsVal;
-    return formatter.format(totalCashPrice);
+    return formatter.format(priceWithVat + paintingsVal);
   }
 
   /// Uses the same financing priority as the cars page: the row's own offer
@@ -81,7 +87,11 @@ class CardContentSection extends StatelessWidget {
   /// installment string, then the lowest available bank offer and finally the
   /// standard 60-month estimate.
   String? _formattedMonthlyInstallment(List<FinancingAdModel> offers) {
-    final rawPrice = car['price']?.toString() ?? '';
+    final salePrice = (car['SALE_PRICE'] as num?)?.toDouble() ??
+        double.tryParse(car['SALE_PRICE']?.toString() ?? '');
+    final rawPrice = (salePrice != null && salePrice > 0)
+        ? salePrice.toString()
+        : (car['price']?.toString() ?? '');
     final price = double.tryParse(rawPrice.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
 
     final formatter = NumberFormat('#,##0', 'en_US');
@@ -99,8 +109,10 @@ class CardContentSection extends StatelessWidget {
 
     if (price <= 0) return null;
 
-    final monthlyInstallment = _numberValue(car['monthlyInstallment']);
-    if (monthlyInstallment > 0) return formatter.format(monthlyInstallment);
+    // Skip pre-computed monthlyInstallment from API because it may have been
+    // calculated with the wrong (offer) price instead of this car's real price.
+    // Only use it when the car carries its own offer terms (isVehicleOffer),
+    // which is handled by vehicleOfferMonthlyInstallment above.
 
     final interestRate = _numberValue(car['interestRate']);
     if (interestRate > 0) {

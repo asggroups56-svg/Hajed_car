@@ -96,6 +96,7 @@ flutter:
     - assets/global_icon/
     - assets/svg/sar.svg
     - assets/payment_error_codes.json
+    - assets/certs/intermediate.pem
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

@@ -22,7 +22,7 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
     final double basePrice = car.price;
     final double vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double paintingsVal = car.paintingsVal ?? 0.0;
+    final double paintingsVal = car.platesCost;
     final double taxAmount = car.taxAmount;
     final double priceWithVat = car.priceWithVat;
     final isArabic = context.locale.languageCode == 'ar';
@@ -156,15 +156,13 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
                 value:
                     '${NumberFormat('#,##0.##', 'en_US').format(taxAmount)} ${AppLocaleKey.sar.tr()}',
               ),
-              if (paintingsVal > 0) ...[
-                Gap(10.h),
-                _buildPriceRow(
-                  context,
-                  title: isArabic ? 'رسوم اللوحات' : 'Plates Fee',
-                  value:
-                      '${NumberFormat('#,##0', 'en_US').format(paintingsVal)} ${AppLocaleKey.sar.tr()}',
-                ),
-              ],
+              Gap(10.h),
+              _buildPriceRow(
+                context,
+                title: isArabic ? 'رسوم اللوحات' : 'Plates Fee',
+                value:
+                    '${NumberFormat('#,##0', 'en_US').format(paintingsVal)} ${AppLocaleKey.sar.tr()}',
+              ),
             ],
           ),
         ),

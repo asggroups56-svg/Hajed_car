@@ -102,12 +102,10 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer;
   bool get _isOffer => _activeOffer != null;
 
-  /// Plate/registration fee (already VAT-inclusive). The offer is the source
-  /// of truth when it carries one; otherwise the car's fee is used.
+  /// Plate/registration fee (already VAT-inclusive). The vehicle's fee is used
+  /// even if 0.0; otherwise falls back to the offer's fee.
   double get _platesCost {
-    final offerPlates = _activeOffer?.platesCostWithVat ?? 0;
-    if (offerPlates > 0) return offerPlates;
-    return widget.car?.platesCostWithVat ?? 0;
+    return widget.car?.paintingsVal ?? _activeOffer?.paintingsVal ?? 0.0;
   }
 
   /// Total car price (fee + VAT + plates). Percentage-based payments
@@ -202,11 +200,9 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
 
     final raw = (widget.car?.effectivePrice ?? widget.car?.price)?.toString() ?? '150000';
     final carPrice = double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000;
-    // The offer's own price wins: offer financing must not be calculated from
-    // the standard car price when the offer supplies a different one.
     final offerPrice = _activeOffer?.price ?? 0;
     final basePrice =
-        widget.initialCarPrice ?? (offerPrice > 0 ? offerPrice : carPrice);
+        widget.initialCarPrice ?? (carPrice > 0 ? carPrice : offerPrice);
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     // The financing fee applies to regular financing and vehicle offers.
     const financingFee = FinancingAdModel.defaultFinancingFee;

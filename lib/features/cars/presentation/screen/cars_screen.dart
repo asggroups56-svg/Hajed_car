@@ -31,10 +31,18 @@ class _CarsScreenState extends State<CarsScreen> {
   String _searchQuery = '';
   _CarPriceSort _priceSort = _CarPriceSort.none;
 
-  double _carPrice(GetBrandCarsDataModel car) {
-    final value = car.effectivePrice ?? '';
+  double _carBasePrice(GetBrandCarsDataModel car) {
+    final value = car.effectivePrice ?? car.price ?? '';
     final normalized = value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
-    return double.tryParse(normalized) ?? double.infinity;
+    return double.tryParse(normalized) ?? 0.0;
+  }
+
+  double _carPrice(GetBrandCarsDataModel car) {
+    final base = _carBasePrice(car);
+    if (base <= 0) return double.infinity;
+    final vatPercentage =
+        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    return (base * (1 + vatPercentage / 100)) + car.platesCostWithVat;
   }
 
   @override
@@ -213,15 +221,16 @@ class _CarsScreenState extends State<CarsScreen> {
               (year == 0 || offerYear == 0 || offerYear == year));
       if (!matches) continue;
 
-      final price = (offer.price ?? 0) > 0 ? offer.price! : _carPrice(car);
+      final price = (offer.price ?? 0) > 0 ? offer.price! : _carBasePrice(car);
       if (price <= 0 || price.isInfinite) {
         best ??= offer;
         continue;
       }
 
+      final plates = car.paintingsVal ?? offer.paintingsVal ?? 0.0;
       final installment = offer.monthlyInstallmentForPrice(
         price,
-        platesVal: offer.platesCostWithVat,
+        platesVal: plates,
       );
       if (installment < bestInstallment) {
         best = offer;
@@ -610,10 +619,8 @@ class _CarsScreenState extends State<CarsScreen> {
                                                 ? offersByItemCode[car.itemCode]
                                                 : null))
                                       : (promoOffer ?? vehicleOffer);
-                                  final offer = activeOffer ?? normalOffer;
-                                  // Passing an explicit offer list would make
-                                  // the banner pick the cheapest standard bank
-                                  // offer and ignore the vehicle's own terms.
+                                  final offer = activeOffer ??
+                                      (isFilteredByOffer ? normalOffer : null);
                                   final offers =
                                       activeOffer != null || isFilteredByOffer
                                       ? const <FinancingAdModel>[]

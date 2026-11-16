@@ -41,27 +41,29 @@ class _BankInstallmentsBannerWidgetState
   /// Fixed fee that is part of the taxable car price.
   static const double _financingFee = FinancingAdModel.defaultFinancingFee;
 
-  /// Matches the pre-VAT amount used by [FinancingScreen]. An explicit offer
-  /// carries its own price; otherwise the car's effective price is used.
+  /// Matches the pre-VAT amount used by [FinancingScreen]. Prioritizes the car's
+  /// own price so installments are computed accurately per vehicle.
   double get _financingBasePrice {
-    final offerPrice = (widget.offer ?? _vehicleOffer)?.price ?? 0;
-    if (offerPrice > 0) return offerPrice;
-
     final priceString =
         (widget.car.effectivePrice ?? widget.car.price)?.replaceAll(
           RegExp(r'[^0-9.]'),
           '',
         ) ??
         '';
-    return double.tryParse(priceString) ?? 0;
+    final carPrice = double.tryParse(priceString) ?? 0;
+    if (carPrice > 0) return carPrice;
+
+    final offerPrice = (widget.offer ?? _vehicleOffer)?.price ?? 0;
+    if (offerPrice > 0) return offerPrice;
+    return 0;
   }
 
-  /// Plate/registration fee (already VAT-inclusive). The explicit offer wins
-  /// over the car so the installment matches the offer's own terms.
-  double get _plates {
-    final offerPlates = (widget.offer ?? _vehicleOffer)?.platesCostWithVat ?? 0;
-    return offerPlates > 0 ? offerPlates : widget.car.platesCostWithVat;
-  }
+  /// Plate/registration fee (already VAT-inclusive) from dynamic API data.
+  /// Prioritizes the car's own returned paintingsVal even if 0.0 (e.g. free plates).
+  double get _plates =>
+      widget.car.paintingsVal ??
+      (widget.offer ?? _vehicleOffer)?.paintingsVal ??
+      0.0;
 
   /// The offer attached to the car row, when the row itself is an offer.
   FinancingAdModel? get _vehicleOffer => widget.car.isVehicleOffer
@@ -89,14 +91,15 @@ class _BankInstallmentsBannerWidgetState
 
   FinancingAdModel? _getLowestOffer(List<FinancingAdModel> cubitOffers) {
     final vehicleOffer = _vehicleOffer;
-    // The offer passed by the caller is the one the card shows, so it must
-    // also drive this banner and the financing screen. A vehicle row's own
-    // terms come next; standard bank offers only apply when neither exists.
-    final List<FinancingAdModel> candidates = widget.offer != null
+    final List<FinancingAdModel> candidates = widget.offer != null && widget.isOffer
         ? <FinancingAdModel>[widget.offer!]
         : (vehicleOffer != null
               ? <FinancingAdModel>[vehicleOffer]
-              : (widget.offers.isNotEmpty ? widget.offers : cubitOffers));
+              : (widget.offers.isNotEmpty
+                    ? widget.offers
+                    : (widget.offer != null
+                          ? <FinancingAdModel>[widget.offer!]
+                          : cubitOffers)));
 
     if (candidates.isEmpty) return null;
 
@@ -133,8 +136,11 @@ class _BankInstallmentsBannerWidgetState
     // No valid price → hide financing entirely
     if (price <= 0) return null;
 
-    // 1. Direct explicit offer passed to the car
-    if (widget.offers.isNotEmpty || widget.offer != null || _vehicleOffer != null) {
+    // 1. Direct explicit offer passed to the car or available bank offers
+    if (widget.offers.isNotEmpty ||
+        widget.offer != null ||
+        _vehicleOffer != null ||
+        cubitOffers.isNotEmpty) {
       final lowestOffer = _getLowestOffer(cubitOffers);
       if (lowestOffer != null) {
         return NumberFormat('#,##0', 'en_US').format(
@@ -146,8 +152,12 @@ class _BankInstallmentsBannerWidgetState
       }
     }
 
-    // 2. Explicit monthly installment from API
-    if (widget.car.monthlyInstallment != null &&
+    // 2. Explicit monthly installment from API — only trust it when the car
+    // carries its own active offer terms (isVehicleOffer). A pre-computed value
+    // stored on a regular inventory row may have been calculated with the
+    // financing offer's price, not the actual vehicle price, so we skip it.
+    if (widget.car.isVehicleOffer &&
+        widget.car.monthlyInstallment != null &&
         widget.car.monthlyInstallment! > 0) {
       return NumberFormat(
         '#,##0',
@@ -160,8 +170,7 @@ class _BankInstallmentsBannerWidgetState
       final vatPercentage =
           double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
       final carPrice =
-          (price + _financingFee) * (1 + vatPercentage / 100) +
-          widget.car.platesCostWithVat;
+          (price + _financingFee) * (1 + vatPercentage / 100) + _plates;
       const years = 5;
       const months = 60;
       final totalInterest = carPrice * (widget.car.interestRate! / 100) * years;
@@ -196,8 +205,7 @@ class _BankInstallmentsBannerWidgetState
     final vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     final carPrice =
-        (price + _financingFee) * (1 + vatPercentage / 100) +
-        widget.car.platesCostWithVat;
+        (price + _financingFee) * (1 + vatPercentage / 100) + _plates;
     final estimatedMonthly = (carPrice * 1.225) / 60;
     if (estimatedMonthly > 0) {
       return NumberFormat('#,##0', 'en_US').format(estimatedMonthly);
@@ -224,13 +232,15 @@ class _BankInstallmentsBannerWidgetState
 
             FinancingAdModel? selectedOffer = _getLowestOffer(cubitOffers);
             final vehicleOffer = _vehicleOffer;
-            List<FinancingAdModel> selectedOffers = widget.offer != null
+            List<FinancingAdModel> selectedOffers = widget.offer != null && widget.isOffer
                 ? [widget.offer!]
                 : (vehicleOffer != null
                       ? [vehicleOffer]
                       : (widget.offers.isNotEmpty
                             ? widget.offers
-                            : cubitOffers));
+                            : (widget.offer != null
+                                  ? [widget.offer!]
+                                  : cubitOffers)));
             if (selectedOffers.isEmpty) {
               final homeCubit = context.read<HomeCubit>();
               await homeCubit.getNormalFinancing();

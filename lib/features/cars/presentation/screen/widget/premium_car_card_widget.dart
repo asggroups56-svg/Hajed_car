@@ -259,6 +259,14 @@ class PremiumCarCardWidget extends StatelessWidget {
                                 ],
                               ),
                               Gap(4.h),
+                              Text(
+                                AppLocaleKey.taxIncluded.tr(),
+                                style: AppTextStyle.bodySmall(context).copyWith(
+                                  fontSize: 9.sp,
+                                  color: AppColor.greyColor(context),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),

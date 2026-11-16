@@ -94,7 +94,8 @@ class AgentInventoryScreenState extends State<AgentInventoryScreen>
     final double basePrice = car.salePrice ?? car.costPrice ?? 0.0;
     final double vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double priceWithVat = basePrice * (1 + vatPercentage / 100);
+    final double plates = car.paintingsVal ?? 0.0;
+    final double priceWithVat = basePrice * (1 + vatPercentage / 100) + plates;
     return AgentCar(
       id: car.itemCode ?? '',
       name: car.itemName ?? '',

@@ -83,10 +83,11 @@ class _CartItemWidgetState extends State<CartItemWidget> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final String carName = widget.car.itemName ?? '';
-    final double priceWithVat = widget.car.costPrice ?? 0;
+    final double basePrice = widget.car.costPrice ?? 0;
     final double vatPercentage =
         double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
-    final double price = priceWithVat * (1 + vatPercentage / 100);
+    final double plates = widget.car.paintingsVal ?? 0.0;
+    final double price = basePrice * (1 + vatPercentage / 100) + plates;
     final String lpoNo = widget.car.lpoNo ?? '';
     final bool isAboutToExpire =
         _remainingTime > Duration.zero && _remainingTime <= const Duration(hours: 1);

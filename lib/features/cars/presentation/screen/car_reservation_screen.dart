@@ -123,7 +123,10 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
     if (!value.isFinite) value = 0.0;
     final double vatSerial =
         double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0;
-    final result = withTax ? value * ((100 + vatSerial) / 100) : value;
+    final double plates = widget.car.platesCostWithVat;
+    final result = withTax
+        ? (value * ((100 + vatSerial) / 100) + plates)
+        : value;
     return _round2(result);
   }
 
@@ -407,10 +410,11 @@ class _CarReservationScreenState extends State<CarReservationScreen> {
           storeCode: storeCodeVal,
           GROUP_CODE: widget.car.groupCode.toString(),
           TAX_VAL: _round2(
-            _parsePrice(widget.car.price, withTax: true) -
-                _parsePrice(widget.car.price, withTax: false),
+            _parsePrice(widget.car.price, withTax: false) *
+                (double.tryParse(HiveMethods.getVatNumber().toString()) ?? 15.0) /
+                100,
           ),
-          PAINTINGS_VAL: 600.0.toString(),
+          PAINTINGS_VAL: widget.car.platesCostWithVat.toString(),
           MAKEYEAR: widget.car.makeYear.toString(),
           colorcode: widget.car.colorCode.toString(),
         ),

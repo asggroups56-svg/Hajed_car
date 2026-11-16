@@ -4,7 +4,9 @@ final sl = GetIt.instance;
 Future<void> initDependencies() async {
   sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
   sl.registerLazySingleton<AppInterceptors>(() => AppInterceptors());
-  sl.registerLazySingleton<Dio>(() => Dio());
+  final Dio dio = Dio();
+  await setupCert(dio);
+  sl.registerLazySingleton<Dio>(() => dio);
   sl.registerFactory<ApiConsumer>(() => DioConsumer(client: sl()));
   sl.registerLazySingleton<AuthRepo>(() => AuthRepoImpl(sl()));
   sl.registerLazySingleton<AuthCubit>(() => AuthCubit(sl()));

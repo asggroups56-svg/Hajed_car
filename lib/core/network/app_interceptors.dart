@@ -1,4 +1,5 @@
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/network/cert_setup.dart';
 import 'package:car/core/network/contants.dart';
 import 'package:car/core/network/end_points.dart';
 import 'package:dio/dio.dart';
@@ -72,6 +73,8 @@ class AppInterceptors extends Interceptor {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
           ),
         );
+
+        await setupCert(refreshDio);
 
         final refreshResponse = await refreshDio.post(
           EndPoints.refreshToken,

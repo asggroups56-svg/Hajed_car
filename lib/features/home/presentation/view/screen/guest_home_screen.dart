@@ -3,8 +3,8 @@ import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/navigator_methods.dart';
-import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
+import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/screen/lowest_price_cars_screen.dart';
 import 'package:car/features/home/presentation/view/screen/main_layout.dart';
 import 'package:car/features/home/presentation/view/widgets/ads_slider_widget.dart';
@@ -45,9 +45,7 @@ class _HomeGuestScreenState extends State<HomeGuestScreen> with WidgetsBindingOb
 
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
-        builder: (_) => LowestPriceCarsScreen(cars: cars),
-      ),
+      MaterialPageRoute<void>(builder: (_) => LowestPriceCarsScreen(cars: cars)),
     );
   }
 
