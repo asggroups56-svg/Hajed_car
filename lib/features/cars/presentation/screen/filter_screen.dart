@@ -166,6 +166,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 _yearRange = RangeValues(2000, _currentYear.toDouble());
                 _priceRange = const RangeValues(10000, 1000000);
               });
+              context.read<HomeCubit>().clearBrandSelection();
               context.read<HomeCubit>().fetchAllCars(
                 brandId: null,
                 fromMakeYear: null,
@@ -336,6 +337,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   return;
                 }
 
+                context.read<HomeCubit>().clearBrandSelection();
                 context.read<HomeCubit>().fetchAllCars(
                   brandId: _selectedBrandId,
                   fromMakeYear: _yearRange.start.round().toString(),

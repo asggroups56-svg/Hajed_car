@@ -6,6 +6,7 @@ import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/screen/widget/car_search_header_widget.dart';
 import 'package:car/features/cars/presentation/screen/widget/premium_car_card_widget.dart';
+import 'package:car/features/cars/presentation/widget/cars_brand_filter_bar_widget.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -43,16 +44,67 @@ class _CarsScreenState extends State<CarsScreen> {
     _searchController.text = _searchQuery;
     MainLayout.carsSearchQuery.addListener(_applyHomeSearchQuery);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final homeState = context.read<HomeCubit>().state;
-      if (homeState.allCarsStatus.data == null ||
+      final homeCubit = context.read<HomeCubit>();
+      final homeState = homeCubit.state;
+      final selectedBrandId = homeState.selectedBrandId;
+      if (selectedBrandId != null) {
+        // The user came from the brands section, so this tab must show that
+        // brand's inventory instead of the complete catalog.
+        if (!homeState.brandCarsStatus.isSuccess &&
+            !homeState.brandCarsStatus.isLoading) {
+          homeCubit.getBrandCars(selectedBrandId.toString());
+        }
+      } else if (homeState.allCarsStatus.data == null ||
           homeState.allCarsStatus.data!.isEmpty) {
-        context.read<HomeCubit>().fetchAllCars();
+        homeCubit.fetchAllCars();
       }
       if (homeState.normalFinancingStatus.data == null ||
           homeState.normalFinancingStatus.data!.isEmpty) {
-        context.read<HomeCubit>().getNormalFinancing();
+        homeCubit.getNormalFinancing();
       }
     });
+  }
+
+  /// Clears the brand selection and makes sure the full inventory is loaded
+  /// before the list switches back to "All".
+  void _clearBrandFilter() {
+    final cubit = context.read<HomeCubit>();
+    cubit.selectAllBrands();
+    final allCarsStatus = cubit.state.allCarsStatus;
+    if (!allCarsStatus.isSuccess && !allCarsStatus.isLoading) {
+      cubit.fetchAllCars();
+    }
+  }
+
+  /// Resolves the selected brand (or one of its model types) to its display
+  /// name. The brand list is the source of truth, while the loaded cars are a
+  /// fallback when the selection came from a deep link.
+  String? _selectedBrandName(HomeState state) {
+    final selectedBrandId = state.selectedBrandId;
+    if (selectedBrandId == null) return null;
+
+    String localizedName(String arName, String? enName) {
+      if (context.locale.languageCode == 'ar') return arName;
+      final english = enName?.trim() ?? '';
+      return english.isEmpty ? arName : english;
+    }
+
+    for (final brand in state.brands) {
+      if (brand.groupCode == selectedBrandId) {
+        return localizedName(brand.groupName, brand.groupEName);
+      }
+      for (final child in brand.children) {
+        if (child.groupCode == selectedBrandId) {
+          return localizedName(child.groupName, child.groupEName);
+        }
+      }
+    }
+
+    final brandCars = state.brandCarsStatus.data;
+    if (brandCars != null && brandCars.isNotEmpty) {
+      return brandCars.first.groupName;
+    }
+    return null;
   }
 
   @override
@@ -123,6 +175,15 @@ class _CarsScreenState extends State<CarsScreen> {
                   state.programCarsStatus.isSuccess &&
                   state.programCarsStatus.data != null &&
                   state.programCarsStatus.data!.isNotEmpty;
+              // A brand (or one of its model types) selected from the brands
+              // section narrows the inventory to that brand. An explicit
+              // financing-program filter still wins, because it already
+              // describes the cars the customer asked for.
+              final bool isBrandSelected =
+                  state.selectedBrandId != null && !isFilteredByOffer;
+              final selectedBrandName = isBrandSelected
+                  ? _selectedBrandName(state)
+                  : null;
 
               final activeOffer = isFilteredByOffer
                   ? state.programCarsStatus.data!.first
@@ -146,13 +207,32 @@ class _CarsScreenState extends State<CarsScreen> {
                   ? null
                   : sortedNormalOffers.first;
 
-              if (state.allCarsStatus.isLoading ||
-                  state.programCarsStatus.isLoading) {
+              final bool isLoadingInventory = isFilteredByOffer
+                  ? state.programCarsStatus.isLoading
+                  : isBrandSelected
+                  ? (state.brandCarsStatus.isLoading ||
+                        state.brandCarsStatus.isInitial)
+                  : state.allCarsStatus.isLoading;
+
+              if (state.programCarsStatus.isLoading || isLoadingInventory) {
                 return const Center(child: CustomLoading());
-              } else if (state.allCarsStatus.isFailure && !isFilteredByOffer) {
+              }
+
+              final inventoryFailure = isFilteredByOffer
+                  ? null
+                  : isBrandSelected
+                  ? (state.brandCarsStatus.isFailure
+                        ? state.brandCarsStatus
+                        : null)
+                  : (state.allCarsStatus.isFailure
+                        ? state.allCarsStatus
+                        : null);
+              if (inventoryFailure != null) {
                 return Center(
                   child: Text(
-                    state.allCarsStatus.message ?? 'Error loading cars',
+                    inventoryFailure.message ??
+                        inventoryFailure.error ??
+                        'Error loading cars',
                     style: AppTextStyle.bodyMedium(
                       context,
                     ).copyWith(color: AppColor.redColor(context)),
@@ -189,6 +269,16 @@ class _CarsScreenState extends State<CarsScreen> {
                     groupName: nameParts.last,
                   );
                 }).toList();
+              } else if (isBrandSelected) {
+                baseCarsList =
+                    (state.brandCarsStatus.data ??
+                            const <GetBrandCarsDataModel>[])
+                        .where(
+                          (car) =>
+                              car.carStatus == 1 &&
+                              !homeCubit.isCarLocallyReserved(car.itemCode),
+                        )
+                        .toList();
               } else {
                 baseCarsList = (state.allCarsStatus.data ?? [])
                     .where(
@@ -368,6 +458,13 @@ class _CarsScreenState extends State<CarsScreen> {
                               ),
                             ),
                           ],
+                          if (isBrandSelected)
+                            SliverToBoxAdapter(
+                              child: CarsBrandFilterBar(
+                                brandName: selectedBrandName,
+                                onClear: _clearBrandFilter,
+                              ),
+                            ),
                           SliverToBoxAdapter(child: Gap(16.h)),
                           if (availableCars.isEmpty)
                             SliverToBoxAdapter(

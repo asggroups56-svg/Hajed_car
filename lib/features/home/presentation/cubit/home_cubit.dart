@@ -277,6 +277,19 @@ class HomeCubit extends Cubit<HomeState> {
     unawaited(getBrandCars(''));
   }
 
+  /// Drops the brand (or model type) picked from the brands section without
+  /// issuing a new brand-cars request. Used when another inventory filter takes
+  /// over, so the cars tab shows those results instead of the old brand.
+  void clearBrandSelection() {
+    if (state.selectedBrandId == null) return;
+    // Cancel any in-flight brand request so its response cannot restore the
+    // selection after the filter was applied.
+    _brandCarsRequestId++;
+    emit(
+      state.copyWith(clearSelectedBrandId: true, selectedIndex: 0),
+    );
+  }
+
   List<CarModel> getFilteredBrands(List<CarModel> brands, String query) {
     if (query.isEmpty) return brands;
     return brands
