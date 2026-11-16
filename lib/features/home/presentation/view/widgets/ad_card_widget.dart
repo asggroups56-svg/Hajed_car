@@ -57,28 +57,30 @@ class AdCardWidget extends StatelessWidget {
             _buildGlow(),
 
             // ── foreground content, on top of the photo + scrim ────────
-            Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 12.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTopRow(context),
-                  Gap(2.h),
-                  _buildHero(context),
-                  const Spacer(),
-                  Text(
-                    ad.programName ?? '',
-                    style: AppTextStyle.bodyMedium(context).copyWith(
-                      color: AppColor.whiteColor(context),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14.sp,
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 12.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTopRow(context),
+                    Gap(2.h),
+                    _buildHero(context),
+                    const Spacer(),
+                    Text(
+                      ad.programName ?? '',
+                      style: AppTextStyle.bodyMedium(context).copyWith(
+                        color: AppColor.whiteColor(context),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14.sp,
+                      ),
                     ),
-                  ),
-                  Gap(10.h),
-                  _buildStatsRow(context),
-                  Gap(10.h),
-                  _buildFooter(context),
-                ],
+                    Gap(10.h),
+                    _buildStatsRow(context),
+                    Gap(10.h),
+                    _buildFooter(context),
+                  ],
+                ),
               ),
             ),
           ],

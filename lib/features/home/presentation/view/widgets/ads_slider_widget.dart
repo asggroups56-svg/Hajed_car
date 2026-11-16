@@ -215,7 +215,7 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
             ),
             Gap(10.h),
             SizedBox(
-              height: 220.h,
+              height: 240.h,
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: displayAds.length * 2000,
@@ -223,12 +223,10 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
                   setState(() {
                     _currentPage = index;
                   });
-
                   _startTimer();
                 },
                 itemBuilder: (context, index) {
                   final ad = displayAds[index % displayAds.length];
-
                   return AnimatedScale(
                     scale: index == _currentPage ? 1.0 : 0.95,
                     duration: const Duration(milliseconds: 350),

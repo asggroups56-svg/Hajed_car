@@ -13,7 +13,6 @@ import 'package:gap/gap.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -29,7 +28,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _badgeFade;
   late Animation<double> _badgeScale;
   late Animation<double> _pulseGlow;
-
   @override
   void initState() {
     super.initState();
