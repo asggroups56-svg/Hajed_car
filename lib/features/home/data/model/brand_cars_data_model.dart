@@ -180,22 +180,49 @@ class GetBrandCarsDataModel extends Equatable {
   final String? reservedName;
 
   String _sanitizeImageUrl(String path) {
-    if (path.isEmpty) return '';
-    if (path.startsWith('http')) return path;
-    final cleaned = path.replaceAll('../../Img/Emp/', '');
+    final raw = path.trim();
+    if (raw.isEmpty || raw.toLowerCase() == 'null') return '';
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    final cleaned = raw
+        .replaceAll('\\', '/')
+        .replaceAll('../../Img/Emp/', '')
+        .replaceAll('../..', '')
+        .replaceAll(RegExp(r'^\.+/'), '');
     return Uri.parse('${Constants.baseImage}$cleaned').toString();
+  }
+
+  /// The same photo can be listed with a different prefix or encoding; the
+  /// gallery must show it once.
+  static String _imageIdentity(String url) {
+    final withoutQuery = url.split('?').first.split('#').first;
+    final normalized = withoutQuery
+        .trim()
+        .toLowerCase()
+        .replaceAll('\\', '/');
+    String decoded;
+    try {
+      decoded = Uri.decodeFull(normalized);
+    } on ArgumentError {
+      // A stray `%` in a file name must not break the image list.
+      decoded = normalized;
+    }
+    return decoded.replaceAll(RegExp(r'/+'), '/');
   }
 
   String get fullCarImage => _sanitizeImageUrl(carImage ?? '');
 
   List<String> get allImages {
     final List<String> images = [];
-    if (fullCarImage.isNotEmpty) images.add(fullCarImage);
-    for (var img in extraImages) {
-      final full = _sanitizeImageUrl(img);
-      if (full.isNotEmpty && !images.contains(full)) {
-        images.add(full);
-      }
+    final Set<String> seen = {};
+    void addImage(String path) {
+      final full = _sanitizeImageUrl(path);
+      if (full.isEmpty) return;
+      if (seen.add(_imageIdentity(full))) images.add(full);
+    }
+
+    addImage(carImage ?? '');
+    for (final img in extraImages) {
+      addImage(img);
     }
     return images;
   }

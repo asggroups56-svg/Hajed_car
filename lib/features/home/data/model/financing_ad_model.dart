@@ -386,20 +386,61 @@ class FinancingAdModel extends Equatable {
         .toList();
   }
 
+  /// Resolves an image path returned by the API into a full URL.
+  ///
+  /// The same file can come back as `../../Img/Emp/Cars/1.jpg`, with Windows
+  /// separators, or with a leading `./`; all of them must produce the same URL
+  /// so the image is not rendered as two different pictures.
+  static String resolveImageUrl(String? rawPic) {
+    final raw = rawPic?.trim() ?? '';
+    if (raw.isEmpty || raw.toLowerCase() == 'null') return '';
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    final cleaned = raw
+        .replaceAll('\\', '/')
+        .replaceAll('../../Img/Emp/', '')
+        .replaceAll('../..', '')
+        .replaceAll(RegExp(r'^\.+/'), '');
+    return '${Constants.baseImage}$cleaned';
+  }
+
+  /// Identifies the underlying file of an image URL so duplicates that only
+  /// differ in path formatting (prefix, separators, encoding) are recognized.
+  static String imageIdentity(String url) {
+    final withoutQuery = url.split('?').first.split('#').first;
+    final normalized = withoutQuery
+        .trim()
+        .toLowerCase()
+        .replaceAll('\\', '/');
+    String decoded;
+    try {
+      decoded = Uri.decodeFull(normalized);
+    } on ArgumentError {
+      // A stray `%` in a file name must not break the image list.
+      decoded = normalized;
+    }
+    return decoded.replaceAll(RegExp(r'/+'), '/');
+  }
+
   String get displayPicUrl {
     final rawPic = (programPic != null && programPic!.isNotEmpty)
         ? programPic
         : (carImage != null && carImage!.isNotEmpty
               ? carImage!.split(',').first
               : null);
-    if (rawPic == null || rawPic.isEmpty) return '';
-    if (rawPic.startsWith('http://') || rawPic.startsWith('https://')) {
-      return rawPic;
-    }
-    final cleaned = rawPic
-        .replaceAll('../../Img/Emp/', '')
-        .replaceAll('../..', '');
-    return '${Constants.baseImage}$cleaned';
+    return resolveImageUrl(rawPic);
+  }
+
+  /// The program's own artwork only.
+  ///
+  /// [displayPicUrl] falls back to the vehicle photo when the offer has no
+  /// program picture. Surfaces that already list the cars (for example the
+  /// banner above the offer listing) must not use that fallback, otherwise the
+  /// first car's picture is shown twice: once as the banner and once in its
+  /// card. When no artwork exists they should render nothing instead.
+  String get programArtworkUrl {
+    final rawPic = programPic?.trim() ?? '';
+    if (rawPic.isEmpty) return '';
+    return resolveImageUrl(rawPic);
   }
 
   // String? get displayBankName {
@@ -415,15 +456,8 @@ class FinancingAdModel extends Equatable {
   // }
 
   String? get displayBankImageUrl {
-    final rawPath = bankPicturePath?.trim();
-    if (rawPath == null || rawPath.isEmpty) return null;
-    if (rawPath.startsWith('http://') || rawPath.startsWith('https://')) {
-      return rawPath;
-    }
-    final cleaned = rawPath
-        .replaceAll('../../Img/Emp/', '')
-        .replaceAll('../..', '');
-    return '${Constants.baseImage}$cleaned';
+    final url = resolveImageUrl(bankPicturePath);
+    return url.isEmpty ? null : url;
   }
 
   double get monthlyInstallmentWithVat {
@@ -673,13 +707,17 @@ class FinancingAdModel extends Equatable {
 
   List<String> get allCarImages {
     if (carImage == null || carImage!.isEmpty) return [];
-    return carImage!.split(',').map((img) {
-      if (img.startsWith('http://') || img.startsWith('https://')) return img;
-      final cleaned = img
-          .replaceAll('../../Img/Emp/', '')
-          .replaceAll('../..', '');
-      return '${Constants.baseImage}$cleaned';
-    }).toList();
+    final images = <String>[];
+    final seen = <String>{};
+    for (final img in carImage!.split(',')) {
+      final resolved = resolveImageUrl(img);
+      if (resolved.isEmpty) continue;
+      // The API can repeat the same file with a different prefix or encoding.
+      // Comparing the resolved identity keeps the gallery from showing it
+      // twice.
+      if (seen.add(imageIdentity(resolved))) images.add(resolved);
+    }
+    return images;
   }
 
   GetBrandCarsDataModel toCarDataModel() {

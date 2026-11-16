@@ -30,6 +30,11 @@ class HomeCubit extends Cubit<HomeState> {
   bool _isRefreshingHome = false;
   int _brandCarsRequestId = 0;
   Future<void>? _normalFinancingRequest;
+  Future<void>? _financingAdsListRequest;
+  Future<void>? _promoCarOffersRequest;
+  bool _promoCarOffersLoaded = false;
+  final Map<int, List<FinancingAdModel>> _programCarsCache =
+      <int, List<FinancingAdModel>>{};
   final Set<String> _locallyReservedCarCodes = <String>{};
 
   HomeCubit(this.homeRepo) : super(const HomeState());
@@ -398,41 +403,110 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> getFinancingAds({String? code}) async {
     final isSpecificProgram = code != null && code.isNotEmpty;
     if (isSpecificProgram) {
-      emit(state.copyWith(programCarsStatus: const StatusState.loading()));
-    } else {
-      emit(state.copyWith(financingAdsStatus: const StatusState.loading()));
+      await _loadProgramCars(code);
+      return;
     }
+
+    // The program list is also requested when the cars list is enriched with
+    // promotional offers. Share the in-flight request so opening both surfaces
+    // does not issue it twice.
+    final inFlightRequest = _financingAdsListRequest;
+    if (inFlightRequest != null) {
+      await inFlightRequest;
+      return;
+    }
+
+    final request = _loadFinancingAdsList();
+    _financingAdsListRequest = request;
+    try {
+      await request;
+    } finally {
+      _financingAdsListRequest = null;
+    }
+  }
+
+  Future<void> _loadFinancingAdsList() async {
+    emit(state.copyWith(financingAdsStatus: const StatusState.loading()));
+
+    final result = await homeRepo.getFinancingAds();
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          financingAdsStatus: StatusState.failure(failure.errMessage),
+        ),
+      ),
+      (response) => emit(
+        state.copyWith(financingAdsStatus: StatusState.success(response)),
+      ),
+    );
+  }
+
+  Future<void> _loadProgramCars(String code) async {
+    emit(state.copyWith(programCarsStatus: const StatusState.loading()));
 
     final result = await homeRepo.getFinancingAds(code: code);
 
     result.fold(
-      (failure) {
-        if (isSpecificProgram) {
-          emit(
-            state.copyWith(
-              programCarsStatus: StatusState.failure(failure.errMessage),
-            ),
-          );
-        } else {
-          emit(
-            state.copyWith(
-              financingAdsStatus: StatusState.failure(failure.errMessage),
-            ),
-          );
-        }
-      },
+      (failure) => emit(
+        state.copyWith(
+          programCarsStatus: StatusState.failure(failure.errMessage),
+        ),
+      ),
       (response) {
-        if (isSpecificProgram) {
-          emit(
-            state.copyWith(programCarsStatus: StatusState.success(response)),
-          );
-        } else {
-          emit(
-            state.copyWith(financingAdsStatus: StatusState.success(response)),
-          );
+        final programId = int.tryParse(code);
+        // The offers endpoint can return the same vehicle more than once (for
+        // example once per bank row). Each car must still get a single card,
+        // otherwise its picture and details appear twice in the listing.
+        final uniqueRows = _dedupeProgramCars(response);
+        if (programId != null) {
+          // Keep the program's cars so the regular inventory list can attach
+          // their offer terms to the matching cars later.
+          _programCarsCache[programId] = uniqueRows;
         }
+        emit(
+          state.copyWith(programCarsStatus: StatusState.success(uniqueRows)),
+        );
+        _emitPromoCarOffers();
       },
     );
+  }
+
+  /// Removes repeated vehicle rows from one program's response.
+  ///
+  /// Identity follows the same priority used to match an offer with its
+  /// inventory row: item code, then chassis number, then name, model year and
+  /// plate. The last fallback also includes the plate so two genuinely
+  /// different cars of the same model are both kept.
+  static List<FinancingAdModel> _dedupeProgramCars(
+    List<FinancingAdModel> rows,
+  ) {
+    if (rows.length < 2) return rows;
+
+    final seen = <String>{};
+    final unique = <FinancingAdModel>[];
+    for (final row in rows) {
+      final itemCode = row.itemCode?.trim() ?? '';
+      final chassis = row.chassisNo?.trim().toLowerCase() ?? '';
+      final String key;
+      if (itemCode.isNotEmpty) {
+        key = 'item:$itemCode';
+      } else if (chassis.isNotEmpty && chassis != 'null') {
+        key = 'chassis:$chassis';
+      } else {
+        final name = row.itemName?.trim().toLowerCase() ?? '';
+        if (name.isEmpty) {
+          unique.add(row);
+          continue;
+        }
+        final year = row.makeYear ?? row.modelYear ?? 0;
+        final color = (row.bodyColor ?? row.color ?? '').trim().toLowerCase();
+        final plate = (row.boardNo ?? '').trim().toLowerCase();
+        key = 'name:$name|year:$year|color:$color|plate:$plate';
+      }
+      if (seen.add(key)) unique.add(row);
+    }
+    return unique;
   }
 
   /// Loads the standard financing offers once and shares the in-flight request
@@ -471,6 +545,97 @@ class HomeCubit extends Cubit<HomeState> {
 
   void clearProgramCarsFilter() {
     emit(state.copyWith(programCarsStatus: const StatusState.initial()));
+  }
+
+  /// Loads the cars of every active financing program so the regular inventory
+  /// list can show the promotional terms of the vehicles that are part of an
+  /// offer while still listing them among the standard cars.
+  ///
+  /// Programs are cached per id, so repeated visits to the cars tab (and a
+  /// program opened from the offers slider) do not issue the requests again.
+  Future<void> loadPromoCarOffers({bool force = false}) {
+    final inFlightRequest = _promoCarOffersRequest;
+    if (inFlightRequest != null) return inFlightRequest;
+
+    if (!force && _promoCarOffersLoaded) return Future.value();
+
+    return _promoCarOffersRequest = _loadPromoCarOffers(force: force)
+        .whenComplete(() {
+          _promoCarOffersRequest = null;
+        });
+  }
+
+  Future<void> _loadPromoCarOffers({required bool force}) async {
+    if (force) {
+      _programCarsCache.clear();
+      _promoCarOffersLoaded = false;
+    }
+
+    if (!state.financingAdsStatus.isSuccess) {
+      await getFinancingAds();
+    }
+
+    final programs =
+        state.financingAdsStatus.data ?? const <FinancingAdModel>[];
+    final programIds = <int>{
+      for (final program in programs)
+        if (program.programId != null) program.programId!,
+    };
+
+    // A program whose cars were already opened from the offers slider is
+    // served from the cache.
+    final missingProgramIds = programIds
+        .where((programId) => !_programCarsCache.containsKey(programId))
+        .toList();
+
+    if (missingProgramIds.isNotEmpty) {
+      final results = await Future.wait(
+        missingProgramIds.map((programId) async {
+          final result = await homeRepo.getFinancingAds(
+            code: programId.toString(),
+          );
+          return result.fold(
+            (_) => const <FinancingAdModel>[],
+            (rows) => rows,
+          );
+        }),
+      );
+
+      for (var i = 0; i < missingProgramIds.length; i++) {
+        _programCarsCache[missingProgramIds[i]] = _dedupeProgramCars(
+          results[i],
+        );
+      }
+    }
+
+    _promoCarOffersLoaded = true;
+    _emitPromoCarOffers();
+  }
+
+  /// Publishes the cached program cars as the source of promotional terms for
+  /// the regular car list.
+  void _emitPromoCarOffers() {
+    final programs =
+        state.financingAdsStatus.data ?? const <FinancingAdModel>[];
+    final offers = <FinancingAdModel>[
+      // Some deployments return the vehicle rows together with the program
+      // list instead of one advertisement row per program.
+      ...programs.where(_isPromoVehicleRow),
+      for (final rows in _programCarsCache.values)
+        ...rows.where(_isPromoVehicleRow),
+    ];
+    emit(state.copyWith(promoCarOffers: offers));
+  }
+
+  /// True for offer rows that describe a vehicle, as opposed to the program
+  /// advertisement rows returned by the program list endpoint.
+  static bool _isPromoVehicleRow(FinancingAdModel row) {
+    final itemCode = row.itemCode?.trim() ?? '';
+    final chassisNo = row.chassisNo?.trim() ?? '';
+    final itemName = row.itemName?.trim() ?? '';
+    return itemCode.isNotEmpty ||
+        (chassisNo.isNotEmpty && chassisNo.toLowerCase() != 'null') ||
+        itemName.isNotEmpty;
   }
 
   Future<void> addLoanApplicationWithFiles({

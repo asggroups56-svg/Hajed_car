@@ -42,6 +42,17 @@ class PremiumCarCardWidget extends StatelessWidget {
     return value.toString();
   }
 
+  /// Profit rate shown on the offer ribbon.
+  ///
+  /// A promotional program row carries the rate the customer sees in the
+  /// offers section; the car row only has the standard financing rate. The
+  /// offer therefore wins when one is attached.
+  double get _badgeInterestRate {
+    final offerRate = offer?.getEffectiveInterestRate() ?? 0;
+    if (offerRate > 0) return offerRate;
+    return car.interestRate ?? car.interestRateOther ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final String rawColor =
@@ -142,7 +153,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${_formatPercentage(car.interestRate ?? car.interestRateOther ?? 0)}% ',
+                            '${_formatPercentage(_badgeInterestRate)}% ',
                             style: AppTextStyle.bodySmall(context).copyWith(
                               color: AppColor.whiteColor(context),
                               fontSize: 11.sp,

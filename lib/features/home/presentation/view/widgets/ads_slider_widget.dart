@@ -26,6 +26,7 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
   late final PageController _pageController;
 
   int _currentPage = 0;
+  int _slideCount = 0;
   Timer? _timer;
 
   @override
@@ -61,6 +62,10 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
 
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
+
+      // One ad cannot be advanced: repeated pages would show the same car
+      // picture again and look like a duplicate.
+      if (_slideCount < 2) return;
 
       _currentPage++;
 
@@ -195,14 +200,21 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
           return const SizedBox.shrink();
         }
         final seenProgramIds = <int>{};
+        final seenImages = <String>{};
         final adsList = models.where((ad) {
           final programId = ad.programId;
-          if (programId == null) return true;
-          return seenProgramIds.add(programId);
+          if (programId != null) return seenProgramIds.add(programId);
+          // Rows without a program id can repeat the same vehicle, which made
+          // the same car picture appear in more than one slide. Keep one card
+          // per picture in that case.
+          final image = ad.displayPicUrl;
+          if (image.isEmpty) return true;
+          return seenImages.add(FinancingAdModel.imageIdentity(image));
         }).toList();
 
         // Limit slider to max 3 ads
         final displayAds = adsList.take(3).toList();
+        _slideCount = displayAds.length;
         final realIndex = _currentPage % displayAds.length;
 
         return Column(
@@ -219,6 +231,11 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: displayAds.length * 2000,
+                // A single ad must not be swipeable: the repeated pages show
+                // the same picture and read as a duplicate image.
+                physics: displayAds.length > 1
+                    ? null
+                    : const NeverScrollableScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;

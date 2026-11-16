@@ -24,6 +24,12 @@ class HomeState extends Equatable {
   final StatusState<SendOtpResponseModel> sendOtpStatus;
   final StatusState<List<FinancingAdModel>> financingAdsStatus;
   final StatusState<List<FinancingAdModel>> programCarsStatus;
+
+  /// Vehicle rows of every active financing program.
+  ///
+  /// The regular inventory list uses these to show the promotional terms of a
+  /// car that belongs to an offer while keeping it in the normal listing.
+  final List<FinancingAdModel> promoCarOffers;
   final StatusState<List<FinancingAdModel>> normalFinancingStatus;
   final StatusState<AddLoanApplicationResponseModel> addLoanApplicationStatus;
   final StatusState<List<CustomerLoanApplicationModel>>
@@ -54,6 +60,7 @@ class HomeState extends Equatable {
     this.sendOtpStatus = const StatusState.initial(),
     this.financingAdsStatus = const StatusState.initial(),
     this.programCarsStatus = const StatusState.initial(),
+    this.promoCarOffers = const [],
     this.normalFinancingStatus = const StatusState.initial(),
     this.addLoanApplicationStatus = const StatusState.initial(),
     this.custLoanApplicationsStatus = const StatusState.initial(),
@@ -86,6 +93,7 @@ class HomeState extends Equatable {
     StatusState<SendOtpResponseModel>? sendOtpStatus,
     StatusState<List<FinancingAdModel>>? financingAdsStatus,
     StatusState<List<FinancingAdModel>>? programCarsStatus,
+    List<FinancingAdModel>? promoCarOffers,
     StatusState<List<FinancingAdModel>>? normalFinancingStatus,
     StatusState<AddLoanApplicationResponseModel>? addLoanApplicationStatus,
     StatusState<List<CustomerLoanApplicationModel>>? custLoanApplicationsStatus,
@@ -120,6 +128,7 @@ class HomeState extends Equatable {
       sendOtpStatus: sendOtpStatus ?? this.sendOtpStatus,
       financingAdsStatus: financingAdsStatus ?? this.financingAdsStatus,
       programCarsStatus: programCarsStatus ?? this.programCarsStatus,
+      promoCarOffers: promoCarOffers ?? this.promoCarOffers,
       normalFinancingStatus:
           normalFinancingStatus ?? this.normalFinancingStatus,
       addLoanApplicationStatus:
@@ -156,6 +165,7 @@ class HomeState extends Equatable {
     sendOtpStatus,
     financingAdsStatus,
     programCarsStatus,
+    promoCarOffers,
     normalFinancingStatus,
     addLoanApplicationStatus,
     custLoanApplicationsStatus,

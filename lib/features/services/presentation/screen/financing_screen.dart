@@ -185,15 +185,15 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     _fullNameCtrl.text = HiveMethods.getname() ?? '';
     _phoneCtrl.text = HiveMethods.getphone() ?? '';
 
-    // Every entry point must end up with the vehicle's own offer, even when
-    // only the car was passed (details, favorites, budget list, named route).
-    // Otherwise the calculator would silently use standard bank financing.
+    // The offer passed by the caller is the one shown on the card that opened
+    // this screen, so it wins over the row's own terms. The row offer is the
+    // next source when only the car was passed.
     _vehicleOffer = widget.car?.isVehicleOffer == true
         ? FinancingAdModel.fromCarOffer(widget.car!)
         : null;
     _selectedOffer =
-        _vehicleOffer ??
         widget.offer ??
+        _vehicleOffer ??
         (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
@@ -297,11 +297,16 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
             ),
             adminFeesPct: _activeOffer?.adminFeesForBank(userSalaryBank: _bankCtrl.text),
             userSalaryBank: _bankCtrl.text.trim(),
-            // A vehicle's own offer is the only valid term set, so the
-            // standard bank offers must not be offered next to it.
-            offers: _vehicleOffer != null
-                ? <FinancingAdModel>[_vehicleOffer!]
-                : widget.offers,
+            // An explicit list of offers stays the source when one is given.
+            // Otherwise the offer driving this screen is the only valid term
+            // set, so the standard bank offers must not join it.
+            offers: widget.offers.isNotEmpty
+                ? widget.offers
+                : (widget.offer != null
+                      ? <FinancingAdModel>[widget.offer!]
+                      : (_vehicleOffer != null
+                            ? <FinancingAdModel>[_vehicleOffer!]
+                            : widget.offers)),
             initialOffer: _activeOffer,
           ),
         ),

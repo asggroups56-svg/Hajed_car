@@ -62,6 +62,9 @@ class _CarsScreenState extends State<CarsScreen> {
           homeState.normalFinancingStatus.data!.isEmpty) {
         homeCubit.getNormalFinancing();
       }
+      // Financing programs also list cars that stay in the regular inventory.
+      // Load their rows so those cards can show the promotional terms.
+      homeCubit.loadPromoCarOffers();
     });
   }
 
@@ -152,6 +155,11 @@ class _CarsScreenState extends State<CarsScreen> {
 
     final name = offerCar.itemName.trim().toLowerCase();
     if (name.isEmpty) return null;
+    // Several inventory cars can share a model name and year (different
+    // colours, or empty item codes on the program rows). Reusing one of them
+    // for every program row would show the same car twice, so an ambiguous
+    // match is treated as no match and the program row keeps its own data.
+    GetBrandCarsDataModel? match;
     for (final car in allCars) {
       if (car.itemName.trim().toLowerCase() != name) continue;
       if (offerCar.makeYear != 0 &&
@@ -159,9 +167,69 @@ class _CarsScreenState extends State<CarsScreen> {
           car.makeYear != offerCar.makeYear) {
         continue;
       }
-      return car;
+      if (match != null) return null;
+      match = car;
     }
-    return null;
+    return match;
+  }
+
+  /// Finds the financing-program row that belongs to [car], if the car is part
+  /// of a promotion.
+  ///
+  /// A promotional car can also be part of the regular inventory, where its
+  /// row only carries the standard terms. The program row has the terms the
+  /// customer sees in the offers section, so it must drive the card's
+  /// installment and profit rate. Identity follows the same priority used to
+  /// merge an offer with its inventory row: item code, chassis, then name and
+  /// model year (program rows often leave the item code empty).
+  FinancingAdModel? _findPromoOffer(
+    GetBrandCarsDataModel car,
+    List<FinancingAdModel> promoOffers,
+  ) {
+    if (promoOffers.isEmpty) return null;
+
+    final itemCode = car.itemCode.trim();
+    final chassisNo = car.chassisNo.trim();
+    final chassisKey = chassisNo.toLowerCase();
+    final name = car.itemName.trim().toLowerCase();
+    final year = car.makeYear;
+
+    FinancingAdModel? best;
+    double bestInstallment = double.infinity;
+
+    for (final offer in promoOffers) {
+      final offerItemCode = offer.itemCode?.trim() ?? '';
+      final offerChassisNo = offer.chassisNo?.trim() ?? '';
+      final offerName = offer.itemName?.trim().toLowerCase() ?? '';
+      final offerYear = offer.makeYear ?? offer.modelYear ?? 0;
+
+      final bool matches =
+          (itemCode.isNotEmpty && offerItemCode == itemCode) ||
+          (chassisKey.isNotEmpty &&
+              chassisKey != 'null' &&
+              offerChassisNo.toLowerCase() == chassisKey) ||
+          (name.isNotEmpty &&
+              offerName == name &&
+              (year == 0 || offerYear == 0 || offerYear == year));
+      if (!matches) continue;
+
+      final price = (offer.price ?? 0) > 0 ? offer.price! : _carPrice(car);
+      if (price <= 0 || price.isInfinite) {
+        best ??= offer;
+        continue;
+      }
+
+      final installment = offer.monthlyInstallmentForPrice(
+        price,
+        platesVal: offer.platesCostWithVat,
+      );
+      if (installment < bestInstallment) {
+        best = offer;
+        bestInstallment = installment;
+      }
+    }
+
+    return best;
   }
 
   @override
@@ -372,6 +440,11 @@ class _CarsScreenState extends State<CarsScreen> {
                           _searchQuery = '';
                         });
                         context.read<HomeCubit>().clearProgramCarsFilter();
+                        // Refresh the program cars in the background so the
+                        // list does not wait for every financing program.
+                        context.read<HomeCubit>().loadPromoCarOffers(
+                          force: true,
+                        );
                         await Future.wait([
                           context.read<HomeCubit>().getCarsModels(),
                           context.read<HomeCubit>().fetchAllCars(),
@@ -395,12 +468,16 @@ class _CarsScreenState extends State<CarsScreen> {
                                   horizontal: 20.w,
                                   vertical: 10.h,
                                 ),
-                                child: activeOffer.displayPicUrl.isNotEmpty
+                                // Show the program's own artwork only. Falling
+                                // back to a car photo here would repeat the
+                                // first card's image right above it.
+                                child: activeOffer.programArtworkUrl.isNotEmpty
                                     ? ClipRRect(
                                         borderRadius:
                                             BorderRadius.circular(12.r),
                                         child: CustomNetworkImage(
-                                          imageUrl: activeOffer.displayPicUrl,
+                                          imageUrl:
+                                              activeOffer.programArtworkUrl,
                                           width: double.infinity,
                                           height: 120.h,
                                           fit: BoxFit.cover,
@@ -513,25 +590,32 @@ class _CarsScreenState extends State<CarsScreen> {
                                   final carId =
                                       HiveMethods.getCarUniqueId(car.toMap());
 
-                                  // A vehicle can belong to an offer on its own:
-                                  // GetprandcarsData returns the offer terms on
-                                  // the car row. Those terms must drive the card
+                                  // A vehicle can belong to an offer on its own
+                                  // (GetprandcarsData returns the offer terms on
+                                  // the car row) or through a financing program
+                                  // while still being part of the regular
+                                  // inventory. Both must drive the card
                                   // installment instead of the standard bank
                                   // financing numbers.
                                   final vehicleOffer = car.isVehicleOffer
                                       ? FinancingAdModel.fromCarOffer(car)
                                       : null;
-                                  final offer =
-                                      vehicleOffer ??
-                                      (car.itemCode.isNotEmpty
-                                              ? offersByItemCode[car.itemCode]
-                                              : null) ??
-                                      normalOffer;
+                                  final promoOffer = _findPromoOffer(
+                                    car,
+                                    state.promoCarOffers,
+                                  );
+                                  final activeOffer = isFilteredByOffer
+                                      ? (vehicleOffer ??
+                                            (car.itemCode.isNotEmpty
+                                                ? offersByItemCode[car.itemCode]
+                                                : null))
+                                      : (promoOffer ?? vehicleOffer);
+                                  final offer = activeOffer ?? normalOffer;
                                   // Passing an explicit offer list would make
                                   // the banner pick the cheapest standard bank
                                   // offer and ignore the vehicle's own terms.
-                                  final offers = vehicleOffer != null ||
-                                          isFilteredByOffer
+                                  final offers =
+                                      activeOffer != null || isFilteredByOffer
                                       ? const <FinancingAdModel>[]
                                       : normalOffers;
 
@@ -539,7 +623,8 @@ class _CarsScreenState extends State<CarsScreen> {
                                     car: car,
                                     heroTag:
                                         'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
-                                    isOffer: isFilteredByOffer,
+                                    isOffer:
+                                        isFilteredByOffer || promoOffer != null,
                                     offer: offer,
                                     financingOffers: offers,
                                   );
