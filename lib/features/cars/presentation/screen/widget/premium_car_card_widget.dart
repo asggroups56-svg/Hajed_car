@@ -42,16 +42,33 @@ class PremiumCarCardWidget extends StatelessWidget {
     return value.toString();
   }
 
-  /// Profit rate shown on the offer ribbon.
-  ///
-  /// A promotional program row carries the rate the customer sees in the
-  /// offers section; the car row only has the standard financing rate. The
-  /// offer therefore wins when one is attached.
-  double get _badgeInterestRate {
-    final offerRate = offer?.getEffectiveInterestRate() ?? 0;
-    if (offerRate > 0) return offerRate;
-    return car.interestRate ?? car.interestRateOther ?? 0;
+  double? get _firstInstallmentPct {
+    return offer?.firstInstallmentPct ??
+        offer?.firstInstallmentPctOther ??
+        car.firstInstallmentPct ??
+        car.firstInstallmentPctOther ??
+        (financingOffers.isNotEmpty
+            ? (financingOffers.first.firstInstallmentPct ??
+                  financingOffers.first.firstInstallmentPctOther)
+            : null);
   }
+
+  double? get _lastInstallmentPct {
+    return offer?.lastInstallmentPct ??
+        offer?.lastInstallmentPctOther ??
+        car.lastInstallmentPct ??
+        car.lastInstallmentPctOther ??
+        (financingOffers.isNotEmpty
+            ? (financingOffers.first.lastInstallmentPct ??
+                  financingOffers.first.lastInstallmentPctOther)
+            : null);
+  }
+
+  bool get _hasOfferBanner =>
+      isOffer ||
+      car.isVehicleOffer ||
+      offer != null ||
+      (_lastInstallmentPct != null && _lastInstallmentPct! > 0 && car.isOfferActive);
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +146,7 @@ class PremiumCarCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isOffer || car.isVehicleOffer)
+                if (_hasOfferBanner)
                   PositionedDirectional(
                     start: 70.w,
                     top: 0,
@@ -138,34 +155,64 @@ class PremiumCarCardWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColor.primaryColor(context),
                         borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(12.r),
-                          bottomRight: Radius.circular(12.r),
+                          bottomLeft: Radius.circular(14.r),
+                          bottomRight: Radius.circular(14.r),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          // نسبة الدفعة الأولى
                           Text(
-                            '${_formatPercentage(_badgeInterestRate)}% ',
+                            context.locale.languageCode == 'ar'
+                                ? 'أولى ${_formatPercentage(_firstInstallmentPct ?? 0)}%'
+                                : '1st ${_formatPercentage(_firstInstallmentPct ?? 0)}%',
                             style: AppTextStyle.bodySmall(context).copyWith(
                               color: AppColor.whiteColor(context),
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
                             ),
                           ),
-
+                          SizedBox(height: 2.h),
+                          // نسبة الدفعة الأخيرة
                           Text(
-                            context.locale.languageCode == 'ar' ? 'عرض \nتمويل' : 'Financing Offer',
-                            style: AppTextStyle.bodySmall(
-                              context,
-                            ).copyWith(color: AppColor.whiteColor(context), fontSize: 14.sp),
+                            context.locale.languageCode == 'ar'
+                                ? 'أخيرة ${_formatPercentage(_lastInstallmentPct ?? 0)}%'
+                                : 'Last ${_formatPercentage(_lastInstallmentPct ?? 0)}%',
+                            style: AppTextStyle.bodySmall(context).copyWith(
+                              color: AppColor.whiteColor(context),
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
+                          ),
+                          SizedBox(height: 3.h),
+                          // فاصل أفقي خفيف
+                          Container(
+                            height: 1,
+                            width: 42.w,
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                          SizedBox(height: 3.h),
+                          // نص "عرض تمويل"
+                          Text(
+                            context.locale.languageCode == 'ar' ? 'عرض تمويل' : 'Financing Offer',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyle.bodySmall(context).copyWith(
+                              color: AppColor.whiteColor(context),
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w600,
+                              height: 1.1,
+                            ),
                           ),
                         ],
                       ),
@@ -258,15 +305,15 @@ class PremiumCarCardWidget extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              Gap(4.h),
-                              Text(
-                                AppLocaleKey.taxIncluded.tr(),
-                                style: AppTextStyle.bodySmall(context).copyWith(
-                                  fontSize: 9.sp,
-                                  color: AppColor.greyColor(context),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              // Gap(4.h),
+                              // Text(
+                              //   AppLocaleKey.taxIncluded.tr(),
+                              //   style: AppTextStyle.bodySmall(context).copyWith(
+                              //     fontSize: 9.sp,
+                              //     color: AppColor.greyColor(context),
+                              //     fontWeight: FontWeight.w600,
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
@@ -280,7 +327,10 @@ class PremiumCarCardWidget extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                if (HiveMethods.isGuest()) return;
+                                if (HiveMethods.isGuest()) {
+                                  CommonMethods.showLoginRequiredDialog(context);
+                                  return;
+                                }
 
                                 Navigator.push(
                                   context,

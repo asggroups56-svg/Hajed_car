@@ -3,6 +3,7 @@ import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/financing_ad_model.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
@@ -228,7 +229,10 @@ class _BankInstallmentsBannerWidgetState
 
         return GestureDetector(
           onTap: () async {
-            if (HiveMethods.isGuest()) return;
+            if (HiveMethods.isGuest()) {
+              CommonMethods.showLoginRequiredDialog(context);
+              return;
+            }
 
             FinancingAdModel? selectedOffer = _getLowestOffer(cubitOffers);
             final vehicleOffer = _vehicleOffer;

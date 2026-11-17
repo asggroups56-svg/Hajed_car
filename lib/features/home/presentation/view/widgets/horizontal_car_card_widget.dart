@@ -5,6 +5,7 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
 import 'package:car/features/home/presentation/view/widgets/custom_price_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -127,8 +128,10 @@ class HorizontalCarCardWidget extends StatelessWidget {
                         Gap(4.h),
                         GestureDetector(
                           onTap: () {
-                            if (HiveMethods.isGuest()) return;
-
+                            if (HiveMethods.isGuest()) {
+                              CommonMethods.showLoginRequiredDialog(context);
+                              return;
+                            }
                             Navigator.pushNamed(
                               context,
                               RoutesName.financingScreen,

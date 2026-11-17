@@ -229,7 +229,9 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'AdminFeesPct': car.adminFeesPct,
       'AdminFeesPctother': car.adminFeesPctOther,
       'InterestRate': car.interestRate,
+      'interestRate': car.interestRate,
       'InterestRate_other': car.interestRateOther,
+      'interestRateOther': car.interestRateOther,
       'InsurancePct': car.insurancePct,
       'InsurancePctother': car.insurancePctOther,
       'InsuranceVal': car.insuranceAmount,
@@ -237,6 +239,8 @@ class _PopularCarsSliderState extends State<PopularCarsSlider> {
       'BankName': car.bankName,
       'IsActive': car.isActive,
       'EndDate': car.endDate,
+      'isVehicleOffer': car.isVehicleOffer,
+      'hasOfferTerms': car.hasOfferTerms,
       'SPECIFIC_NAME': car.specificName,
       'specificName': car.specificName,
     };

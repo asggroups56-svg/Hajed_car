@@ -359,6 +359,8 @@ class GetBrandCarsDataModel extends Equatable {
       'IsActive': isActive,
       'isActive': isActive,
       'IsBestSeller': isBestSeller ? 1 : 0,
+      'isVehicleOffer': isVehicleOffer,
+      'hasOfferTerms': hasOfferTerms,
     };
   }
 

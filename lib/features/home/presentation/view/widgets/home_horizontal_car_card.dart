@@ -189,6 +189,11 @@ class HomeHorizontalCarCard extends StatelessWidget {
     return formatter.format((carPrice * 1.225) / 60);
   }
 
+  static String _formatPercentage(double value) {
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return value.toString();
+  }
+
   double _numberValue(dynamic value) =>
       value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
 
@@ -328,7 +333,30 @@ class HomeHorizontalCarCard extends StatelessWidget {
     final Color grey = AppColor.greyColor(context);
     final Color textDark = AppColor.blackTextColor(context);
 
-    final bool hasOffer = isOffer || (car['isOffer'] == true);
+    final double? firstPct = car['FirstInstallmentPct'] != null
+        ? _numberValue(car['FirstInstallmentPct'])
+        : (car['firstInstallmentPct'] != null
+            ? _numberValue(car['firstInstallmentPct'])
+            : (car['FirstInstallmentPctother'] != null
+                ? _numberValue(car['FirstInstallmentPctother'])
+                : null));
+    final double? lastPct = car['LastInstallmentPct'] != null
+        ? _numberValue(car['LastInstallmentPct'])
+        : (car['lastInstallmentPct'] != null
+            ? _numberValue(car['lastInstallmentPct'])
+            : (car['LastInstallmentPctother'] != null
+                ? _numberValue(car['LastInstallmentPctother'])
+                : null));
+
+    final double offerRate = _numberValue(
+      car['InterestRate'] ?? car['interestRate'] ?? car['InterestRate_other'],
+    );
+    final bool hasOffer =
+        isOffer ||
+        (car['isOffer'] == true) ||
+        (car['isVehicleOffer'] == true) ||
+        (lastPct != null && lastPct > 0) ||
+        offerRate > 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -384,9 +412,13 @@ class HomeHorizontalCarCard extends StatelessWidget {
                           ),
                           child: Text(
                             offerBadgeText ??
-                                (context.locale.languageCode == 'ar'
-                                    ? 'عرض خاص'
-                                    : 'Offer'),
+                                ((lastPct != null || firstPct != null)
+                                    ? (context.locale.languageCode == 'ar'
+                                        ? 'أولى ${_formatPercentage(firstPct ?? 0)}% | أخيرة ${_formatPercentage(lastPct ?? 0)}%'
+                                        : '1st ${_formatPercentage(firstPct ?? 0)}% | Last ${_formatPercentage(lastPct ?? 0)}%')
+                                    : (context.locale.languageCode == 'ar'
+                                        ? 'عرض تمويل'
+                                        : 'Offer')),
                             style: AppTextStyle.bodySmall(context).copyWith(
                               color: AppColor.whiteColor(context),
                               fontSize: 9.sp,

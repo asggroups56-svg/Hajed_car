@@ -269,6 +269,14 @@ class _CarsScreenState extends State<CarsScreen> {
                 for (final offer in state.programCarsStatus.data ?? [])
                   if (offer.itemCode != null) offer.itemCode!: offer,
               };
+              // Also build a quick lookup from promoCarOffers so that regular
+              // inventory cars that share an item code with a promo row can be
+              // matched in O(1) even before _findPromoOffer runs its fuzzy search.
+              final promoOffersByItemCode = <String, FinancingAdModel>{
+                for (final offer in state.promoCarOffers)
+                  if (offer.itemCode != null && offer.itemCode!.trim().isNotEmpty)
+                    offer.itemCode!.trim(): offer,
+              };
               final normalOffers =
                   state.normalFinancingStatus.data ??
                   const <FinancingAdModel>[];
@@ -609,16 +617,27 @@ class _CarsScreenState extends State<CarsScreen> {
                                   final vehicleOffer = car.isVehicleOffer
                                       ? FinancingAdModel.fromCarOffer(car)
                                       : null;
+                                  // Fuzzy match against promoCarOffers (name/year).
                                   final promoOffer = _findPromoOffer(
                                     car,
                                     state.promoCarOffers,
                                   );
+                                  // Fast item-code lookup as a fallback when fuzzy
+                                  // match returns null (avoids missing the banner
+                                  // when promoCarOffers loaded before the fuzzy
+                                  // match had a chance to run).
+                                  final promoOfferByCode =
+                                      car.itemCode.isNotEmpty
+                                      ? promoOffersByItemCode[car.itemCode.trim()]
+                                      : null;
+                                  final resolvedPromoOffer =
+                                      promoOffer ?? promoOfferByCode;
                                   final activeOffer = isFilteredByOffer
                                       ? (vehicleOffer ??
                                             (car.itemCode.isNotEmpty
                                                 ? offersByItemCode[car.itemCode]
                                                 : null))
-                                      : (promoOffer ?? vehicleOffer);
+                                      : (resolvedPromoOffer ?? vehicleOffer);
                                   final offer = activeOffer ??
                                       (isFilteredByOffer ? normalOffer : null);
                                   final offers =
@@ -631,7 +650,9 @@ class _CarsScreenState extends State<CarsScreen> {
                                     heroTag:
                                         'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
                                     isOffer:
-                                        isFilteredByOffer || promoOffer != null,
+                                        isFilteredByOffer ||
+                                        resolvedPromoOffer != null ||
+                                        car.isVehicleOffer,
                                     offer: offer,
                                     financingOffers: offers,
                                   );

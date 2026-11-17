@@ -153,28 +153,31 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     return financed > 0 ? financed : 0;
   }
 
+  /// Exact financing duration in months, mirroring FinancingCalculator.
+  int get _totalMonths => _activeOffer?.totalMonths ?? (_durationYears * 12);
+
+  /// Duration in fractional years — mirrors FinancingCalculator._years.
+  double get _durationYearsExact => _totalMonths / 12;
+
   double get _totalInterest {
-    return _financedAmount * (_apr / 100) * _durationYears;
+    return _financedAmount * (_apr / 100) * _durationYearsExact;
   }
 
   double get _totalInsurance {
     // Insurance is charged on the full VAT-inclusive car price.
-    return _priceWithVat * (_insurancePercent / 100) * _durationYears;
+    return _priceWithVat * (_insurancePercent / 100) * _durationYearsExact;
   }
 
-  /// Administrative fee charged on the financed amount.
-  double get _adminFees =>
-      _financedAmount * (_activeOffer?.adminFeesForBank(userSalaryBank: _bankCtrl.text) ?? 0) / 100;
-
   double get _totalFinancedWithInterest {
-    return _financedAmount + _totalInterest + _totalInsurance + _adminFees;
+    return _financedAmount + _totalInterest + _totalInsurance;
   }
 
   double get _monthlyInstallment {
-    final total = _totalFinancedWithInterest;
-    if (total <= 0 || _durationYears <= 0) return 0;
-    final remaining = total - _lastPayment;
-    return remaining > 0 ? (remaining / (_durationYears * 12)) : 0;
+    // Use the offer's exact month count so the value matches the card exactly.
+    // Fall back to _durationYears × 12 when no offer specifies totalMonths.
+    if (_totalMonths <= 0) return 0;
+    final remaining = _totalFinancedWithInterest - _lastPayment;
+    return remaining > 0 ? remaining / _totalMonths : 0;
   }
 
   @override

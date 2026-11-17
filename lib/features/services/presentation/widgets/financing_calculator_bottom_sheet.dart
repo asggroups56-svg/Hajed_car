@@ -121,13 +121,17 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
     return financed > 0 ? financed : 0;
   }
 
+  int get _totalMonths => _activeOffer?.totalMonths ?? (_durationYears * 12);
+
+  double get _durationYearsExact => _totalMonths / 12;
+
   double get _totalInterest {
-    return _financedAmount * (_apr / 100) * _durationYears;
+    return _financedAmount * (_apr / 100) * _durationYearsExact;
   }
 
   double get _totalInsurance {
     // Insurance is charged on the full VAT-inclusive car price.
-    return _totalCarPrice * (_insurancePercent / 100) * _durationYears;
+    return _totalCarPrice * (_insurancePercent / 100) * _durationYearsExact;
   }
 
   double get _adminFees =>
@@ -138,7 +142,7 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
           100);
 
   double get _totalFinancedWithInterest {
-    return _financedAmount + _totalInterest + _totalInsurance + _adminFees;
+    return _financedAmount + _totalInterest + _totalInsurance;
   }
 
   double get _totalPrice => _totalCarPrice + _totalInterest + _totalInsurance + _adminFees;
@@ -164,9 +168,9 @@ class _FinancingCalculatorBottomSheetState extends State<FinancingCalculatorBott
   }
 
   double get _monthlyInstallment {
-    if (_totalFinancedWithInterest <= 0 || _durationYears <= 0) return 0;
+    if (_totalFinancedWithInterest <= 0 || _totalMonths <= 0) return 0;
     final remaining = _totalFinancedWithInterest - _lastPayment;
-    return remaining > 0 ? (remaining / (_durationYears * 12)) : 0;
+    return remaining > 0 ? (remaining / _totalMonths) : 0;
   }
 
   double get _maxDownPayment {

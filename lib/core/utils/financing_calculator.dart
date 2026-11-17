@@ -76,12 +76,6 @@ class FinancingCalculator {
   double get totalPrice => carPriceWithVat + totalInterest + totalInsurance + totalAdminFees;
 
   double get monthlyInstallment {
-    print(
-      'FinancingCalculator.monthlyInstallment carPriceWithVat=$carPriceWithVat, firstInstallmentPct=$firstInstallmentPct, lastInstallmentPct=$lastInstallmentPct, annualInterestPct=$annualInterestPct, annualInsurancePct=$annualInsurancePct, adminFeesPct=$adminFeesPct, months=$months',
-    );
-    print(
-      'FinancingCalculator.monthlyInstallment downPaymentAmount=$downPaymentAmount, finalPaymentAmount=$finalPaymentAmount, financedAmount=$financedAmount, totalInterest=$totalInterest, totalInsurance=$totalInsurance, totalAdminFees=$totalAdminFees, totalFinancedWithInterest=$totalFinancedWithInterest',
-    );
     if (months <= 0) return 0;
     final remaining = totalFinancedWithInterest - finalPaymentAmount;
     return remaining > 0 ? remaining / months : 0;
