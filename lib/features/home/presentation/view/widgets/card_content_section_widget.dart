@@ -288,15 +288,21 @@ class CardContentSection extends StatelessWidget {
 
               // التفاصيل المصغرة (السنة واللون)
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  MiniDetailWidget(
-                    icon: Icons.calendar_today_outlined,
-                    label: car['year']?.toString() ?? '—',
+                  Flexible(
+                    flex: 1,
+                    child: MiniDetailWidget(
+                      icon: Icons.calendar_today_outlined,
+                      label: car['year']?.toString() ?? '—',
+                    ),
                   ),
-                  MiniDetailWidget(
-                    customIcon: _buildColorIcon(context, displayColor),
-                    label: displayColor,
+                  Gap(6.w),
+                  Flexible(
+                    flex: 2,
+                    child: MiniDetailWidget(
+                      customIcon: _buildColorIcon(context, displayColor),
+                      label: displayColor,
+                    ),
                   ),
                 ],
               ),

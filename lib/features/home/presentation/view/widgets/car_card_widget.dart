@@ -12,6 +12,7 @@ class CarCard extends StatelessWidget {
     required this.onTap,
     this.heroTag,
     this.onImageTap,
+    this.padding,
   });
 
   final Map<String, dynamic> car;
@@ -19,13 +20,14 @@ class CarCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onImageTap;
   final String? heroTag;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: padding ?? const EdgeInsets.all(8.0),
         child: Card(
           clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),

@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppHeader extends StatelessWidget {
-  const AppHeader({super.key, required this.title});
+  const AppHeader({super.key, required this.title, this.actions});
 
   final String title;
+  final List<Widget>? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +18,7 @@ class AppHeader extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColor.scaffoldColor(context),
       elevation: 0,
+      actions: actions,
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
         icon: Icon(

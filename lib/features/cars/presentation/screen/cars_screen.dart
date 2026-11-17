@@ -5,6 +5,7 @@ import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/screen/widget/car_search_header_widget.dart';
+import 'package:car/features/cars/presentation/screen/widget/grid_car_card_widget.dart';
 import 'package:car/features/cars/presentation/screen/widget/premium_car_card_widget.dart';
 import 'package:car/features/cars/presentation/widget/cars_brand_filter_bar_widget.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class CarsScreen extends StatefulWidget {
   const CarsScreen({super.key});
@@ -40,8 +42,7 @@ class _CarsScreenState extends State<CarsScreen> {
   double _carPrice(GetBrandCarsDataModel car) {
     final base = _carBasePrice(car);
     if (base <= 0) return double.infinity;
-    final vatPercentage =
-        double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
+    final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     return (base * (1 + vatPercentage / 100)) + car.platesCostWithVat;
   }
 
@@ -58,12 +59,10 @@ class _CarsScreenState extends State<CarsScreen> {
       if (selectedBrandId != null) {
         // The user came from the brands section, so this tab must show that
         // brand's inventory instead of the complete catalog.
-        if (!homeState.brandCarsStatus.isSuccess &&
-            !homeState.brandCarsStatus.isLoading) {
+        if (!homeState.brandCarsStatus.isSuccess && !homeState.brandCarsStatus.isLoading) {
           homeCubit.getBrandCars(selectedBrandId.toString());
         }
-      } else if (homeState.allCarsStatus.data == null ||
-          homeState.allCarsStatus.data!.isEmpty) {
+      } else if (homeState.allCarsStatus.data == null || homeState.allCarsStatus.data!.isEmpty) {
         homeCubit.fetchAllCars();
       }
       if (homeState.normalFinancingStatus.data == null ||
@@ -170,9 +169,7 @@ class _CarsScreenState extends State<CarsScreen> {
     GetBrandCarsDataModel? match;
     for (final car in allCars) {
       if (car.itemName.trim().toLowerCase() != name) continue;
-      if (offerCar.makeYear != 0 &&
-          car.makeYear != 0 &&
-          car.makeYear != offerCar.makeYear) {
+      if (offerCar.makeYear != 0 && car.makeYear != 0 && car.makeYear != offerCar.makeYear) {
         continue;
       }
       if (match != null) return null;
@@ -190,10 +187,7 @@ class _CarsScreenState extends State<CarsScreen> {
   /// installment and profit rate. Identity follows the same priority used to
   /// merge an offer with its inventory row: item code, chassis, then name and
   /// model year (program rows often leave the item code empty).
-  FinancingAdModel? _findPromoOffer(
-    GetBrandCarsDataModel car,
-    List<FinancingAdModel> promoOffers,
-  ) {
+  FinancingAdModel? _findPromoOffer(GetBrandCarsDataModel car, List<FinancingAdModel> promoOffers) {
     if (promoOffers.isEmpty) return null;
 
     final itemCode = car.itemCode.trim();
@@ -228,10 +222,7 @@ class _CarsScreenState extends State<CarsScreen> {
       }
 
       final plates = car.paintingsVal ?? offer.paintingsVal ?? 0.0;
-      final installment = offer.monthlyInstallmentForPrice(
-        price,
-        platesVal: plates,
-      );
+      final installment = offer.monthlyInstallmentForPrice(price, platesVal: plates);
       if (installment < bestInstallment) {
         best = offer;
         bestInstallment = installment;
@@ -241,8 +232,38 @@ class _CarsScreenState extends State<CarsScreen> {
     return best;
   }
 
+  /// Single place that decides which offer / financing list a card receives,
+  /// shared by the list and grid layouts so they can never drift apart.
+  ({FinancingAdModel? offer, List<FinancingAdModel> offers, bool isOffer}) _resolveCardOffer({
+    required GetBrandCarsDataModel car,
+    required HomeState state,
+    required bool isFilteredByOffer,
+    required Map<String, FinancingAdModel> offersByItemCode,
+    required Map<String, FinancingAdModel> promoOffersByItemCode,
+    required FinancingAdModel? normalOffer,
+    required List<FinancingAdModel> normalOffers,
+  }) {
+    final vehicleOffer = car.isVehicleOffer ? FinancingAdModel.fromCarOffer(car) : null;
+    final promoOffer = _findPromoOffer(car, state.promoCarOffers);
+    final promoOfferByCode = car.itemCode.isNotEmpty
+        ? promoOffersByItemCode[car.itemCode.trim()]
+        : null;
+    final resolvedPromoOffer = promoOffer ?? promoOfferByCode;
+    final activeOffer = isFilteredByOffer
+        ? (vehicleOffer ?? (car.itemCode.isNotEmpty ? offersByItemCode[car.itemCode] : null))
+        : (resolvedPromoOffer ?? vehicleOffer);
+    final offer = activeOffer ?? (isFilteredByOffer ? normalOffer : null);
+    final offers = activeOffer != null || isFilteredByOffer
+        ? const <FinancingAdModel>[]
+        : normalOffers;
+    final isOffer = isFilteredByOffer || resolvedPromoOffer != null || car.isVehicleOffer;
+    return (offer: offer, offers: offers, isOffer: isOffer);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool isAr = context.locale.languageCode == 'ar';
+
     return Column(
       children: [
         Expanded(
@@ -256,47 +277,35 @@ class _CarsScreenState extends State<CarsScreen> {
               // section narrows the inventory to that brand. An explicit
               // financing-program filter still wins, because it already
               // describes the cars the customer asked for.
-              final bool isBrandSelected =
-                  state.selectedBrandId != null && !isFilteredByOffer;
-              final selectedBrandName = isBrandSelected
-                  ? _selectedBrandName(state)
-                  : null;
+              final bool isBrandSelected = state.selectedBrandId != null && !isFilteredByOffer;
+              final selectedBrandName = isBrandSelected ? _selectedBrandName(state) : null;
 
-              final activeOffer = isFilteredByOffer
-                  ? state.programCarsStatus.data!.first
-                  : null;
+              final activeOffer = isFilteredByOffer ? state.programCarsStatus.data!.first : null;
               final offersByItemCode = <String, FinancingAdModel>{
                 for (final offer in state.programCarsStatus.data ?? [])
                   if (offer.itemCode != null) offer.itemCode!: offer,
               };
-              // Also build a quick lookup from promoCarOffers so that regular
-              // inventory cars that share an item code with a promo row can be
-              // matched in O(1) even before _findPromoOffer runs its fuzzy search.
+              // Quick lookup from promoCarOffers so regular inventory cars that
+              // share an item code with a promo row match in O(1) even before
+              // _findPromoOffer runs its fuzzy search.
               final promoOffersByItemCode = <String, FinancingAdModel>{
                 for (final offer in state.promoCarOffers)
                   if (offer.itemCode != null && offer.itemCode!.trim().isNotEmpty)
                     offer.itemCode!.trim(): offer,
               };
-              final normalOffers =
-                  state.normalFinancingStatus.data ??
-                  const <FinancingAdModel>[];
-              final sortedNormalOffers =
-                  List<FinancingAdModel>.from(normalOffers)..sort((a, b) {
-                    final aCost =
-                        a.getEffectiveInterestRate() + a.insuranceForBank();
-                    final bCost =
-                        b.getEffectiveInterestRate() + b.insuranceForBank();
-                    return aCost.compareTo(bCost);
-                  });
-              final normalOffer = sortedNormalOffers.isEmpty
-                  ? null
-                  : sortedNormalOffers.first;
+              final normalOffers = state.normalFinancingStatus.data ?? const <FinancingAdModel>[];
+              final sortedNormalOffers = List<FinancingAdModel>.from(normalOffers)
+                ..sort((a, b) {
+                  final aCost = a.getEffectiveInterestRate() + a.insuranceForBank();
+                  final bCost = b.getEffectiveInterestRate() + b.insuranceForBank();
+                  return aCost.compareTo(bCost);
+                });
+              final normalOffer = sortedNormalOffers.isEmpty ? null : sortedNormalOffers.first;
 
               final bool isLoadingInventory = isFilteredByOffer
                   ? state.programCarsStatus.isLoading
                   : isBrandSelected
-                  ? (state.brandCarsStatus.isLoading ||
-                        state.brandCarsStatus.isInitial)
+                  ? (state.brandCarsStatus.isLoading || state.brandCarsStatus.isInitial)
                   : state.allCarsStatus.isLoading;
 
               if (state.programCarsStatus.isLoading || isLoadingInventory) {
@@ -306,21 +315,39 @@ class _CarsScreenState extends State<CarsScreen> {
               final inventoryFailure = isFilteredByOffer
                   ? null
                   : isBrandSelected
-                  ? (state.brandCarsStatus.isFailure
-                        ? state.brandCarsStatus
-                        : null)
-                  : (state.allCarsStatus.isFailure
-                        ? state.allCarsStatus
-                        : null);
+                  ? (state.brandCarsStatus.isFailure ? state.brandCarsStatus : null)
+                  : (state.allCarsStatus.isFailure ? state.allCarsStatus : null);
               if (inventoryFailure != null) {
                 return Center(
-                  child: Text(
-                    inventoryFailure.message ??
-                        inventoryFailure.error ??
-                        'Error loading cars',
-                    style: AppTextStyle.bodyMedium(
-                      context,
-                    ).copyWith(color: AppColor.redColor(context)),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32.w),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(18.w),
+                          decoration: BoxDecoration(
+                            color: AppColor.redColor(context).withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error_outline_rounded,
+                            size: 34.sp,
+                            color: AppColor.redColor(context),
+                          ),
+                        ),
+                        Gap(14.h),
+                        Text(
+                          inventoryFailure.message ??
+                              inventoryFailure.error ??
+                              'Error loading cars',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyle.bodyMedium(
+                            context,
+                          ).copyWith(color: AppColor.redColor(context)),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
@@ -343,33 +370,22 @@ class _CarsScreenState extends State<CarsScreen> {
                         : offerCar.merge(originalCar);
                   }
 
-                  final nameParts = offerCar.itemName.trim().split(
-                    RegExp(r'\s+'),
-                  );
+                  final nameParts = offerCar.itemName.trim().split(RegExp(r'\s+'));
                   if (nameParts.isEmpty || nameParts.first.isEmpty) {
                     return offerCar;
                   }
-                  return offerCar.copyWith(
-                    grName: nameParts.first,
-                    groupName: nameParts.last,
-                  );
+                  return offerCar.copyWith(grName: nameParts.first, groupName: nameParts.last);
                 }).toList();
               } else if (isBrandSelected) {
-                baseCarsList =
-                    (state.brandCarsStatus.data ??
-                            const <GetBrandCarsDataModel>[])
-                        .where(
-                          (car) =>
-                              car.carStatus == 1 &&
-                              !homeCubit.isCarLocallyReserved(car.itemCode),
-                        )
-                        .toList();
+                baseCarsList = (state.brandCarsStatus.data ?? const <GetBrandCarsDataModel>[])
+                    .where(
+                      (car) => car.carStatus == 1 && !homeCubit.isCarLocallyReserved(car.itemCode),
+                    )
+                    .toList();
               } else {
                 baseCarsList = (state.allCarsStatus.data ?? [])
                     .where(
-                      (car) =>
-                          car.carStatus == 1 &&
-                          !homeCubit.isCarLocallyReserved(car.itemCode),
+                      (car) => car.carStatus == 1 && !homeCubit.isCarLocallyReserved(car.itemCode),
                     )
                     .toList();
               }
@@ -398,9 +414,7 @@ class _CarsScreenState extends State<CarsScreen> {
                   if (priceA.isInfinite) return priceB.isInfinite ? 0 : 1;
                   if (priceB.isInfinite) return -1;
                   final comparison = priceA.compareTo(priceB);
-                  return _priceSort == _CarPriceSort.lowToHigh
-                      ? comparison
-                      : -comparison;
+                  return _priceSort == _CarPriceSort.lowToHigh ? comparison : -comparison;
                 });
               }
 
@@ -408,9 +422,27 @@ class _CarsScreenState extends State<CarsScreen> {
                 children: [
                   CarSearchHeaderWidget(
                     controller: _searchController,
+                    viewToggleAction: ValueListenableBuilder<Box>(
+                      valueListenable: Hive.box('app').listenable(keys: ['cars_view_mode_grid']),
+                      builder: (context, box, _) {
+                        final isGrid = box.get('cars_view_mode_grid', defaultValue: false);
+                        return GestureDetector(
+                          onTap: () => box.put('cars_view_mode_grid', !isGrid),
+                          child: _HeaderActionButton(
+                            icon: isGrid ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
+                            active: isGrid,
+                          ),
+                        );
+                      },
+                    ),
                     sortAction: PopupMenuButton<_CarPriceSort>(
                       tooltip: AppLocaleKey.sortBy.tr(),
                       initialValue: _priceSort,
+                      offset: const Offset(0, 52),
+                      color: AppColor.secondAppColor(context),
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
                       onSelected: (sort) => setState(() => _priceSort = sort),
                       itemBuilder: (context) => [
                         PopupMenuItem(
@@ -426,21 +458,9 @@ class _CarsScreenState extends State<CarsScreen> {
                           child: Text(AppLocaleKey.defaultSort.tr()),
                         ),
                       ],
-                      child: Container(
-                        padding: EdgeInsets.all(12.w),
-                        decoration: BoxDecoration(
-                          color: AppColor.secondAppColor(context),
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: AppColor.dividerColor(context),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.sort_rounded,
-                          color: _priceSort == _CarPriceSort.none
-                              ? AppColor.blackTextColor(context)
-                              : AppColor.primaryColor(context),
-                        ),
+                      child: _HeaderActionButton(
+                        icon: Icons.sort_rounded,
+                        active: _priceSort != _CarPriceSort.none,
                       ),
                     ),
                     onChanged: (value) {
@@ -459,15 +479,11 @@ class _CarsScreenState extends State<CarsScreen> {
                         context.read<HomeCubit>().clearProgramCarsFilter();
                         // Refresh the program cars in the background so the
                         // list does not wait for every financing program.
-                        context.read<HomeCubit>().loadPromoCarOffers(
-                          force: true,
-                        );
+                        context.read<HomeCubit>().loadPromoCarOffers(force: true);
                         await Future.wait([
                           context.read<HomeCubit>().getCarsModels(),
                           context.read<HomeCubit>().fetchAllCars(),
-                          context.read<HomeCubit>().getNormalFinancing(
-                            force: true,
-                          ),
+                          context.read<HomeCubit>().getNormalFinancing(force: true),
                         ]);
                       },
                       color: AppColor.primaryColor(context),
@@ -479,72 +495,84 @@ class _CarsScreenState extends State<CarsScreen> {
                         ),
                         slivers: [
                           if (isFilteredByOffer && activeOffer != null) ...[
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 20.w,
-                                  vertical: 10.h,
-                                ),
-                                // Show the program's own artwork only. Falling
-                                // back to a car photo here would repeat the
-                                // first card's image right above it.
-                                child: activeOffer.programArtworkUrl.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(12.r),
-                                        child: CustomNetworkImage(
-                                          imageUrl:
-                                              activeOffer.programArtworkUrl,
-                                          width: double.infinity,
-                                          height: 120.h,
-                                          fit: BoxFit.cover,
+                            if (activeOffer.programArtworkUrl.isNotEmpty)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 4.h),
+                                  // Show the program's own artwork only.
+                                  // Falling back to a car photo here would
+                                  // repeat the first card's image right above
+                                  // it.
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20.r),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.10),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 8),
                                         ),
-                                      )
-                                    : const SizedBox.shrink(),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(20.r),
+                                      child: CustomNetworkImage(
+                                        imageUrl: activeOffer.programArtworkUrl,
+                                        width: double.infinity,
+                                        height: 130.h,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
                             SliverToBoxAdapter(
                               child: Container(
-                                margin: EdgeInsets.symmetric(
-                                  horizontal: 20.w,
-                                  vertical: 8.h,
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 14.w,
-                                  vertical: 10.h,
+                                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                                padding: EdgeInsetsDirectional.only(
+                                  start: 14.w,
+                                  end: 6.w,
+                                  top: 6.h,
+                                  bottom: 6.h,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColor.primaryColor(
-                                    context,
-                                  ).withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(8.r),
+                                  color: AppColor.primaryColor(context).withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(14.r),
+                                  border: Border.all(
+                                    color: AppColor.primaryColor(context).withValues(alpha: 0.18),
+                                  ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      AppLocaleKey.CAR_OFFERS.tr(),
-                                      style: AppTextStyle.bodyMedium(context)
-                                          .copyWith(
-                                            color: AppColor.blackTextColor(
-                                              context,
-                                            ).withValues(alpha: 0.6),
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                    Icon(
+                                      Icons.local_offer_rounded,
+                                      size: 16.sp,
+                                      color: AppColor.primaryColor(context),
+                                    ),
+                                    Gap(8.w),
+                                    Expanded(
+                                      child: Text(
+                                        AppLocaleKey.CAR_OFFERS.tr(),
+                                        style: AppTextStyle.bodyMedium(context).copyWith(
+                                          color: AppColor.primaryColor(context),
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
                                     ),
                                     InkWell(
+                                      borderRadius: BorderRadius.circular(20.r),
                                       onTap: () {
-                                        context
-                                            .read<HomeCubit>()
-                                            .clearProgramCarsFilter();
+                                        context.read<HomeCubit>().clearProgramCarsFilter();
                                       },
-                                      child: Icon(
-                                        Icons.close_rounded,
-                                        color: AppColor.blackTextColor(
-                                          context,
-                                        ).withValues(alpha: 0.5),
-                                        size: 18.sp,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(6.w),
+                                        child: Icon(
+                                          Icons.close_rounded,
+                                          color: AppColor.blackTextColor(
+                                            context,
+                                          ).withValues(alpha: 0.55),
+                                          size: 18.sp,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -559,31 +587,68 @@ class _CarsScreenState extends State<CarsScreen> {
                                 onClear: _clearBrandFilter,
                               ),
                             ),
-                          SliverToBoxAdapter(child: Gap(16.h)),
+                          // Results counter
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(22.w, 12.h, 22.w, 12.h),
+                              child: availableCars.isEmpty
+                                  ? const SizedBox.shrink()
+                                  : Row(
+                                      children: [
+                                        Container(
+                                          width: 4.w,
+                                          height: 16.h,
+                                          decoration: BoxDecoration(
+                                            color: AppColor.primaryColor(context),
+                                            borderRadius: BorderRadius.circular(4.r),
+                                          ),
+                                        ),
+                                        Gap(8.w),
+                                        Text(
+                                          isAr
+                                              ? '${availableCars.length} سيارة متاحة'
+                                              : '${availableCars.length} cars available',
+                                          style: AppTextStyle.bodyMedium(context).copyWith(
+                                            color: AppColor.blackTextColor(context),
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
                           if (availableCars.isEmpty)
                             SliverToBoxAdapter(
                               child: SizedBox(
-                                height: 200.h,
+                                height: 320.h,
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Gap(20),
-                                      Icon(
-                                        Icons.directions_car_outlined,
-                                        size: 80.sp,
-                                        color: AppColor.hintColor(context)
-                                            .withValues(alpha: 0.4),
+                                      Container(
+                                        padding: EdgeInsets.all(26.w),
+                                        decoration: BoxDecoration(
+                                          color: AppColor.primaryColor(
+                                            context,
+                                          ).withValues(alpha: 0.07),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.directions_car_outlined,
+                                          size: 54.sp,
+                                          color: AppColor.primaryColor(
+                                            context,
+                                          ).withValues(alpha: 0.7),
+                                        ),
                                       ),
-                                      const Gap(12),
+                                      Gap(16.h),
                                       Text(
                                         AppLocaleKey.noCars.tr(),
-                                        style: AppTextStyle.bodyLarge(
-                                          context,
-                                        ).copyWith(
+                                        style: AppTextStyle.bodyLarge(context).copyWith(
                                           color: AppColor.blackTextColor(
                                             context,
-                                          ).withValues(alpha: 0.4),
+                                          ).withValues(alpha: 0.55),
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ],
@@ -592,72 +657,101 @@ class _CarsScreenState extends State<CarsScreen> {
                               ),
                             )
                           else
-                            SliverPadding(
-                              padding:
-                                  EdgeInsets.fromLTRB(20.w, 0, 20.w, 100.h),
-                              sliver: SliverList.separated(
-                                addAutomaticKeepAlives: false,
-                                addRepaintBoundaries: true,
-                                itemCount: availableCars.length,
-                                separatorBuilder: (context, index) => Gap(16.h),
-                                itemBuilder: (context, index) {
-                                  final car = _localizeCarData(
-                                    availableCars[index],
-                                  );
-                                  final carId =
-                                      HiveMethods.getCarUniqueId(car.toMap());
+                            ValueListenableBuilder<Box>(
+                              valueListenable: Hive.box(
+                                'app',
+                              ).listenable(keys: ['cars_view_mode_grid']),
+                              builder: (context, box, _) {
+                                final isGrid = box.get('cars_view_mode_grid', defaultValue: false);
 
-                                  // A vehicle can belong to an offer on its own
-                                  // (GetprandcarsData returns the offer terms on
-                                  // the car row) or through a financing program
-                                  // while still being part of the regular
-                                  // inventory. Both must drive the card
-                                  // installment instead of the standard bank
-                                  // financing numbers.
-                                  final vehicleOffer = car.isVehicleOffer
-                                      ? FinancingAdModel.fromCarOffer(car)
-                                      : null;
-                                  // Fuzzy match against promoCarOffers (name/year).
-                                  final promoOffer = _findPromoOffer(
-                                    car,
-                                    state.promoCarOffers,
-                                  );
-                                  // Fast item-code lookup as a fallback when fuzzy
-                                  // match returns null (avoids missing the banner
-                                  // when promoCarOffers loaded before the fuzzy
-                                  // match had a chance to run).
-                                  final promoOfferByCode =
-                                      car.itemCode.isNotEmpty
-                                      ? promoOffersByItemCode[car.itemCode.trim()]
-                                      : null;
-                                  final resolvedPromoOffer =
-                                      promoOffer ?? promoOfferByCode;
-                                  final activeOffer = isFilteredByOffer
-                                      ? (vehicleOffer ??
-                                            (car.itemCode.isNotEmpty
-                                                ? offersByItemCode[car.itemCode]
-                                                : null))
-                                      : (resolvedPromoOffer ?? vehicleOffer);
-                                  final offer = activeOffer ??
-                                      (isFilteredByOffer ? normalOffer : null);
-                                  final offers =
-                                      activeOffer != null || isFilteredByOffer
-                                      ? const <FinancingAdModel>[]
-                                      : normalOffers;
+                                if (isGrid) {
+                                  final rowCount = (availableCars.length + 1) ~/ 2;
 
-                                  return PremiumCarCardWidget(
-                                    car: car,
-                                    heroTag:
-                                        'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
-                                    isOffer:
-                                        isFilteredByOffer ||
-                                        resolvedPromoOffer != null ||
-                                        car.isVehicleOffer,
-                                    offer: offer,
-                                    financingOffers: offers,
+                                  Widget cardAt(int index) {
+                                    final car = _localizeCarData(availableCars[index]);
+                                    final carId = HiveMethods.getCarUniqueId(car.toMap());
+                                    final resolved = _resolveCardOffer(
+                                      car: car,
+                                      state: state,
+                                      isFilteredByOffer: isFilteredByOffer,
+                                      offersByItemCode: offersByItemCode,
+                                      promoOffersByItemCode: promoOffersByItemCode,
+                                      normalOffer: normalOffer,
+                                      normalOffers: normalOffers,
+                                    );
+                                    return GridCarCardWidget(
+                                      car: car,
+                                      heroTag:
+                                          'grid_car_image_${carId.isNotEmpty ? carId : index}_$index',
+                                      isOffer: resolved.isOffer,
+                                      offer: resolved.offer,
+                                      financingOffers: resolved.offers,
+                                    );
+                                  }
+
+                                  // Rows of two cards: each row is as tall as
+                                  // its tallest card, so cards fit their
+                                  // content instead of a fixed grid height.
+                                  return SliverPadding(
+                                    padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 100.h),
+                                    sliver: SliverList.separated(
+                                      addAutomaticKeepAlives: false,
+                                      itemCount: rowCount,
+                                      separatorBuilder: (_, __) => Gap(14.h),
+                                      itemBuilder: (context, row) {
+                                        final first = row * 2;
+                                        final second = first + 1;
+                                        return IntrinsicHeight(
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              Expanded(child: cardAt(first)),
+                                              Gap(12.w),
+                                              Expanded(
+                                                child: second < availableCars.length
+                                                    ? cardAt(second)
+                                                    : const SizedBox.shrink(),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   );
-                                },
-                              ),
+                                }
+
+                                return SliverPadding(
+                                  padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 100.h),
+                                  sliver: SliverList.separated(
+                                    addAutomaticKeepAlives: false,
+                                    addRepaintBoundaries: true,
+                                    itemCount: availableCars.length,
+                                    separatorBuilder: (context, index) => Gap(18.h),
+                                    itemBuilder: (context, index) {
+                                      final car = _localizeCarData(availableCars[index]);
+                                      final carId = HiveMethods.getCarUniqueId(car.toMap());
+                                      final resolved = _resolveCardOffer(
+                                        car: car,
+                                        state: state,
+                                        isFilteredByOffer: isFilteredByOffer,
+                                        offersByItemCode: offersByItemCode,
+                                        promoOffersByItemCode: promoOffersByItemCode,
+                                        normalOffer: normalOffer,
+                                        normalOffers: normalOffers,
+                                      );
+
+                                      return PremiumCarCardWidget(
+                                        car: car,
+                                        heroTag:
+                                            'premium_car_image_${carId.isNotEmpty ? carId : index}_$index',
+                                        isOffer: resolved.isOffer,
+                                        offer: resolved.offer,
+                                        financingOffers: resolved.offers,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
                             ),
                         ],
                       ),
@@ -669,6 +763,39 @@ class _CarsScreenState extends State<CarsScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Square action button used next to the search field (view toggle / sort).
+class _HeaderActionButton extends StatelessWidget {
+  final IconData icon;
+  final bool active;
+
+  const _HeaderActionButton({required this.icon, this.active = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = AppColor.primaryColor(context);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 46.w,
+      height: 46.w,
+      decoration: BoxDecoration(
+        color: active ? primary.withValues(alpha: 0.10) : AppColor.secondAppColor(context),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: active ? primary.withValues(alpha: 0.45) : AppColor.dividerColor(context),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Icon(icon, size: 21.sp, color: active ? primary : AppColor.blackTextColor(context)),
     );
   }
 }

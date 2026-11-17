@@ -10,13 +10,14 @@ import 'package:car/features/home/data/model/cars_models_response.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
 import 'package:car/features/home/presentation/view/widgets/app_header_popular_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/brand_header_widget.dart';
-import 'package:car/features/home/presentation/view/widgets/empty_state_widget.dart';
 import 'package:car/features/home/presentation/view/widgets/car_card_widget.dart';
+import 'package:car/features/home/presentation/view/widgets/empty_state_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class PopularCarsScreen extends StatefulWidget {
   const PopularCarsScreen({super.key, this.bestSellersOnly = false});
@@ -295,6 +296,52 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
                 ),
                 slivers: [
                   AppHeader(title: screenTitle),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ValueListenableBuilder<Box>(
+                            valueListenable: Hive.box('app')
+                                .listenable(keys: ['cars_view_mode_grid']),
+                            builder: (context, box, _) {
+                              final isGrid =
+                                  box.get('cars_view_mode_grid', defaultValue: false);
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(8.r),
+                                onTap: () =>
+                                    box.put('cars_view_mode_grid', !isGrid),
+                                child: Container(
+                                  padding: EdgeInsets.all(6.w),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.secondAppColor(context),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: Border.all(
+                                      color: AppColor.blackTextColor(context)
+                                          .withValues(alpha: 0.1),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    isGrid
+                                        ? Icons.view_agenda_rounded
+                                        : Icons.grid_view_rounded,
+                                    size: 16.sp,
+                                    color: isGrid
+                                        ? AppColor.primaryColor(context)
+                                        : AppColor.blackTextColor(context),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   if (isLoading)
                     const SliverFillRemaining(
                       child: Center(child: CustomLoading()),
@@ -366,37 +413,80 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
     bool isBrandSelected,
     String? selectedBrandName,
   ) {
-    return SliverPadding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: isBrandSelected ? 16.h : 8.h,
-      ),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate((context, index) {
-          final car = _carToMap(cars[index], selectedBrandName);
-          final heroTag =
-              'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index';
-          return Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: SizedBox(
-              height: (MediaQuery.sizeOf(context).height / 1.9).clamp(
-                380.0,
-                520.0,
+    return ValueListenableBuilder<Box>(
+      valueListenable: Hive.box('app').listenable(keys: ['cars_view_mode_grid']),
+      builder: (context, box, _) {
+        final isGrid = box.get('cars_view_mode_grid', defaultValue: false);
+
+        if (isGrid) {
+          return SliverPadding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: isBrandSelected ? 16.h : 8.h,
+            ),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10.w,
+                mainAxisSpacing: 12.h,
+                childAspectRatio: 0.48,
               ),
-              child: CarCard(
-                car: car,
-                isSelected: true,
-                heroTag: heroTag,
-                onTap: () => NavigatorMethods.pushNamed(
-                  context,
-                  RoutesName.carDetailsScreen,
-                  arguments: {'car': car, 'heroTag': heroTag},
-                ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final car = _carToMap(cars[index], selectedBrandName);
+                  final heroTag =
+                      'popular_screen_car_grid_${HiveMethods.getCarUniqueId(car)}_$index';
+                  return CarCard(
+                    car: car,
+                    isSelected: true,
+                    heroTag: heroTag,
+                    padding: EdgeInsets.all(2.w),
+                    onTap: () => NavigatorMethods.pushNamed(
+                      context,
+                      RoutesName.carDetailsScreen,
+                      arguments: {'car': car, 'heroTag': heroTag},
+                    ),
+                  );
+                },
+                childCount: cars.length,
               ),
             ),
           );
-        }, childCount: cars.length),
-      ),
+        }
+
+        return SliverPadding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: isBrandSelected ? 16.h : 8.h,
+          ),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final car = _carToMap(cars[index], selectedBrandName);
+              final heroTag =
+                  'popular_screen_car_image_${HiveMethods.getCarUniqueId(car)}_$index';
+              return Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: SizedBox(
+                  height: (MediaQuery.sizeOf(context).height / 1.9).clamp(
+                    380.0,
+                    520.0,
+                  ),
+                  child: CarCard(
+                    car: car,
+                    isSelected: true,
+                    heroTag: heroTag,
+                    onTap: () => NavigatorMethods.pushNamed(
+                      context,
+                      RoutesName.carDetailsScreen,
+                      arguments: {'car': car, 'heroTag': heroTag},
+                    ),
+                  ),
+                ),
+              );
+            }, childCount: cars.length),
+          ),
+        );
+      },
     );
   }
 }

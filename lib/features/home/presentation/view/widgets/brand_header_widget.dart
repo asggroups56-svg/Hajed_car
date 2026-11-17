@@ -27,11 +27,15 @@ class BrandHeader extends StatelessWidget {
             ),
           ),
           Gap(12.w),
-          Text(
-            brandName.toUpperCase(),
-            style: AppTextStyle.titleMedium(
-              context,
-            ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 2),
+          Flexible(
+            child: Text(
+              brandName.toUpperCase(),
+              style: AppTextStyle.titleMedium(
+                context,
+              ).copyWith(fontWeight: FontWeight.w900, letterSpacing: 2),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const Spacer(),
           Text(

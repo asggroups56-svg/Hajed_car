@@ -12,6 +12,7 @@ class MiniDetailWidget extends StatelessWidget {
     required this.label,
     this.color,
     this.iconColor,
+    this.padding,
   });
 
   final IconData? icon;
@@ -19,11 +20,12 @@ class MiniDetailWidget extends StatelessWidget {
   final String label;
   final Color? color;
   final Color? iconColor;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+      padding: padding ?? EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: AppColor.blackTextColor(context).withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(8.r),
