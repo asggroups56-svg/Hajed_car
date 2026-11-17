@@ -501,11 +501,17 @@ class PremiumCarCardWidget extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () => NavigatorMethods.pushNamed(
-              context,
-              RoutesName.financingScreen,
-              arguments: {'car': car, 'offer': offer, 'offers': financingOffers},
-            ),
+            onPressed: () {
+              if (HiveMethods.isGuest()) {
+                CommonMethods.showLoginRequiredDialog(context);
+                return;
+              }
+              NavigatorMethods.pushNamed(
+                context,
+                RoutesName.financingScreen,
+                arguments: {'car': car, 'offer': offer, 'offers': financingOffers},
+              );
+            },
             icon: Icon(Icons.calculate_outlined, size: 16.sp),
             label: FittedBox(
               fit: BoxFit.scaleDown,
