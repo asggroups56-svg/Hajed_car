@@ -4,6 +4,7 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/utils/common_methods.dart';
 import 'package:car/core/utils/navigator_methods.dart';
@@ -68,6 +69,12 @@ class LoginScreen extends StatelessWidget {
                 } else {
                   NavigatorMethods.pushReplacementNamed(context, RoutesName.adminDashboard);
                 }
+
+                // Replay a deep link that was deferred because login was
+                // required. No-op when there is no pending link.
+                Future<void>.delayed(const Duration(milliseconds: 600), () {
+                  DeepLinkService.flushPendingAfterLogin();
+                });
               }
               if (state.loginStatus.isFailure) {
                 log(state.loginStatus.error?.toString() ?? 'Login failed');

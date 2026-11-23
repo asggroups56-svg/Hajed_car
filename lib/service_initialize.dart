@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'core/services/notification_service.dart';
+import 'package:car/core/services/notification_service.dart';
 import 'core/services/services_locator.dart';
 import 'core/theme/theme_enum.dart';
 import 'firebase_options.dart';

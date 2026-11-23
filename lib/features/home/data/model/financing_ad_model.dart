@@ -121,6 +121,120 @@ class FinancingAdModel extends Equatable {
     this.paintingsVal,
   });
 
+  FinancingAdModel copyWith({
+    int? programId,
+    String? programName,
+    bool? isActive,
+    String? bankOrProvider,
+    String? bankName,
+    String? bankNameEng,
+    String? bankPicturePath,
+    int? bankId,
+    String? bankCode,
+    String? startDate,
+    String? endDate,
+    double? firstInstallmentPct,
+    double? firstInstallmentPctOther,
+    double? lastInstallmentPct,
+    double? lastInstallmentPctOther,
+    double? adminFeesPct,
+    double? adminFeesPctOther,
+    String? programPic,
+    double? interestRate,
+    double? interestRateOther,
+    int? totalMonths,
+    String? modelName,
+    double? price,
+    double? salePrice,
+    String? itemCode,
+    String? itemName,
+    String? storeCode,
+    int? carStatus,
+    String? chassisNo,
+    String? motorNo,
+    String? bodyColor,
+    String? kilometerReading,
+    dynamic transmission,
+    dynamic cylinder,
+    dynamic powerHourse,
+    dynamic fuelCapacity,
+    dynamic fuelType,
+    int? seatNo,
+    int? doorNo,
+    dynamic usedClient,
+    int? addType,
+    int? colorCode,
+    String? boardNo,
+    int? makeYear,
+    int? modelYear,
+    bool? mobileShow,
+    String? color,
+    String? carImage,
+    String? displayBankName,
+    double? insurancePct,
+    double? insurancePctOther,
+    double? insuranceAmount,
+    double? insuranceAmountOther,
+    double? paintingsVal,
+  }) {
+    return FinancingAdModel(
+      programId: programId ?? this.programId,
+      programName: programName ?? this.programName,
+      isActive: isActive ?? this.isActive,
+      bankOrProvider: bankOrProvider ?? this.bankOrProvider,
+      bankName: bankName ?? this.bankName,
+      bankNameEng: bankNameEng ?? this.bankNameEng,
+      bankPicturePath: bankPicturePath ?? this.bankPicturePath,
+      bankId: bankId ?? this.bankId,
+      bankCode: bankCode ?? this.bankCode,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      firstInstallmentPct: firstInstallmentPct ?? this.firstInstallmentPct,
+      firstInstallmentPctOther: firstInstallmentPctOther ?? this.firstInstallmentPctOther,
+      lastInstallmentPct: lastInstallmentPct ?? this.lastInstallmentPct,
+      lastInstallmentPctOther: lastInstallmentPctOther ?? this.lastInstallmentPctOther,
+      adminFeesPct: adminFeesPct ?? this.adminFeesPct,
+      adminFeesPctOther: adminFeesPctOther ?? this.adminFeesPctOther,
+      programPic: programPic ?? this.programPic,
+      interestRate: interestRate ?? this.interestRate,
+      interestRateOther: interestRateOther ?? this.interestRateOther,
+      totalMonths: totalMonths ?? this.totalMonths,
+      modelName: modelName ?? this.modelName,
+      price: price ?? this.price,
+      salePrice: salePrice ?? this.salePrice,
+      itemCode: itemCode ?? this.itemCode,
+      itemName: itemName ?? this.itemName,
+      storeCode: storeCode ?? this.storeCode,
+      carStatus: carStatus ?? this.carStatus,
+      chassisNo: chassisNo ?? this.chassisNo,
+      motorNo: motorNo ?? this.motorNo,
+      bodyColor: bodyColor ?? this.bodyColor,
+      kilometerReading: kilometerReading ?? this.kilometerReading,
+      transmission: transmission ?? this.transmission,
+      cylinder: cylinder ?? this.cylinder,
+      powerHourse: powerHourse ?? this.powerHourse,
+      fuelCapacity: fuelCapacity ?? this.fuelCapacity,
+      fuelType: fuelType ?? this.fuelType,
+      seatNo: seatNo ?? this.seatNo,
+      doorNo: doorNo ?? this.doorNo,
+      usedClient: usedClient ?? this.usedClient,
+      addType: addType ?? this.addType,
+      colorCode: colorCode ?? this.colorCode,
+      boardNo: boardNo ?? this.boardNo,
+      makeYear: makeYear ?? this.makeYear,
+      modelYear: modelYear ?? this.modelYear,
+      mobileShow: mobileShow ?? this.mobileShow,
+      color: color ?? this.color,
+      carImage: carImage ?? this.carImage,
+      displayBankName: displayBankName ?? this.displayBankName,
+      insurancePct: insurancePct ?? this.insurancePct,
+      insurancePctOther: insurancePctOther ?? this.insurancePctOther,
+      insuranceAmount: insuranceAmount ?? this.insuranceAmount,
+      insuranceAmountOther: insuranceAmountOther ?? this.insuranceAmountOther,
+      paintingsVal: paintingsVal ?? this.paintingsVal,
+    );
+  }
+
   static double? _toDouble(dynamic value) {
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString().replaceAll(',', '') ?? '');
@@ -159,7 +273,18 @@ class FinancingAdModel extends Equatable {
     );
 
     return FinancingAdModel(
-      programId: (json['ProgramID'] as num?)?.toInt(),
+      programId: _toInt(
+        json['ProgramID'] ??
+            json['ProgramId'] ??
+            json['PROGRAM_ID'] ??
+            json['programId'] ??
+            json['Program_ID'] ??
+            json['Code'] ??
+            json['CODE'] ??
+            json['code'] ??
+            json['ID'] ??
+            json['Id'],
+      ),
       programName: json['ProgramName']?.toString(),
       isActive: json['IsActive'] as bool?,
       bankOrProvider: json['BankOrProvider']?.toString(),
@@ -301,6 +426,7 @@ class FinancingAdModel extends Equatable {
     price = price != null && price > 0 ? price : null;
 
     return FinancingAdModel(
+      programId: car.programId ?? (car.reasonId != 0 ? car.reasonId : null),
       programName: car.groupName,
       modelName: car.itemName,
       modelYear: car.makeYear,
@@ -785,6 +911,7 @@ class FinancingAdModel extends Equatable {
       trNo: 0,
       customsCardNo: null,
       reasonId: 0,
+      programId: programId,
       mobileShow: mobileShow ?? true,
       color: color ?? bodyColor ?? '',
       extraImages: images,

@@ -1,6 +1,7 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:car/core/custom_widgets/internet_connectivity_wrapper.dart';
 import 'package:car/core/custom_widgets/security_lock_wrapper.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/services/notification_service.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/cubit/app_theme_cubit.dart';
@@ -16,15 +17,24 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'core/routes/app_routers_import.dart';
 import 'core/routes/routes_name.dart';
 import 'core/theme/style.dart';
+
 class CarApp extends StatefulWidget {
   const CarApp({super.key});
   @override
   State<CarApp> createState() => _CarAppState();
 }
+
 class _CarAppState extends State<CarApp> {
+  @override
+  void dispose() {
+    DeepLinkService.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     context.locale;

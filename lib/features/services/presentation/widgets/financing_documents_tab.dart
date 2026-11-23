@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:car/core/custom_widgets/custom_image/custom_file_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/services/permission_service.dart';
@@ -11,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class FinancingDocumentsTab extends StatefulWidget {
   final Map<String, File?>? uploadedFiles;
@@ -41,6 +44,36 @@ class _FinancingDocumentsTabState extends State<FinancingDocumentsTab> {
     widget.onFilesChanged?.call(uploadedFiles);
   }
 
+  static const Set<String> _imageExtensions = {'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'};
+
+  /// The picked file arrives with a full device path, sometimes with a `~`,
+  /// `../` or an `Img/Emp/` segment in front of it. Only the file name is part
+  /// of the attachment, so every directory segment is dropped.
+  String _attachmentFileName(String path) {
+    final normalized = path.trim().replaceAll('\\', '/');
+
+    final segments = normalized
+        .split('/')
+        .where(
+          (segment) => segment.isNotEmpty && segment != '.' && segment != '..' && segment != '~',
+        )
+        .toList();
+    return segments.isEmpty ? normalized : segments.last;
+  }
+
+  Future<File> _toCleanFile(XFile image) async {
+    final dir = await getTemporaryDirectory();
+    final name = '${DateTime.now().millisecondsSinceEpoch}${p.extension(image.path).toLowerCase()}';
+    return File(image.path).copy(p.join(dir.path, name));
+  }
+
+  bool _isImageAttachment(String path) {
+    final name = _attachmentFileName(path);
+    final dot = name.lastIndexOf('.');
+    if (dot < 0 || dot == name.length - 1) return false;
+    return _imageExtensions.contains(name.substring(dot + 1).toLowerCase());
+  }
+
   // ─── Pickers (Camera & Gallery Only) ───────────────────────────────────────
 
   Future<void> _pickImageFromGallery(String key) async {
@@ -48,9 +81,12 @@ class _FinancingDocumentsTabState extends State<FinancingDocumentsTab> {
     if (!hasPermission) return;
     final image = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
-      setState(() => uploadedFiles[key] = File(image.path));
+      final clean = await _toCleanFile(image);
+      if (!mounted) return;
+      setState(() => uploadedFiles[key] = clean);
       _notifyFilesChanged();
     }
+    print('Picked image from camera: ${image?.path}');
   }
 
   Future<void> _pickImageFromCamera(String key) async {
@@ -58,7 +94,9 @@ class _FinancingDocumentsTabState extends State<FinancingDocumentsTab> {
     if (!hasPermission) return;
     final image = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 70);
     if (image != null) {
-      setState(() => uploadedFiles[key] = File(image.path));
+      final clean = await _toCleanFile(image);
+      if (!mounted) return;
+      setState(() => uploadedFiles[key] = clean);
       _notifyFilesChanged();
     }
   }
@@ -339,11 +377,11 @@ class _FinancingDocumentsTabState extends State<FinancingDocumentsTab> {
             ),
             child: Row(
               children: [
-                Icon(Icons.image_rounded, color: AppColor.greenColor(context), size: 16.sp),
-                Gap(8.w),
+                _buildAttachmentPreview(context, file),
+                Gap(10.w),
                 Expanded(
                   child: Text(
-                    file.path.split('/').last,
+                    _attachmentFileName(file.path),
                     style: AppTextStyle.bodySmall(
                       context,
                     ).copyWith(color: AppColor.greenColor(context), fontWeight: FontWeight.w600),
@@ -367,6 +405,29 @@ class _FinancingDocumentsTabState extends State<FinancingDocumentsTab> {
         Gap(12.h),
         Divider(height: 1, color: AppColor.dividerColor(context)),
       ],
+    );
+  }
+
+  Widget _buildAttachmentPreview(BuildContext context, File file) {
+    if (_isImageAttachment(file.path)) {
+      return CustomFileImage(
+        imageFile: file,
+        width: 44.w,
+        height: 44.w,
+        fit: BoxFit.cover,
+        borderRadius: BorderRadius.circular(8.r),
+        hasZoom: true,
+      );
+    }
+
+    return Container(
+      width: 44.w,
+      height: 44.w,
+      decoration: BoxDecoration(
+        color: AppColor.redColor(context).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Icon(Icons.picture_as_pdf_rounded, color: AppColor.redColor(context), size: 22.sp),
     );
   }
 }

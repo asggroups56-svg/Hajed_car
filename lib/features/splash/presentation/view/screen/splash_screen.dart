@@ -3,6 +3,7 @@ import 'package:car/core/custom_widgets/copyright_widget.dart';
 import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/navigator_methods.dart';
@@ -95,23 +96,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   void _navigateToNextScreen() {
-    Future.delayed(const Duration(milliseconds: 3200)).then((value) {
-      if (mounted) {
-        if (HiveMethods.isFirstTime()) {
-          NavigatorMethods.pushReplacementNamed(context, RoutesName.onboardingScreen);
-        } else if (HiveMethods.getToken() != null) {
-          if (HiveMethods.isUserRole()) {
-            NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
-          } else if (HiveMethods.isAgentRole()) {
-            NavigatorMethods.pushReplacementNamed(context, RoutesName.agentDashboard);
-          } else {
-            NavigatorMethods.pushReplacementNamed(context, RoutesName.adminDashboard);
-          }
-        } else {
-          HiveMethods.updateIsGuest(true);
+    Future.delayed(const Duration(milliseconds: 3200)).then((value) async {
+      if (!mounted) return;
+
+      if (HiveMethods.isFirstTime()) {
+        NavigatorMethods.pushReplacementNamed(context, RoutesName.onboardingScreen);
+      } else if (HiveMethods.getToken() != null) {
+        if (HiveMethods.isUserRole()) {
           NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
+        } else if (HiveMethods.isAgentRole()) {
+          NavigatorMethods.pushReplacementNamed(context, RoutesName.agentDashboard);
+        } else {
+          NavigatorMethods.pushReplacementNamed(context, RoutesName.adminDashboard);
         }
+      } else {
+        HiveMethods.updateIsGuest(true);
+        NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
       }
+
+      // Let the destination route settle before replaying a cold-start link,
+      // otherwise the splash replacement could remove the details route.
+      await Future.delayed(const Duration(milliseconds: 350));
+      DeepLinkService.markNavigatorReady();
     });
   }
 

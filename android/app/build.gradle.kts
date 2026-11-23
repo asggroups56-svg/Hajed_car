@@ -27,6 +27,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Deep-link values consumed by AndroidManifest.xml.
+        // Keep them in sync with DeepLinkConfig in deep_link_service.dart.
+        manifestPlaceholders["deepLinkHost"] = "delta-asg.com"
+        manifestPlaceholders["deepLinkScheme"] = "hajedcar"
     }
 
     flavorDimensions += "default"
@@ -57,13 +62,28 @@ android {
         create("dev") {
             dimension = "default"
             applicationIdSuffix = ".dev"
+            // Same verified domain as prod. The domain's assetlinks.json
+            // contains a statement for com.Hajed.car.dev, so the dev build
+            // verifies too. Do not install dev and prod on the same device
+            // for link testing (Android would show an app chooser).
+            // For full isolation, use a subdomain instead:
+            //   manifestPlaceholders["deepLinkHost"] = "dev.delta-asg.com"
+            // and publish an assetlinks.json on that subdomain.
+            manifestPlaceholders["deepLinkHost"] = "delta-asg.com"
+            manifestPlaceholders["deepLinkScheme"] = "hajedcar"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".testing"
+            // applicationId is com.Hajed.car.testing, which is also listed in
+            // the domain's assetlinks.json.
+            manifestPlaceholders["deepLinkHost"] = "delta-asg.com"
+            manifestPlaceholders["deepLinkScheme"] = "hajedcar"
         }
         create("prod") {
             dimension = "default"
+            manifestPlaceholders["deepLinkHost"] = "delta-asg.com"
+            manifestPlaceholders["deepLinkScheme"] = "hajedcar"
         }
     }
 }

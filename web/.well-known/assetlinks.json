@@ -1,0 +1,38 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.Hajed.car",
+      "sha256_cert_fingerprints": [
+        "2B:AE:22:A6:2C:D3:04:75:6D:32:82:06:78:ED:21:D3:97:4D:48:1B:CD:42:55:A4:07:BE:12:56:79:27:05:23",
+        "D0:EB:87:2E:AC:AE:3C:FF:90:AF:BB:03:2D:6A:22:3E:A1:54:7D:D1:CE:52:5F:EB:31:4C:05:A4:C1:54:C2:1B",
+        "63:00:6F:29:99:5A:FB:BD:65:18:29:5C:9C:75:AB:AE:8A:E5:96:43:D3:57:A6:AE:79:5B:08:87:4E:48:88:08"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.Hajed.car.testing",
+      "sha256_cert_fingerprints": [
+        "2B:AE:22:A6:2C:D3:04:75:6D:32:82:06:78:ED:21:D3:97:4D:48:1B:CD:42:55:A4:07:BE:12:56:79:27:05:23",
+        "D0:EB:87:2E:AC:AE:3C:FF:90:AF:BB:03:2D:6A:22:3E:A1:54:7D:D1:CE:52:5F:EB:31:4C:05:A4:C1:54:C2:1B",
+        "63:00:6F:29:99:5A:FB:BD:65:18:29:5C:9C:75:AB:AE:8A:E5:96:43:D3:57:A6:AE:79:5B:08:87:4E:48:88:08"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.Hajed.car.dev",
+      "sha256_cert_fingerprints": [
+        "2B:AE:22:A6:2C:D3:04:75:6D:32:82:06:78:ED:21:D3:97:4D:48:1B:CD:42:55:A4:07:BE:12:56:79:27:05:23",
+        "D0:EB:87:2E:AC:AE:3C:FF:90:AF:BB:03:2D:6A:22:3E:A1:54:7D:D1:CE:52:5F:EB:31:4C:05:A4:C1:54:C2:1B",
+        "63:00:6F:29:99:5A:FB:BD:65:18:29:5C:9C:75:AB:AE:8A:E5:96:43:D3:57:A6:AE:79:5B:08:87:4E:48:88:08"
+      ]
+    }
+  }
+]

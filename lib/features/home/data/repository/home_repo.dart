@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/error/failures.dart';
 import 'package:car/core/network/api_consumer.dart';
@@ -223,13 +222,13 @@ class HomeRepoImpl implements HomeRepo {
   ) async {
     return handleDioRequest(
       request: () async {
-        final queryParams = {
-          'id': brandId.toString(),
-          'frommakeyear': frommakeyear ?? '',
-          'tomakeyear': tomakeyear ?? '',
-          'fromprice': fromprice.toString(),
-          'toprice': toprice.toString(),
-          'FUEL_TYPE': fuelType ?? '',
+        final queryParams = <String, dynamic>{
+          if (brandId != null) 'id': brandId.toString(),
+          if (frommakeyear != null && frommakeyear.isNotEmpty) 'frommakeyear': frommakeyear,
+          if (tomakeyear != null && tomakeyear.isNotEmpty) 'tomakeyear': tomakeyear,
+          if (fromprice != null) 'fromprice': fromprice.toString(),
+          if (toprice != null) 'toprice': toprice.toString(),
+          if (fuelType != null && fuelType.isNotEmpty) 'FUEL_TYPE': fuelType,
         };
 
         try {

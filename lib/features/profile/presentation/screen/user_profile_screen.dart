@@ -30,12 +30,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: HiveMethods.getUserName() ?? '',
-    );
-    _phoneController = TextEditingController(
-      text: HiveMethods.getSavedMobile(),
-    );
+    _nameController = TextEditingController(text: HiveMethods.getUserName() ?? '');
+    _phoneController = TextEditingController(text: HiveMethods.getSavedMobile());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final code = HiveMethods.getcode();
@@ -60,16 +56,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         final profileStatus = agentState.customerProfileStatus;
         final CustomerProfileModel? profile = profileStatus.data;
 
-        if (profile != null &&
-            profile.customerName != null &&
-            profile.customerName!.isNotEmpty) {
+        if (profile != null && profile.customerName != null && profile.customerName!.isNotEmpty) {
           if (_nameController.text.isEmpty) {
             _nameController.text = profile.customerName!;
           }
         }
-        if (profile != null &&
-            profile.tel1 != null &&
-            profile.tel1!.isNotEmpty) {
+        if (profile != null && profile.tel1 != null && profile.tel1!.isNotEmpty) {
           if (_phoneController.text.isEmpty) {
             _phoneController.text = profile.tel1!;
           }
@@ -117,8 +109,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
 
                       if (profile != null &&
-                          (profile.balance != null ||
-                              profile.creditLimit != null)) ...[
+                          (profile.balance != null || profile.creditLimit != null)) ...[
                         Gap(24.h),
                         FinancialSummaryWidget(profile: profile),
                       ],

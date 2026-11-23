@@ -31,9 +31,37 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- app_links owns link handling; disable Flutter's built-in
+                 deep linking so the URL is not also pushed as a named route. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- 1. Deep linking: Custom Scheme (${deepLinkScheme}://car/<id>) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="${deepLinkScheme}"/>
+            </intent-filter>
+
+            <!-- 2. Deep linking: App Links (https://${deepLinkHost}/car/*) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="${deepLinkHost}"/>
+                <data android:pathPrefix="/car"/>
+
+
+                <!-- Keep the trailing slash: "/car" would also match
+                     /careers, /cart, etc. and steal unrelated links. -->
+                <data android:pathPrefix="/car/"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

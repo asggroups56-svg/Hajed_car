@@ -250,8 +250,10 @@ class _CarsScreenState extends State<CarsScreen> {
         : null;
     final resolvedPromoOffer = promoOffer ?? promoOfferByCode;
     final activeOffer = isFilteredByOffer
-        ? (vehicleOffer ?? (car.itemCode.isNotEmpty ? offersByItemCode[car.itemCode] : null))
-        : (resolvedPromoOffer ?? vehicleOffer);
+        ? ((car.itemCode.isNotEmpty ? offersByItemCode[car.itemCode] : null) ?? vehicleOffer)
+        : ((car.itemCode.isNotEmpty ? promoOffersByItemCode[car.itemCode.trim()] : null) ??
+            promoOffer ??
+            vehicleOffer);
     final offer = activeOffer ?? (isFilteredByOffer ? normalOffer : null);
     final offers = activeOffer != null || isFilteredByOffer
         ? const <FinancingAdModel>[]

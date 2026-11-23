@@ -458,7 +458,12 @@ class HomeCubit extends Cubit<HomeState> {
         // The offers endpoint can return the same vehicle more than once (for
         // example once per bank row). Each car must still get a single card,
         // otherwise its picture and details appear twice in the listing.
-        final uniqueRows = _dedupeProgramCars(response);
+        final rowsWithPid = programId != null
+            ? response
+                .map((r) => r.programId == null ? r.copyWith(programId: programId) : r)
+                .toList()
+            : response;
+        final uniqueRows = _dedupeProgramCars(rowsWithPid);
         if (programId != null) {
           // Keep the program's cars so the regular inventory list can attach
           // their offer terms to the matching cars later.
@@ -602,9 +607,11 @@ class HomeCubit extends Cubit<HomeState> {
       );
 
       for (var i = 0; i < missingProgramIds.length; i++) {
-        _programCarsCache[missingProgramIds[i]] = _dedupeProgramCars(
-          results[i],
-        );
+        final pid = missingProgramIds[i];
+        final rowsWithPid = results[i]
+            .map((r) => r.programId == null ? r.copyWith(programId: pid) : r)
+            .toList();
+        _programCarsCache[pid] = _dedupeProgramCars(rowsWithPid);
       }
     }
 

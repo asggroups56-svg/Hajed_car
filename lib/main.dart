@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app.dart';
 import 'core/cache/hive/hive_methods.dart';
 import 'core/config/app_config.dart';
+import 'core/services/deep_link_service.dart';
 import 'core/theme/cubit/app_theme_cubit.dart';
 import 'service_initialize.dart';
 
@@ -16,8 +17,8 @@ void main() async {
   } catch (_) {
     AppConfig.init(
       appFlavor: AppFlavor.dev,
-      appBaseUrl: 'https://delta-asg.com:54513/',
-      appBaseImage: 'https://delta-asg.com:54513/MyVirtualDir/',
+      appBaseUrl: 'https://delta-asg.com:54510/',
+      appBaseImage: 'https://delta-asg.com:54510/MyVirtualDir/',
     );
   }
   await SystemChrome.setPreferredOrientations([
@@ -25,6 +26,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await ServiceInitialize.initialize();
+  await DeepLinkService.init();
   final String lang = HiveMethods.getLang();
   runApp(
     EasyLocalization(

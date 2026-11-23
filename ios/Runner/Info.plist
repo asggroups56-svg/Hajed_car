@@ -108,5 +108,24 @@
 			</dict>
 		</dict>
 	</dict>
+
+	<!-- Deep Linking Custom URL Scheme (hajedcar://car/<id>) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.Hajed.car</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hajedcar</string>
+			</array>
+		</dict>
+	</array>
+	<!-- app_links handles Universal Links/custom schemes; disable Flutter's
+	     built-in deep linking so the URL is not also pushed as a route. -->
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 </dict>
 </plist>

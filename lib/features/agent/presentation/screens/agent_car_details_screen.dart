@@ -7,6 +7,7 @@ import 'package:car/core/custom_widgets/custom_sar_text.dart';
 import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/services/notification_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -165,6 +166,13 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                 ),
 
                 actions: [
+                  Padding(
+                    padding: EdgeInsets.all(8.w),
+                    child: IconBtn(
+                      icon: Icons.share_outlined,
+                      onTap: () => DeepLinkService.shareAgentCar(widget.car),
+                    ),
+                  ),
                   if (widget.car.availability == CarAvailability.available)
                     TextButton(
                       child: Container(
@@ -587,43 +595,27 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
                                 ),
                               ),
                               Gap(16.h),
-                              AnimatedSize(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                child:
-                                    (selectedCustomer != null &&
-                                        selectedCustomer!.customerName?.trim() == 'عميل عادي')
-                                    ? Column(
-                                        children: [
-                                          Gap(4.h),
-                                          CustomFormField(
-                                            controller: nameController,
-                                            hintText: isArabic
-                                                ? 'الاسم بالكامل للعميل'
-                                                : 'Customer Full Name',
-                                            radius: 12.r,
-                                            keyboardType: TextInputType.name,
-                                            prefixIcon: Icon(
-                                              Icons.person_outline_rounded,
-                                              color: AppColor.hintColor(dialogContext),
-                                            ),
-                                            validator: (value) {
-                                              if (selectedCustomer?.customerName?.trim() ==
-                                                  'عميل عادي') {
-                                                if (value == null || value.trim().isEmpty) {
-                                                  return isArabic
-                                                      ? 'برجاء إدخال اسم العميل'
-                                                      : 'Please enter customer name';
-                                                }
-                                              }
-                                              return null;
-                                            },
-                                          ),
-                                          Gap(16.h),
-                                        ],
-                                      )
-                                    : const SizedBox.shrink(),
+                              CustomFormField(
+                                controller: nameController,
+                                hintText: isArabic
+                                    ? 'الاسم بالكامل للعميل / المندوب'
+                                    : 'Customer / Representative Name',
+                                radius: 12.r,
+                                keyboardType: TextInputType.name,
+                                prefixIcon: Icon(
+                                  Icons.person_outline_rounded,
+                                  color: AppColor.hintColor(dialogContext),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return isArabic
+                                        ? 'برجاء إدخال اسم العميل أو المندوب'
+                                        : 'Please enter name';
+                                  }
+                                  return null;
+                                },
                               ),
+                              Gap(16.h),
                               CustomFormField(
                                 controller: phoneController,
                                 hintText: isArabic ? 'رقم جوال العميل' : 'Customer Phone Number',
@@ -847,7 +839,7 @@ class _AgentCarDetailsScreenState extends State<AgentCarDetailsScreen> {
       taamedNo: '',
       payCond: '',
       guarFinal: 0,
-      notes: "حجز من التطبيق " + bookingNotes,
+      notes: 'حجز من التطبيق $bookingNotes${customerName.isNotEmpty ? " - الاسم: $customerName" : ""}',
       userAdd: (HiveMethods.getUserName() ?? '').substring(
         0,
         (HiveMethods.getUserName() ?? '').length.clamp(0, 50),

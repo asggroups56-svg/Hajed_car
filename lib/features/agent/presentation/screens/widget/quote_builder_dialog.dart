@@ -84,6 +84,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
   final TextEditingController _platePriceController = TextEditingController(text: '600');
   final TextEditingController _specController = TextEditingController();
   final TextEditingController _customerSearchController = TextEditingController();
+  final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _begDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final List<String> _instantSpecs = [];
@@ -248,6 +249,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
     _existingSpecsController.dispose();
     _specController.dispose();
     _customerSearchController.dispose();
+    _customerNameController.dispose();
     super.dispose();
   }
 
@@ -265,14 +267,28 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
   }
 
   void _submit(BuildContext context) {
-    if (_selectedCustomer == null) {
+    final customerName = _customerNameController.text.trim().isNotEmpty
+        ? _customerNameController.text.trim()
+        : (_selectedCustomer?.customerName?.trim() ?? '');
+
+    if (customerName.isEmpty) {
       CommonMethods.showToast(
         message: context.locale.languageCode == 'ar'
-            ? 'برجاء اختيار العميل أولاً'
-            : 'Please select a customer first',
+            ? 'يرجى إدخال اسم العميل أو اختياره من القائمة'
+            : 'Please enter or select a customer first',
         type: ToastType.error,
       );
       return;
+    }
+
+    int customerNo = _selectedCustomer?.customerNo ?? 0;
+    if (customerNo == 0) {
+      final customerList = context.read<AgentCubit>().state.customersStatus.data ?? [];
+      final match = customerList.firstWhere(
+        (c) => (c.customerName ?? '').trim().toLowerCase() == customerName.toLowerCase(),
+        orElse: () => const CustomerModel(),
+      );
+      customerNo = match.customerNo ?? 0;
     }
 
     final beg = _begDate ?? DateTime.now();
@@ -307,7 +323,9 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
       listDate: _today,
       taamedDate: _today,
       lastDate: _lastDate,
-      customerNo: _selectedCustomer!.customerNo ?? 0,
+      customerNo: customerNo,
+      customerName: customerName,
+      customerMobile: _selectedCustomer?.tel1,
       represCode: _represNo,
       resType: 1,
       paymentType: _paymentType,
@@ -423,6 +441,20 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
                         icon: Icons.person_search_rounded,
                       ),
                       Gap(10.h),
+                      CustomFormField(
+                        controller: _customerNameController,
+                        hintText: context.locale.languageCode == 'ar'
+                            ? 'أدخل اسم العميل أو اختر من القائمة'
+                            : 'Enter customer name or select below',
+                        prefixIcon: const Icon(Icons.person_outline_rounded),
+                        onChanged: (val) {
+                          if (_selectedCustomer != null &&
+                              _selectedCustomer!.customerName?.trim() != val.trim()) {
+                            setState(() => _selectedCustomer = null);
+                          }
+                        },
+                      ),
+                      Gap(10.h),
                       CustomerDropdown(
                         selected: _selectedCustomer,
                         isOpen: _isCustomerDropdownOpen,
@@ -431,6 +463,7 @@ class _QuoteBuilderDialogState extends State<QuoteBuilderDialog> {
                             setState(() => _isCustomerDropdownOpen = !_isCustomerDropdownOpen),
                         onSelect: (c) => setState(() {
                           _selectedCustomer = c;
+                          _customerNameController.text = c.customerName ?? '';
                           _isCustomerDropdownOpen = false;
                           _customerSearchController.clear();
                           context.read<AgentCubit>().getCustomer(null);

@@ -1,5 +1,6 @@
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -58,6 +59,31 @@ class CarListCard extends StatelessWidget {
                   ),
                 ),
 
+                Positioned(
+                  top: 14.h,
+                  left: 14.w,
+                  child: GestureDetector(
+                    onTap: () => DeepLinkService.shareAgentCar(car),
+                    child: Container(
+                      padding: EdgeInsets.all(7.w),
+                      decoration: BoxDecoration(
+                        color: AppColor.cardColor(context).withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.share_outlined,
+                        size: 16.sp,
+                        color: AppColor.blackTextColor(context),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: 14.h,
                   right: 14.w,

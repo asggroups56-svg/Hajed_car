@@ -2,6 +2,7 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/images/app_images.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/widget/full_image_gallery_screen.dart';
@@ -61,6 +62,19 @@ class _SliverAppBarWidgetState extends State<SliverAppBarWidget> {
         ),
       ),
       actions: [
+        Padding(
+          padding: EdgeInsets.all(8.w),
+          child: IconButton(
+            icon: Icon(
+              Icons.share_outlined,
+              color: AppColor.blackTextColor(context),
+              size: 20,
+            ),
+            onPressed: () {
+              DeepLinkService.shareCar(widget.car);
+            },
+          ),
+        ),
         BlocBuilder<FavoritesCubit, FavoritesState>(
           builder: (context, state) {
             final isFav = context.read<FavoritesCubit>().isFavorite(widget.car.toMap());

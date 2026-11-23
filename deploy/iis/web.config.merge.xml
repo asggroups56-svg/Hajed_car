@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ============================================================================
+  MERGE THESE NODES INTO THE EXISTING web.config — DO NOT REPLACE THE FILE.
+  ============================================================================
+  delta-asg.com:443 is an ASP.NET Core app (Blazor / AuroraTech). Its published
+  web.config already contains the <aspNetCore> handler; replacing it takes the
+  site down.
+
+  How to apply on the server:
+    1. Open  C:\inetpub\wwwroot\web.config  (or the site's physical root).
+    2. Copy the <rewrite> block below into <system.webServer>.
+    3. Put it BEFORE any existing catch-all / SPA / Blazor fallback rule.
+    4. Recycle the application pool.
+
+  Why the rewrite targets /deep-links/* instead of /.well-known/*:
+    ASP.NET Core's PhysicalFileProvider uses ExclusionFilters.Sensitive by
+    default, so it does NOT serve dot-prefixed directories such as
+    ".well-known". The browser URL stays "/.well-known/..." (internal rewrite,
+    no 3xx), but Kestrel receives a normal path it is allowed to serve.
+  ============================================================================
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <!--
+          https://delta-asg.com/.well-known/assetlinks.json
+          -> /deep-links/assetlinks.json  (application/json, 200, no redirect)
+        -->
+        <rule name="DeepLink-AssetLinks" stopProcessing="true">
+          <match url="^\.well-known/assetlinks\.json$" />
+          <action type="Rewrite" url="/deep-links/assetlinks.json" />
+        </rule>
+
+        <!--
+          https://delta-asg.com/.well-known/apple-app-site-association
+          -> /deep-links/apple-app-site-association.json
+          The '.json' target is what makes IIS/ASP.NET Core send
+          Content-Type: application/json for an extensionless public URL.
+        -->
+        <rule name="DeepLink-AASA" stopProcessing="true">
+          <match url="^\.well-known/apple-app-site-association$" />
+          <action type="Rewrite" url="/deep-links/apple-app-site-association.json" />
+        </rule>
+
+        <!--
+          https://delta-asg.com/car/2531 -> /car/index.html
+          Keep the address bar and the id intact; the page reads the id from
+          window.location.pathname. The condition prevents a rewrite loop.
+        -->
+        <rule name="DeepLink-CarDetails" stopProcessing="true">
+          <match url="^car/(.+)$" />
+          <conditions>
+            <add input="{URL}" pattern="^car/index\.html$" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/car/index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>

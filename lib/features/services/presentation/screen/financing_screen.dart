@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -99,7 +98,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
   /// any standard financing offer passed alongside the car.
   FinancingAdModel? _vehicleOffer;
 
-  FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer;
+  FinancingAdModel? get _activeOffer => _selectedOffer ?? widget.offer ?? _vehicleOffer;
   bool get _isOffer => _activeOffer != null;
 
   /// Plate/registration fee (already VAT-inclusive). The vehicle's fee is used
@@ -193,9 +192,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
         ? FinancingAdModel.fromCarOffer(widget.car!)
         : null;
     _selectedOffer =
-        widget.offer ??
-        _vehicleOffer ??
-        (widget.offers.isNotEmpty ? widget.offers.first : null);
+        widget.offer ?? _vehicleOffer ?? (widget.offers.isNotEmpty ? widget.offers.first : null);
     _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
         if (mounted) setState(() {});
@@ -204,8 +201,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final raw = (widget.car?.effectivePrice ?? widget.car?.price)?.toString() ?? '150000';
     final carPrice = double.tryParse(raw.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 150000;
     final offerPrice = _activeOffer?.price ?? 0;
-    final basePrice =
-        widget.initialCarPrice ?? (carPrice > 0 ? carPrice : offerPrice);
+    final basePrice = widget.initialCarPrice ?? (carPrice > 0 ? carPrice : offerPrice);
     final vatPercentage = double.tryParse(HiveMethods.getVatNumber()?.toString() ?? '') ?? 15.0;
     // The financing fee applies to regular financing and vehicle offers.
     const financingFee = FinancingAdModel.defaultFinancingFee;
@@ -213,8 +209,7 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     // added after VAT because it already includes it.
     final double priceWithVat = widget.initialPriceIncludesVat
         ? basePrice + financingFee + _platesCost
-        : (basePrice + financingFee) * (1 + vatPercentage / 100) +
-              _platesCost;
+        : (basePrice + financingFee) * (1 + vatPercentage / 100) + _platesCost;
     _priceWithVat = priceWithVat;
     _carPrice = priceWithVat;
 
@@ -404,9 +399,17 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final int repCode = int.tryParse(HiveMethods.getRepresentativeNo() ?? '') ?? 0;
     final int bankCode = _selectedBank?.bankCode ?? int.tryParse(_bankCtrl.text.trim()) ?? 1;
 
+    final int resolvedProgramId = (_activeOffer?.programId != null && _activeOffer!.programId! > 0)
+        ? _activeOffer!.programId!
+        : ((widget.offer?.programId != null && widget.offer!.programId! > 0)
+            ? widget.offer!.programId!
+            : ((widget.car?.programId != null && widget.car!.programId! > 0)
+                ? widget.car!.programId!
+                : 0));
+
     final model = AddLoanApplicationModel(
       applicationId: 0,
-      programId: _activeOffer?.programId ?? 3,
+      programId: resolvedProgramId,
       programName: programNameWithBank,
       customerNo: customerNoVal,
       REPRESCODE: repCode > 0 ? repCode : 1,

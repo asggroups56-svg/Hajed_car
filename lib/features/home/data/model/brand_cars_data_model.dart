@@ -28,6 +28,7 @@ class GetBrandCarsDataModel extends Equatable {
   final int carType;
   final String? carSpecification;
   final String? specificName;
+  final int? color_code;
 
   /// Returns individual specification items parsed from [specificName].
   List<String> get specificSpecifications {
@@ -62,6 +63,7 @@ class GetBrandCarsDataModel extends Equatable {
   final int trNo;
   final String? customsCardNo;
   final int reasonId;
+  final int? programId;
   final bool mobileShow;
   final String color;
   final List<String> extraImages;
@@ -142,6 +144,7 @@ class GetBrandCarsDataModel extends Equatable {
     required this.trNo,
     this.customsCardNo,
     required this.reasonId,
+    this.programId,
     required this.mobileShow,
     required this.carImage,
     required this.color,
@@ -175,6 +178,7 @@ class GetBrandCarsDataModel extends Equatable {
     this.endDate,
     this.isActive,
     this.isBestSeller = false,
+    this.color_code,
   });
 
   final String? customerName;
@@ -361,6 +365,7 @@ class GetBrandCarsDataModel extends Equatable {
       'IsBestSeller': isBestSeller ? 1 : 0,
       'isVehicleOffer': isVehicleOffer,
       'hasOfferTerms': hasOfferTerms,
+      "color_code": color_code,
     };
   }
 
@@ -585,6 +590,7 @@ class GetBrandCarsDataModel extends Equatable {
       trNo: trNo != 0 ? trNo : other.trNo,
       customsCardNo: customsCardNo ?? other.customsCardNo,
       reasonId: reasonId != 0 ? reasonId : other.reasonId,
+      programId: programId ?? other.programId,
       mobileShow: mobileShow || other.mobileShow,
       carImage: carImage ?? other.carImage,
       color: color.isNotEmpty ? color : other.color,
@@ -618,6 +624,7 @@ class GetBrandCarsDataModel extends Equatable {
       endDate: endDate ?? other.endDate,
       isActive: isActive ?? other.isActive,
       isBestSeller: isBestSeller || other.isBestSeller,
+      color_code: color_code ?? other.color_code,
     );
   }
 
@@ -677,6 +684,7 @@ class GetBrandCarsDataModel extends Equatable {
       trNo: trNo,
       customsCardNo: customsCardNo,
       reasonId: reasonId,
+      programId: programId,
       mobileShow: mobileShow ?? this.mobileShow,
       carImage: carImage,
       color: color,
@@ -814,6 +822,10 @@ class GetBrandCarsDataModel extends Equatable {
       trNo: int.tryParse(getString('TR_NO', 'trNo')) ?? 0,
       customsCardNo: json['CUSTOMS_CARD_NO']?.toString() ?? json['customsCardNo']?.toString(),
       reasonId: int.tryParse(getString('REASON_ID', 'reasonId')) ?? 0,
+      programId:
+          int.tryParse(getString('ProgramID', 'ProgramId', 'PROGRAM_ID')) ??
+          (json['ProgramID'] as num?)?.toInt() ??
+          (json['programId'] as num?)?.toInt(),
       mobileShow:
           json['MobileShow'] == true ||
           json['mobileShow'] == true ||
@@ -989,6 +1001,7 @@ class GetBrandCarsDataModel extends Equatable {
     trNo,
     customsCardNo,
     reasonId,
+    programId,
     mobileShow,
     carImage,
     color,
