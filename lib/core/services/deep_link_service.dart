@@ -44,13 +44,49 @@ class DeepLinkService {
   static bool _isNavigatorReady = false;
   static GetBrandCarsDataModel? _pendingCar;
   static String? _pendingCarId;
+  static int? _pendingFromMakeYear;
+  static int? _pendingColorCode;
   static String? _lastHandledId;
   static DateTime? _lastHandledTime;
 
-  /// رابط صفحة الويب للسيارة (نظيف وبدون مسافات)
-  static String getCarWebUrl(String carId) {
+  /// رابط صفحة الويب للسيارة (نظيف وبدون مسافات، مع إرفاق سنة الصنع وكود اللون)
+  static String getCarWebUrl(
+    String carId, {
+    int? makeYear,
+    int? colorCode,
+  }) {
     final cleanId = Uri.encodeComponent(carId.trim());
-    return '$_webDomain/car/$cleanId';
+    final queryParams = <String, String>{
+      if (makeYear != null && makeYear > 0) 'frommakeyear': makeYear.toString(),
+      if (colorCode != null && colorCode > 0) 'color_code': colorCode.toString(),
+    };
+
+    if (queryParams.isEmpty) {
+      return '$_webDomain/car/$cleanId';
+    }
+    return Uri.parse('$_webDomain/car/$cleanId')
+        .replace(queryParameters: queryParams)
+        .toString();
+  }
+
+  /// رابط التطبيق المباشر (Custom Scheme) مع البارامترات
+  static String getCarCustomSchemeUrl(
+    String carId, {
+    int? makeYear,
+    int? colorCode,
+  }) {
+    final cleanId = Uri.encodeComponent(carId.trim());
+    final queryParams = <String, String>{
+      if (makeYear != null && makeYear > 0) 'frommakeyear': makeYear.toString(),
+      if (colorCode != null && colorCode > 0) 'color_code': colorCode.toString(),
+    };
+
+    if (queryParams.isEmpty) {
+      return '$_customScheme://car/$cleanId';
+    }
+    return Uri.parse('$_customScheme://car/$cleanId')
+        .replace(queryParameters: queryParams)
+        .toString();
   }
 
   /// تهيئة الإنصات للروابط العميقة والـ Deferred Deep Links
@@ -224,6 +260,16 @@ class DeepLinkService {
       }
     }
 
+    // استخراج frommakeyear و color_code من الرابط
+    final yearStr = uri.queryParameters['frommakeyear'] ??
+        uri.queryParameters['year'] ??
+        uri.queryParameters['makeYear'];
+    final colorStr = uri.queryParameters['color_code'] ??
+        uri.queryParameters['colorCode'] ??
+        uri.queryParameters['color'];
+    final makeYear = int.tryParse(yearStr ?? '');
+    final colorCode = int.tryParse(colorStr ?? '');
+
     if (carId != null && carId.trim().isNotEmpty) {
       final cleanId = carId.trim();
       final now = DateTime.now();
@@ -235,7 +281,11 @@ class DeepLinkService {
       }
       _lastHandledId = cleanId;
       _lastHandledTime = now;
-      handleIncomingCarId(cleanId);
+      handleIncomingCarId(
+        cleanId,
+        fromMakeYear: makeYear,
+        colorCode: colorCode,
+      );
     }
   }
 
@@ -263,7 +313,11 @@ class DeepLinkService {
   /// إنشاء رابط المشاركة الرسمي المباشر للسيارة
   static String createCarShareLink(GetBrandCarsDataModel car) {
     final carId = resolveSafeCarId(car);
-    return getCarWebUrl(carId);
+    return getCarWebUrl(
+      carId,
+      makeYear: car.makeYear > 0 ? car.makeYear : null,
+      colorCode: car.colorCode > 0 ? car.colorCode : null,
+    );
   }
 
   /// مشاركة السيارة عبر نافذة المشاركة الرسمية في النظام (share_plus).
@@ -276,6 +330,8 @@ class DeepLinkService {
       carId: carId,
       title: title,
       price: price,
+      makeYear: car.makeYear > 0 ? car.makeYear : null,
+      colorCode: car.colorCode > 0 ? car.colorCode : null,
     );
   }
 
@@ -295,14 +351,21 @@ class DeepLinkService {
     final num priceVal = (car.priceWithVat is num)
         ? car.priceWithVat
         : (car.price is num ? car.price : 0);
-    final formattedPrice = priceVal > 0
-        ? priceVal.toInt().toString()
-        : '---';
+    final formattedPrice = priceVal > 0 ? priceVal.toInt().toString() : '---';
+
+    final int? yearVal = car.year is int
+        ? car.year
+        : int.tryParse(car.year?.toString() ?? '');
+    final int? colorVal = car.colorCode is int
+        ? car.colorCode
+        : int.tryParse(car.colorCode?.toString() ?? '');
 
     await shareCarData(
       carId: carId,
       title: '${car.brand} - ${car.name}',
       price: formattedPrice,
+      makeYear: yearVal,
+      colorCode: colorVal,
     );
   }
 
@@ -311,8 +374,14 @@ class DeepLinkService {
     required String carId,
     required String title,
     required String price,
+    int? makeYear,
+    int? colorCode,
   }) async {
-    final link = getCarWebUrl(carId);
+    final link = getCarWebUrl(
+      carId,
+      makeYear: makeYear,
+      colorCode: colorCode,
+    );
 
     final shareText = '''
 🚗 $title
@@ -339,8 +408,16 @@ $link
       _navigateToCar(car);
     } else if (_pendingCarId != null && _pendingCarId!.isNotEmpty) {
       final id = _pendingCarId!;
+      final year = _pendingFromMakeYear;
+      final color = _pendingColorCode;
       _pendingCarId = null;
-      handleIncomingCarId(id);
+      _pendingFromMakeYear = null;
+      _pendingColorCode = null;
+      handleIncomingCarId(
+        id,
+        fromMakeYear: year,
+        colorCode: color,
+      );
     }
   }
 
@@ -350,7 +427,11 @@ $link
   }
 
   /// معالجة معرف السيارة القادم من الرابط العميق وفتح شاشة تفاصيلها
-  static Future<void> handleIncomingCarId(String rawCarId) async {
+  static Future<void> handleIncomingCarId(
+    String rawCarId, {
+    int? fromMakeYear,
+    int? colorCode,
+  }) async {
     try {
       final decodedId = Uri.decodeComponent(rawCarId).trim();
       final prefixId = decodedId.contains('_') ? decodedId.split('_').first.trim() : '';
@@ -358,6 +439,8 @@ $link
       // إذا كان الـ Navigator غير جاهز (شاشة البداية لا تزال تعمل)، احفظ الكود كمعلق
       if (!_isNavigatorReady) {
         _pendingCarId = rawCarId;
+        _pendingFromMakeYear = fromMakeYear;
+        _pendingColorCode = colorCode;
       }
 
       bool matches(GetBrandCarsDataModel c) {
@@ -367,31 +450,33 @@ $link
         final groupCode1 = c.groupCode1.toString();
         final uniqueId = HiveMethods.getCarUniqueId(c.toMap());
 
-        // تطابق تام على رقم الصنف
+        bool idMatched = false;
         if (itemCode.isNotEmpty && itemCode != '0' && (itemCode == decodedId || itemCode == prefixId)) {
-          return true;
+          idMatched = true;
+        } else if (chassis.isNotEmpty && chassis != '0' && chassis.toLowerCase() != 'null' && (chassis == decodedId || chassis == prefixId)) {
+          idMatched = true;
+        } else if (groupCode.isNotEmpty && groupCode != '0' && (groupCode == decodedId || groupCode == prefixId)) {
+          idMatched = true;
+        } else if (groupCode1.isNotEmpty && groupCode1 != '0' && (groupCode1 == decodedId || groupCode1 == prefixId)) {
+          idMatched = true;
+        } else if (uniqueId == decodedId || (prefixId.isNotEmpty && uniqueId.startsWith(prefixId))) {
+          idMatched = true;
+        } else if (decodedId.length > 5 && c.itemName.isNotEmpty && decodedId.contains(c.itemName)) {
+          idMatched = true;
         }
-        // تطابق على رقم الشاسيه
-        if (chassis.isNotEmpty && chassis != '0' && chassis.toLowerCase() != 'null' && (chassis == decodedId || chassis == prefixId)) {
-          return true;
+
+        if (!idMatched) return false;
+
+        // مطابقة سنة الصنع إذا تم تمريرها
+        if (fromMakeYear != null && fromMakeYear > 0 && c.makeYear > 0 && c.makeYear != fromMakeYear) {
+          return false;
         }
-        // تطابق على كود الموديل / المجموعة (groupCode)
-        if (groupCode.isNotEmpty && groupCode != '0' && (groupCode == decodedId || groupCode == prefixId)) {
-          return true;
+        // مطابقة كود اللون إذا تم تمريره
+        if (colorCode != null && colorCode > 0 && c.colorCode > 0 && c.colorCode != colorCode) {
+          return false;
         }
-        // تطابق على كود المجموعة الفرعية
-        if (groupCode1.isNotEmpty && groupCode1 != '0' && (groupCode1 == decodedId || groupCode1 == prefixId)) {
-          return true;
-        }
-        // تطابق مع الـ UniqueId القديم أو بدايته
-        if (uniqueId == decodedId || (prefixId.isNotEmpty && uniqueId.startsWith(prefixId))) {
-          return true;
-        }
-        // تطابق بالاسم إذا احتوى الرابط على اسم الموديل
-        if (decodedId.length > 5 && c.itemName.isNotEmpty && decodedId.contains(c.itemName)) {
-          return true;
-        }
-        return false;
+
+        return true;
       }
 
       // 1. البحث في جميع سيارات الذاكرة بـ HomeCubit
@@ -432,7 +517,14 @@ $link
                 : null);
 
         if (potentialBrandId != null) {
-          final brandCarsRes = await homeRepo.getBrandCars(potentialBrandId);
+          final brandCarsRes = await homeRepo.fetchAllCars(
+            int.tryParse(potentialBrandId),
+            fromMakeYear?.toString(),
+            null,
+            null,
+            null,
+            null,
+          );
           brandCarsRes.fold((_) {}, (cars) {
             for (final c in cars) {
               if (matches(c)) {
@@ -441,6 +533,18 @@ $link
               }
             }
           });
+
+          if (targetCar == null) {
+            final directRes = await homeRepo.getBrandCars(potentialBrandId);
+            directRes.fold((_) {}, (cars) {
+              for (final c in cars) {
+                if (matches(c)) {
+                  targetCar = c;
+                  break;
+                }
+              }
+            });
+          }
         }
 
         // ب) فحص عروض التمويل (GetFinancingAds) حيث ترتبط بكود الصنف ITEM_CODE
