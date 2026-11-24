@@ -196,6 +196,7 @@ class HomeCubit extends Cubit<HomeState> {
     int? fromPrice,
     int? toPrice,
     String? fuelType,
+    int? colorCode,
   }) async {
     emit(
       state.copyWith(
@@ -215,6 +216,7 @@ class HomeCubit extends Cubit<HomeState> {
       fromPrice,
       toPrice,
       fuelType,
+      colorCode,
     );
     result.fold(
       (failure) {

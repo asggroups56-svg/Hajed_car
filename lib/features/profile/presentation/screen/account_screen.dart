@@ -68,7 +68,14 @@ class AccountScreen extends StatelessWidget {
             onTap: () => showDeveloperContactBottomSheet(context),
           ),
           Gap(12.h),
+          _AccountItem(
+            icon: Icons.list_alt_rounded,
+            title: AppLocaleKey.trackOrder.tr(),
+            onTap: () => Navigator.pushNamed(context, RoutesName.trackOrderScreen),
+          ),
+          Gap(12.h),
           FadeInUp(delay: const Duration(milliseconds: 200), child: const LogoutButtonWidget()),
+          Gap(12.h),
         ],
       ),
     );

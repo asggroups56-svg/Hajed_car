@@ -524,6 +524,7 @@ $link
             null,
             null,
             null,
+            colorCode,
           );
           brandCarsRes.fold((_) {}, (cars) {
             for (final c in cars) {

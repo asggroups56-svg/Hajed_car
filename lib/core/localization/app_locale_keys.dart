@@ -1735,4 +1735,5 @@ class AppLocaleKey {
   static const String LowestPrice = 'Lowest Price';
   static const String carNotFound = 'car_not_found';
   static const String deepLinkLoadFailed = 'deep_link_load_failed';
+  static const String agentStore = 'agentStore';
 }

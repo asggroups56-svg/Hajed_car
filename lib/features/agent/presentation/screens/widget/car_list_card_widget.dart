@@ -1,7 +1,7 @@
 import 'package:car/core/custom_widgets/custom_image/custom_network_image.dart';
 import 'package:car/core/custom_widgets/custom_sar_text.dart';
-import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/agent/data/model/agent_models.dart';
@@ -70,10 +70,7 @@ class CarListCard extends StatelessWidget {
                         color: AppColor.cardColor(context).withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                          ),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6),
                         ],
                       ),
                       child: Icon(
@@ -175,6 +172,8 @@ class CarListCard extends StatelessWidget {
                       _SpecChip(icon: Icons.calendar_month_rounded, text: car.year),
                       _SpecChip(icon: Icons.numbers, text: '${car.mileage} '),
                       _SpecChip(icon: Icons.palette_outlined, text: car.color),
+                      if (car.storeName != null && car.storeName!.trim().isNotEmpty)
+                        _SpecChip(icon: Icons.store_rounded, text: car.storeName!),
                     ],
                   ),
 

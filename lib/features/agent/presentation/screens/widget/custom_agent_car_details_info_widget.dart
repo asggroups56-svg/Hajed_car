@@ -74,9 +74,7 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColor.cardColor(context),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(
-              color: AppColor.primaryColor(context).withValues(alpha: 0.15),
-            ),
+            border: Border.all(color: AppColor.primaryColor(context).withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
                 color: AppColor.blackColor(context).withValues(alpha: .04),
@@ -106,9 +104,7 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       isArabic ? 'تفاصيل السعر والضريبة' : 'Price & Tax Breakdown',
-                      style: AppTextStyle.bodyLarge(context).copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: AppTextStyle.bodyLarge(context).copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
                   Container(
@@ -194,6 +190,21 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
           title: AppLocaleKey.agentTransmission.tr(),
           value: AppLocaleKey.agentAutomatic.tr(),
         ),
+        SpecTile(
+          icon: Icons.store_rounded,
+          title: AppLocaleKey.agentStore.tr(),
+          value: () {
+            final name = car.storeName?.trim();
+            if (name != null && name.isNotEmpty && name.toLowerCase() != 'null') {
+              return name;
+            }
+            final code = car.storeCode.trim();
+            if (code.isNotEmpty && code != '0' && code.toLowerCase() != 'null') {
+              return isArabic ? 'فرع $code' : 'Branch $code';
+            }
+            return '—';
+          }(),
+        ),
         if (car.luxury != null && car.luxury!.trim().isNotEmpty)
           SpecTile(
             icon: Icons.workspace_premium_rounded,
@@ -225,24 +236,21 @@ class CustomAgentCarDetailsInfoWidget extends StatelessWidget {
           title,
           style: AppTextStyle.bodySmall(context).copyWith(
             fontWeight: isTotal ? FontWeight.w800 : FontWeight.w600,
-            color: isTotal
-                ? AppColor.blackTextColor(context)
-                : AppColor.greyColor(context),
+            color: isTotal ? AppColor.blackTextColor(context) : AppColor.greyColor(context),
             fontSize: isTotal ? 13.sp : 12.sp,
           ),
         ),
         ValueWithCurrencyIcon(
           text: value,
-          textStyle: (isTotal
-                  ? AppTextStyle.titleMedium(context)
-                  : AppTextStyle.bodyMedium(context))
-              .copyWith(
-            fontWeight: FontWeight.w900,
-            color: isTotal
-                ? AppColor.primaryColor(context)
-                : AppColor.blackTextColor(context),
-            fontSize: isTotal ? 16.sp : 13.sp,
-          ),
+          textStyle:
+              (isTotal ? AppTextStyle.titleMedium(context) : AppTextStyle.bodyMedium(context))
+                  .copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: isTotal
+                        ? AppColor.primaryColor(context)
+                        : AppColor.blackTextColor(context),
+                    fontSize: isTotal ? 16.sp : 13.sp,
+                  ),
         ),
       ],
     );

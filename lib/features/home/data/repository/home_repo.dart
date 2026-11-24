@@ -36,8 +36,9 @@ abstract interface class HomeRepo {
     String? tomakeyear,
     int? fromprice,
     int? toprice,
-    String? fuelType,
-  );
+    String? fuelType, [
+    int? colorCode,
+  ]);
   Future<Either<Failure, CancelReservedCarResponseModel>> cancelreservedcar(
     CancelReservedCarModel model,
   );
@@ -204,7 +205,15 @@ class HomeRepoImpl implements HomeRepo {
       request: () async {
         final response = await apiConsumer.get(
           EndPoints.getprandcars,
-          queryParameters: {'id': brandId},
+          queryParameters: {
+            'id': brandId,
+            'frommakeyear': '',
+            'tomakeyear': '',
+            'fromprice': '',
+            'toprice': '',
+            'FUEL_TYPE': '',
+            'color_code': '',
+          },
         );
         return GetBrandCarsDataModel.listFromResponse(response['Data']);
       },
@@ -218,17 +227,19 @@ class HomeRepoImpl implements HomeRepo {
     String? tomakeyear,
     int? fromprice,
     int? toprice,
-    String? fuelType,
-  ) async {
+    String? fuelType, [
+    int? colorCode,
+  ]) async {
     return handleDioRequest(
       request: () async {
-        final queryParams = <String, dynamic>{
-          if (brandId != null) 'id': brandId.toString(),
-          if (frommakeyear != null && frommakeyear.isNotEmpty) 'frommakeyear': frommakeyear,
-          if (tomakeyear != null && tomakeyear.isNotEmpty) 'tomakeyear': tomakeyear,
-          if (fromprice != null) 'fromprice': fromprice.toString(),
-          if (toprice != null) 'toprice': toprice.toString(),
-          if (fuelType != null && fuelType.isNotEmpty) 'FUEL_TYPE': fuelType,
+        final queryParams = {
+          'id': (brandId != null && brandId > 0) ? brandId.toString() : '',
+          'frommakeyear': frommakeyear ?? '',
+          'tomakeyear': tomakeyear ?? '',
+          'fromprice': (fromprice != null && fromprice > 0) ? fromprice.toString() : '',
+          'toprice': (toprice != null && toprice > 0) ? toprice.toString() : '',
+          'FUEL_TYPE': fuelType ?? '',
+          'color_code': (colorCode != null && colorCode > 0) ? colorCode.toString() : '',
         };
 
         try {

@@ -124,6 +124,24 @@ class ServicesScreen extends StatelessWidget {
               }, childCount: 1),
             ),
           ),
+          SliverToBoxAdapter(child: Gap(20.h)),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return FadeInLeft(
+                  delay: const Duration(milliseconds: 50),
+                  duration: const Duration(milliseconds: 400),
+                  child: SettingItemsWidget(
+                    icon: Icons.privacy_tip_outlined,
+                    title: AppLocaleKey.trackOrder.tr(),
+                    onTap: () => Navigator.pushNamed(context, RoutesName.trackOrderScreen),
+                  ),
+                );
+              }, childCount: 1),
+            ),
+          ),
+
           SliverToBoxAdapter(child: Gap(120.h)),
         ],
       ),

@@ -245,6 +245,7 @@ class _AgentMyBookingsScreenState extends State<AgentMyBookingsScreen> {
       paintingsVal: car.paintingsVal,
       specificName: car.specificName,
       luxury: car.Luxury,
+      storeName: car.storeName,
     );
 
     Navigator.push(

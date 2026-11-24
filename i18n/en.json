@@ -1706,5 +1706,6 @@
     "recent":"Most requested",
     "Lowest Price":"Lowest Price",
     "car_not_found": "The requested car could not be found",
-    "deep_link_load_failed": "Couldn't load the car details. Check your connection and try again."
+    "deep_link_load_failed": "Couldn't load the car details. Check your connection and try again.",
+    "agentStore": "Store"
 }

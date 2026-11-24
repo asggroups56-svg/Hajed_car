@@ -45,6 +45,7 @@ class CarModel extends Equatable {
   final String? reservedName;
   final double? paintingsVal;
   final String? specificName;
+  final String? storeName;
 
   /// Returns individual specification items parsed from [specificName].
   List<String> get specificSpecifications {
@@ -81,6 +82,7 @@ class CarModel extends Equatable {
     this.paintingsVal,
     this.specificName,
     this.Luxury,
+    this.storeName,
   });
 
   factory CarModel.fromJson(Map<String, dynamic> json) {
@@ -88,7 +90,7 @@ class CarModel extends Equatable {
       itemCode: json['ITEM_CODE'],
       itemName: json['ITEM_NAME'],
       groupCode: json['GROUP_CODE'],
-      storeCode: json['STORE_CODE'],
+      storeCode: json['STORE_CODE']?.toString() ?? json['STORECODE']?.toString(),
       carStatus: json['CAR_STATUS'],
       carType: json['CAR_TYPE'],
       chassisNo: json['CHASSIS_NO'],
@@ -131,6 +133,19 @@ class CarModel extends Equatable {
       }(),
       Luxury:
           json['LUXURY']?.toString() ?? json['luxury']?.toString() ?? json['Luxury']?.toString(),
+      storeName: () {
+        final raw = json['STORE_NAME'] ??
+            json['storeName'] ??
+            json['StoreName'] ??
+            json['STORE_ENAME'] ??
+            json['store_name'] ??
+            json['STORENAME'] ??
+            json['store'];
+        if (raw == null || raw.toString().trim().isEmpty || raw.toString().toLowerCase() == 'null') {
+          return null;
+        }
+        return raw.toString().trim();
+      }(),
     );
   }
 
@@ -180,5 +195,6 @@ class CarModel extends Equatable {
     paintingsVal,
     specificName,
     Luxury,
+    storeName,
   ];
 }
