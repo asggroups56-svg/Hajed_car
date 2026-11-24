@@ -227,15 +227,13 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
             ),
             Gap(10.h),
             SizedBox(
-              height: 240.h,
+              height: 311.h,
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: displayAds.length * 2000,
                 // A single ad must not be swipeable: the repeated pages show
                 // the same picture and read as a duplicate image.
-                physics: displayAds.length > 1
-                    ? null
-                    : const NeverScrollableScrollPhysics(),
+                physics: displayAds.length > 1 ? null : const NeverScrollableScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;

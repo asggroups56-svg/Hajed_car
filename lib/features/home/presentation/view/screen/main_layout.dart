@@ -2,6 +2,7 @@ import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/services/app_update_service.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/features/cars/presentation/screen/car_comparison_screen.dart';
@@ -66,6 +67,10 @@ class _MainLayoutState extends State<MainLayout> {
       );
 
       AppUpdateService.checkForUpdate(context);
+
+      // ← تأكيد جاهزية الـ Navigator بعد رسم الـ MainLayout كاملًا
+      // هنا نضمن أن الـ deep-link car يُفتح فوق شاشة رئيسية مكتملة الرسم
+      DeepLinkService.markNavigatorReady();
     });
   }
 

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
@@ -22,6 +23,14 @@ class AdminMainLayout extends StatefulWidget {
 
 class _AdminMainLayoutState extends State<AdminMainLayout> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeepLinkService.markNavigatorReady();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -3,7 +3,6 @@ import 'package:car/core/custom_widgets/copyright_widget.dart';
 import 'package:car/core/custom_widgets/custom_loading/custom_loading.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
-import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/core/theme/app_text_style.dart';
 import 'package:car/core/utils/navigator_methods.dart';
@@ -113,11 +112,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         HiveMethods.updateIsGuest(true);
         NavigatorMethods.pushReplacementNamed(context, RoutesName.mainLayout);
       }
-
-      // Let the destination route settle before replaying a cold-start link,
-      // otherwise the splash replacement could remove the details route.
-      await Future.delayed(const Duration(milliseconds: 350));
-      DeepLinkService.markNavigatorReady();
+      // markNavigatorReady is now called from within MainLayout/AgentShell/AdminMainLayout
+      // via addPostFrameCallback, so the deep-link car is pushed AFTER those screens
+      // have fully rendered — avoiding race conditions with pushReplacementNamed.
     });
   }
 

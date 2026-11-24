@@ -1,4 +1,5 @@
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/app_colors.dart';
 import 'package:car/features/admin/presentation/cubit/admin_cubit.dart';
@@ -24,6 +25,14 @@ class _AgentShellState extends State<AgentShell> {
       GlobalKey<AgentDashboardScreenState>();
   final GlobalKey<AgentInventoryScreenState> _inventoryKey =
       GlobalKey<AgentInventoryScreenState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeepLinkService.markNavigatorReady();
+    });
+  }
 
   void _onTabTapped(int index) {
     setState(() => _currentIndex = index);

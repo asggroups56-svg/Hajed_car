@@ -98,6 +98,7 @@ class DeepLinkService {
     try {
       // الرابط عند الفتح المباشر وهو مغلق (Cold Start)
       final initialUri = await _appLinks.getInitialLink();
+      debugPrint('[DL] initial link: $initialUri');
       if (initialUri != null) {
         _handleIncomingUri(initialUri);
       }
@@ -105,10 +106,11 @@ class DeepLinkService {
       // الإنصات للروابط الواردة أثناء تشغيل التطبيق في الخلفية
       _appLinksSubscription = _appLinks.uriLinkStream.listen(
         (uri) {
+          debugPrint('[DL] stream link: $uri');
           _handleIncomingUri(uri);
         },
         onError: (err) {
-          debugPrint('[DeepLinkService] AppLinks stream error: $err');
+          debugPrint('[DL] AppLinks stream error: $err');
         },
       );
     } catch (e) {
@@ -126,7 +128,7 @@ class DeepLinkService {
     }
 
     // 4. مؤقت أمان لضمان جاهزية الـ Navigator حتى لو لم تستدعه SplashScreen
-    Future.delayed(const Duration(milliseconds: 3500), () {
+    Future.delayed(const Duration(milliseconds: 5000), () {
       if (!_isNavigatorReady) {
         markNavigatorReady();
       }
@@ -222,7 +224,7 @@ class DeepLinkService {
 
   /// استخراج معرف السيارة من الـ URI المباشر والتوجيه إليها
   static void _handleIncomingUri(Uri uri) {
-    debugPrint('[DeepLinkService] Incoming URI: $uri');
+    debugPrint('[DL] incoming uri: $uri');
     String? carId;
 
     // حالة: https://delta-asg.com/car/{id}
@@ -401,7 +403,7 @@ $link
   /// إشعار الخدمة بأن شاشة البداية (Splash) أو تسجيل الدخول انتهت والـ Navigator أصبح جاهزاً
   static void markNavigatorReady() {
     _isNavigatorReady = true;
-    debugPrint('[DeepLinkService] markNavigatorReady called. Pending car: ${_pendingCar?.itemName}, Pending carId: $_pendingCarId');
+    debugPrint('[DL] markNavigatorReady, pendingCar: ${_pendingCar?.itemName}, pendingId: $_pendingCarId');
     if (_pendingCar != null) {
       final car = _pendingCar!;
       _pendingCar = null;
@@ -433,14 +435,16 @@ $link
     int? colorCode,
   }) async {
     try {
+      debugPrint('[DL] handleIncomingCarId: $rawCarId');
       final decodedId = Uri.decodeComponent(rawCarId).trim();
       final prefixId = decodedId.contains('_') ? decodedId.split('_').first.trim() : '';
 
-      // إذا كان الـ Navigator غير جاهز (شاشة البداية لا تزال تعمل)، احفظ الكود كمعلق
+      // إذا كان الـ Navigator غير جاهز (شاشة البداية لا تزال تعمل)، احفظ الكود كمعلق وأوقف التنفيذ
       if (!_isNavigatorReady) {
         _pendingCarId = rawCarId;
         _pendingFromMakeYear = fromMakeYear;
         _pendingColorCode = colorCode;
+        return; // ← إيقاف: لا تبحث الآن، انتظر markNavigatorReady
       }
 
       bool matches(GetBrandCarsDataModel c) {
@@ -611,6 +615,7 @@ $link
 
   /// الانتقال لشاشة تفاصيل السيارة مع انتظار جاهزية الـ NavigatorState وانتهاء شاشة البداية
   static Future<void> _navigateToCar(GetBrandCarsDataModel targetCar) async {
+    debugPrint('[DL] navigating to car: ${targetCar.itemName} (id: ${targetCar.itemCode})');
     // إذا لم تكن شاشة البداية قد أعلنت جاهزية الـ Navigator، احفظها كمعلقة حتى لا تمسحها شاشة الـ Splash
     if (!_isNavigatorReady) {
       _pendingCar = targetCar;
