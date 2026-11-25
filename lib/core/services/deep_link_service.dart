@@ -71,18 +71,10 @@ class DeepLinkService {
   static const String _boxKeyCheckedReferrer = 'has_checked_install_referrer';
   static const String _boxKeyCheckedIosClip = 'has_checked_ios_clipboard';
 
-  // رابط وصل للتطبيق ولم يكتمل التوجيه إليه بعد. يُحفظ حتى لا يضيع إذا
-  // أُغلق التطبيق قبل انتهاء شاشة البداية أو فشل طلب الشبكة.
-  static const String _boxKeyPendingId = 'deep_link_pending_car_id';
-  static const String _boxKeyPendingYear = 'deep_link_pending_make_year';
-  static const String _boxKeyPendingColor = 'deep_link_pending_color_code';
-  static const String _boxKeyPendingAt = 'deep_link_pending_at';
-
   static StreamSubscription? _appLinksSubscription;
   static final AppLinks _appLinks = AppLinks();
   static bool _isInitialized = false;
   static bool _isNavigatorReady = false;
-  static bool _isProcessingPending = false;
   static GetBrandCarsDataModel? _pendingCar;
   static String? _pendingCarId;
   static int? _pendingFromMakeYear;
@@ -91,57 +83,6 @@ class DeepLinkService {
   static DateTime? _lastHandledTime;
   static String? _lastNavigatedId;
   static DateTime? _lastNavigatedTime;
-
-  static Box? get _box => Hive.isBoxOpen('app') ? Hive.box('app') : null;
-
-  /// حفظ الرابط المعلق حتى يكتمل التوجيه (أو يُلغى).
-  static void _persistPendingLink(
-    String carId, {
-    int? makeYear,
-    int? colorCode,
-  }) {
-    final box = _box;
-    if (box == null) return;
-    box.put(_boxKeyPendingId, carId);
-    box.put(_boxKeyPendingYear, makeYear ?? 0);
-    box.put(_boxKeyPendingColor, colorCode ?? 0);
-    box.put(_boxKeyPendingAt, DateTime.now().millisecondsSinceEpoch);
-  }
-
-  static void _clearPendingLink() {
-    final box = _box;
-    if (box == null) return;
-    box.delete(_boxKeyPendingId);
-    box.delete(_boxKeyPendingYear);
-    box.delete(_boxKeyPendingColor);
-    box.delete(_boxKeyPendingAt);
-  }
-
-  /// استعادة رابط لم يكتمل توجيهه في تشغيل سابق (إغلاق أثناء الـ Splash،
-  /// انقطاع الشبكة، ...). لا يُعالج هنا؛ ينتظر `markNavigatorReady`.
-  static void _restorePendingLink() {
-    final box = _box;
-    if (box == null) return;
-    final id = box.get(_boxKeyPendingId)?.toString().trim() ?? '';
-    if (id.isEmpty || id.toLowerCase() == 'null' || id == '0') return;
-    final savedAt = box.get(_boxKeyPendingAt);
-    if (savedAt is int) {
-      final age = DateTime.now().difference(
-        DateTime.fromMillisecondsSinceEpoch(savedAt),
-      );
-      // رابط قديم جداً: لا نفتح سيارة لم يعد المستخدم يتوقعها.
-      if (age.inDays > 7) {
-        _clearPendingLink();
-        return;
-      }
-    }
-    final year = box.get(_boxKeyPendingYear);
-    final color = box.get(_boxKeyPendingColor);
-    _pendingCarId = id;
-    _pendingFromMakeYear = year is int && year > 0 ? year : null;
-    _pendingColorCode = color is int && color > 0 ? color : null;
-    debugPrint('[DL] restored pending link from a previous run: $id');
-  }
 
   /// رابط صفحة الويب للسيارة (نظيف وبدون مسافات، مع إرفاق سنة الصنع وكود اللون)
   static String getCarWebUrl(String carId, {int? makeYear, int? colorCode}) {
@@ -225,13 +166,12 @@ class DeepLinkService {
       unawaited(_checkIosClipboardDeferred());
     }
 
-    // 4. استعادة رابط لم يكتمل توجيهه في تشغيل سابق (إن وجد)
-    _restorePendingLink();
-
-    // لا نعتبر الـ Navigator جاهزاً هنا. الشاشات الرئيسية (MainLayout /
-    // AgentShell / AdminMainLayout) هي التي تنادي markNavigatorReady بعد
-    // تركيبها، حتى لا يُفتح تفاصيل السيارة فوق شاشة البداية ثم تُستبدل
-    // بالصفحة الرئيسية ويضيع الرابط.
+    // 4. مؤقت أمان لضمان جاهزية الـ Navigator حتى لو لم تستدعه SplashScreen
+    Future.delayed(const Duration(milliseconds: 5000), () {
+      if (!_isNavigatorReady) {
+        markNavigatorReady();
+      }
+    });
   }
 
   /// بعض إصدارات iOS/Android تسلّم رابط الإقلاع بعد `getInitialLink()`.
@@ -539,44 +479,25 @@ $link
     );
   }
 
-  /// إشعار الخدمة بأن الشاشة الرئيسية استُبدلت بالـ Splash وتم رسمها،
-  /// أي أن الـ Navigator صار جاهزاً لاستقبال شاشة تفاصيل السيارة.
+  /// إشعار الخدمة بأن شاشة البداية (Splash) أو تسجيل الدخول انتهت والـ Navigator أصبح جاهزاً
   static void markNavigatorReady() {
     _isNavigatorReady = true;
     debugPrint(
       '[DL] markNavigatorReady, pendingCar: ${_pendingCar?.itemName}, pendingId: $_pendingCarId',
     );
-    _processPendingLink();
-  }
-
-  /// معالجة الرابط المعلق مرة واحدة، بعد جاهزية الشاشة الرئيسية.
-  static void _processPendingLink() {
-    if (!_isNavigatorReady || _isProcessingPending) return;
-
-    final car = _pendingCar;
-    if (car != null) {
-      _processPendingCar(car);
-      return;
+    if (_pendingCar != null) {
+      final car = _pendingCar!;
+      _pendingCar = null;
+      _navigateToCar(car);
+    } else if (_pendingCarId != null && _pendingCarId!.isNotEmpty) {
+      final id = _pendingCarId!;
+      final year = _pendingFromMakeYear;
+      final color = _pendingColorCode;
+      _pendingCarId = null;
+      _pendingFromMakeYear = null;
+      _pendingColorCode = null;
+      handleIncomingCarId(id, fromMakeYear: year, colorCode: color);
     }
-
-    final id = _pendingCarId;
-    if (id == null || id.isEmpty) return;
-    unawaited(
-      handleIncomingCarId(
-        id,
-        fromMakeYear: _pendingFromMakeYear,
-        colorCode: _pendingColorCode,
-      ),
-    );
-  }
-
-  /// التوجيه إلى سيارة سبق العثور عليها (مثلاً وصل الرابط أثناء الـ Splash).
-  static void _processPendingCar(GetBrandCarsDataModel car) {
-    if (_isProcessingPending) return;
-    _isProcessingPending = true;
-    unawaited(
-      _navigateToCar(car).whenComplete(() => _isProcessingPending = false),
-    );
   }
 
   /// إعادة فحص الروابط المعلقة بعد نجاح تسجيل الدخول
@@ -603,10 +524,6 @@ $link
           ? decodedId.split('_').first.trim()
           : '';
 
-      // احفظ الرابط فوراً: إذا أُغلق التطبيق قبل اكتمال التوجيه (Splash/شبكة)
-      // يُستأنف عند التشغيل التالي بدل أن يضيع ويبقى المستخدم في الرئيسية.
-      _persistPendingLink(rawCarId, makeYear: fromMakeYear, colorCode: colorCode);
-
       // إذا كان الـ Navigator غير جاهز (شاشة البداية لا تزال تعمل)، احفظ الكود كمعلق وأوقف التنفيذ
       if (!_isNavigatorReady) {
         _pendingCarId = rawCarId;
@@ -614,13 +531,6 @@ $link
         _pendingColorCode = colorCode;
         return; // ← إيقاف: لا تبحث الآن، انتظر markNavigatorReady
       }
-
-      // منع معالجة نفس الرابط مرتين في نفس اللحظة (initialLink + stream)
-      if (_isProcessingPending) {
-        debugPrint('[DL] a link is already being processed, ignoring duplicate');
-        return;
-      }
-      _isProcessingPending = true;
 
       int matchScore(GetBrandCarsDataModel c) {
         final itemCode = c.itemCode.toString().trim();
@@ -719,26 +629,8 @@ $link
       if (targetCar == null) {
         final homeRepo = sl<HomeRepo>();
 
-        // أ) الـ API يقبل GROUP_CODE في ?id=، لذا نجرب كود الرابط مباشرة أولاً
-        // (طلب صغير وسريع) قبل تحميل كل المخزون.
-        final directCode = int.tryParse(decodedId);
-        if (directCode != null && directCode > 0) {
-          final directCarsRes = await homeRepo.fetchAllCars(
-            directCode,
-            null,
-            null,
-            null,
-            null,
-            null,
-          );
-          directCarsRes.fold((_) {}, (cars) {
-            debugPrint('[DL] direct id=$directCode returned ${cars.length} cars');
-            targetCar = findBestCar(cars);
-          });
-        }
-
-        // ب) طلب واحد يجلب كل سيارات المخزون دفعة واحدة
-        if (targetCar == null && decodedId.isNotEmpty) {
+        // أ) طلب واحد يجلب كل سيارات المخزون دفعة واحدة
+        if (decodedId.isNotEmpty) {
           final allCarsRes = await homeRepo.fetchAllCars(
             null,
             null,
@@ -855,19 +747,11 @@ $link
         debugPrint(
           '[DeepLinkService] Car not found with id: $rawCarId (decoded: $decodedId, prefix: $prefixId)',
         );
-        // معرّف غير موجود فعلاً: لا نعيد المحاولة في كل تشغيل.
-        _clearPendingLink();
-        _pendingCarId = null;
-        _pendingFromMakeYear = null;
-        _pendingColorCode = null;
         _showDeepLinkMessage(AppLocaleKey.carNotFound.tr());
       }
     } catch (e) {
-      // خطأ شبكة/سيرفر: نُبقي الرابط محفوظاً ليُعاد عند التشغيل التالي.
       debugPrint('[DeepLinkService] Error navigating to car $rawCarId: $e');
       _showDeepLinkMessage(AppLocaleKey.deepLinkLoadFailed.tr());
-    } finally {
-      _isProcessingPending = false;
     }
   }
 
@@ -895,43 +779,31 @@ $link
       return;
     }
 
+    _pendingCar = null;
+    _pendingCarId = null;
+
     final carKey = HiveMethods.getCarUniqueId(targetCar.toMap());
     final now = DateTime.now();
     if (_lastNavigatedId == carKey &&
         _lastNavigatedTime != null &&
         now.difference(_lastNavigatedTime!).inSeconds < 3) {
       debugPrint('[DL] skipping duplicate navigation for: $carKey');
-      _clearPendingLink();
-      _pendingCar = null;
-      _pendingCarId = null;
       return;
     }
+    _lastNavigatedId = carKey;
+    _lastNavigatedTime = now;
 
-    // انتظر ظهور الـ NavigatorState (بعد استبدال شاشة البداية بالشاشة الرئيسية).
-    // لا نحذف الرابط المعلق إلا بعد نجاح الـ push فعلياً.
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 35; i++) {
       final navState = AppRouters.navigatorKey.currentState;
-      if (navState != null && navState.mounted) {
+      if (navState != null) {
         debugPrint(
           '[DeepLinkService] Pushing carDetailsScreen for car: ${targetCar.itemName}',
         );
         navState.pushNamed(RoutesName.carDetailsScreen, arguments: targetCar);
-
-        _lastNavigatedId = carKey;
-        _lastNavigatedTime = now;
-        _pendingCar = null;
-        _pendingCarId = null;
-        _pendingFromMakeYear = null;
-        _pendingColorCode = null;
-        _clearPendingLink();
         return;
       }
       await Future.delayed(const Duration(milliseconds: 150));
     }
-
-    // لم يجهز الـ Navigator خلال المهلة: أبقِ السيارة معلقة حتى تُعالج في
-    // markNavigatorReady القادمة بدل أن يضيع الرابط.
-    _pendingCar = targetCar;
     debugPrint('[DeepLinkService] Navigation timeout: NavigatorState was null');
   }
 
