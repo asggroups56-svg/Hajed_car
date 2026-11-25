@@ -2,12 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:car/core/cache/hive/hive_methods.dart';
+import 'package:car/core/custom_widgets/custom_toast/custom_toast.dart';
+import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/routes/routes_name.dart';
 import 'package:car/core/services/services_locator.dart';
+import 'package:car/core/utils/common_methods.dart';
 import 'package:car/features/home/data/model/brand_cars_data_model.dart';
 import 'package:car/features/home/data/model/cars_models_response.dart';
 import 'package:car/features/home/data/repository/home_repo.dart';
 import 'package:car/features/home/presentation/cubit/home_cubit.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -16,13 +20,40 @@ import 'package:share_plus/share_plus.dart';
 
 import '../routes/app_routers_import.dart';
 
+/// إعدادات الروابط العميقة في مكان واحد.
+///
+/// يجب أن تبقى متزامنة مع:
+/// - `android/app/src/main/AndroidManifest.xml` (scheme/host)
+/// - `ios/Runner/Info.plist` (`CFBundleURLSchemes`)
+/// - `ios/Runner/Runner.entitlements` (`applinks:<host>`)
+/// - `web/.well-known/assetlinks.json`
+/// - `web/.well-known/apple-app-site-association`
+/// - `web/car/index.html` (نفس الروابط والمتاجر)
+class DeepLinkConfig {
+  DeepLinkConfig._();
+
+  static const String webDomain = 'https://delta-asg.com';
+  static const String customScheme = 'hajedcar';
+
+  /// المخطط القديم الذي قد يكون موجوداً في روابط سبق مشاركتها.
+  static const String legacyCustomScheme = 'hbwcars';
+
+  static const String carPath = 'car';
+  static const String androidPackageName = 'com.Hajed.car';
+  static const String iosAppId = '6816629989';
+  static const String playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.Hajed.car';
+  static const String appStoreUrl =
+      'https://apps.apple.com/sa/app/id6816629989';
+}
+
 /// خدمة إدارة الروابط العميقة (Deep Linking) المجانية 100% بدون أي وسيط مدفوع.
 ///
 /// الاستراتيجية:
 /// 1. الروابط المباشرة (App Links / Universal Links):
 ///    - أندرويد: https://delta-asg.com/car/{id} عبر assetlinks.json
 ///    - آيفون: https://delta-asg.com/car/{id} عبر apple-app-site-association
-///    - Custom Scheme: hbwcars://car/{id}
+///    - Custom Scheme: hajedcar://car/{id}
 /// 2. الـ Deferred لأندرويد (تثبيت جديد من المتجر):
 ///    - قراءة Google Play Install Referrer واستخراج car_id فور أول فتح.
 /// 3. الـ Deferred لـ iOS (تثبيت جديد من المتجر):
@@ -32,41 +63,101 @@ import '../routes/app_routers_import.dart';
 class DeepLinkService {
   DeepLinkService._();
 
-  static const String _webDomain = 'https://delta-asg.com';
-  static const String _customScheme = 'hbwcars';
+  static const String _webDomain = DeepLinkConfig.webDomain;
+  static const String _customScheme = DeepLinkConfig.customScheme;
+  static const String _legacyCustomScheme = DeepLinkConfig.legacyCustomScheme;
+  static const String _carPath = DeepLinkConfig.carPath;
 
   static const String _boxKeyCheckedReferrer = 'has_checked_install_referrer';
   static const String _boxKeyCheckedIosClip = 'has_checked_ios_clipboard';
+
+  // رابط وصل للتطبيق ولم يكتمل التوجيه إليه بعد. يُحفظ حتى لا يضيع إذا
+  // أُغلق التطبيق قبل انتهاء شاشة البداية أو فشل طلب الشبكة.
+  static const String _boxKeyPendingId = 'deep_link_pending_car_id';
+  static const String _boxKeyPendingYear = 'deep_link_pending_make_year';
+  static const String _boxKeyPendingColor = 'deep_link_pending_color_code';
+  static const String _boxKeyPendingAt = 'deep_link_pending_at';
 
   static StreamSubscription? _appLinksSubscription;
   static final AppLinks _appLinks = AppLinks();
   static bool _isInitialized = false;
   static bool _isNavigatorReady = false;
+  static bool _isProcessingPending = false;
   static GetBrandCarsDataModel? _pendingCar;
   static String? _pendingCarId;
   static int? _pendingFromMakeYear;
   static int? _pendingColorCode;
   static String? _lastHandledId;
   static DateTime? _lastHandledTime;
+  static String? _lastNavigatedId;
+  static DateTime? _lastNavigatedTime;
 
-  /// رابط صفحة الويب للسيارة (نظيف وبدون مسافات، مع إرفاق سنة الصنع وكود اللون)
-  static String getCarWebUrl(
+  static Box? get _box => Hive.isBoxOpen('app') ? Hive.box('app') : null;
+
+  /// حفظ الرابط المعلق حتى يكتمل التوجيه (أو يُلغى).
+  static void _persistPendingLink(
     String carId, {
     int? makeYear,
     int? colorCode,
   }) {
+    final box = _box;
+    if (box == null) return;
+    box.put(_boxKeyPendingId, carId);
+    box.put(_boxKeyPendingYear, makeYear ?? 0);
+    box.put(_boxKeyPendingColor, colorCode ?? 0);
+    box.put(_boxKeyPendingAt, DateTime.now().millisecondsSinceEpoch);
+  }
+
+  static void _clearPendingLink() {
+    final box = _box;
+    if (box == null) return;
+    box.delete(_boxKeyPendingId);
+    box.delete(_boxKeyPendingYear);
+    box.delete(_boxKeyPendingColor);
+    box.delete(_boxKeyPendingAt);
+  }
+
+  /// استعادة رابط لم يكتمل توجيهه في تشغيل سابق (إغلاق أثناء الـ Splash،
+  /// انقطاع الشبكة، ...). لا يُعالج هنا؛ ينتظر `markNavigatorReady`.
+  static void _restorePendingLink() {
+    final box = _box;
+    if (box == null) return;
+    final id = box.get(_boxKeyPendingId)?.toString().trim() ?? '';
+    if (id.isEmpty || id.toLowerCase() == 'null' || id == '0') return;
+    final savedAt = box.get(_boxKeyPendingAt);
+    if (savedAt is int) {
+      final age = DateTime.now().difference(
+        DateTime.fromMillisecondsSinceEpoch(savedAt),
+      );
+      // رابط قديم جداً: لا نفتح سيارة لم يعد المستخدم يتوقعها.
+      if (age.inDays > 7) {
+        _clearPendingLink();
+        return;
+      }
+    }
+    final year = box.get(_boxKeyPendingYear);
+    final color = box.get(_boxKeyPendingColor);
+    _pendingCarId = id;
+    _pendingFromMakeYear = year is int && year > 0 ? year : null;
+    _pendingColorCode = color is int && color > 0 ? color : null;
+    debugPrint('[DL] restored pending link from a previous run: $id');
+  }
+
+  /// رابط صفحة الويب للسيارة (نظيف وبدون مسافات، مع إرفاق سنة الصنع وكود اللون)
+  static String getCarWebUrl(String carId, {int? makeYear, int? colorCode}) {
     final cleanId = Uri.encodeComponent(carId.trim());
     final queryParams = <String, String>{
       if (makeYear != null && makeYear > 0) 'frommakeyear': makeYear.toString(),
-      if (colorCode != null && colorCode > 0) 'color_code': colorCode.toString(),
+      if (colorCode != null && colorCode > 0)
+        'color_code': colorCode.toString(),
     };
 
     if (queryParams.isEmpty) {
       return '$_webDomain/car/$cleanId';
     }
-    return Uri.parse('$_webDomain/car/$cleanId')
-        .replace(queryParameters: queryParams)
-        .toString();
+    return Uri.parse(
+      '$_webDomain/car/$cleanId',
+    ).replace(queryParameters: queryParams).toString();
   }
 
   /// رابط التطبيق المباشر (Custom Scheme) مع البارامترات
@@ -78,15 +169,16 @@ class DeepLinkService {
     final cleanId = Uri.encodeComponent(carId.trim());
     final queryParams = <String, String>{
       if (makeYear != null && makeYear > 0) 'frommakeyear': makeYear.toString(),
-      if (colorCode != null && colorCode > 0) 'color_code': colorCode.toString(),
+      if (colorCode != null && colorCode > 0)
+        'color_code': colorCode.toString(),
     };
 
     if (queryParams.isEmpty) {
       return '$_customScheme://car/$cleanId';
     }
-    return Uri.parse('$_customScheme://car/$cleanId')
-        .replace(queryParameters: queryParams)
-        .toString();
+    return Uri.parse(
+      '$_customScheme://car/$cleanId',
+    ).replace(queryParameters: queryParams).toString();
   }
 
   /// تهيئة الإنصات للروابط العميقة والـ Deferred Deep Links
@@ -101,6 +193,12 @@ class DeepLinkService {
       debugPrint('[DL] initial link: $initialUri');
       if (initialUri != null) {
         _handleIncomingUri(initialUri);
+      }
+
+      // على iOS مع UIScene قد يصل الرابط بعد انتهاء getInitialLink().
+      // نعيد المحاولة عبر getLatestLink() بدلاً من الاكتفاء بالبث.
+      if (initialUri == null) {
+        unawaited(_pollLatestLink());
       }
 
       // الإنصات للروابط الواردة أثناء تشغيل التطبيق في الخلفية
@@ -127,19 +225,42 @@ class DeepLinkService {
       unawaited(_checkIosClipboardDeferred());
     }
 
-    // 4. مؤقت أمان لضمان جاهزية الـ Navigator حتى لو لم تستدعه SplashScreen
-    Future.delayed(const Duration(milliseconds: 5000), () {
-      if (!_isNavigatorReady) {
-        markNavigatorReady();
+    // 4. استعادة رابط لم يكتمل توجيهه في تشغيل سابق (إن وجد)
+    _restorePendingLink();
+
+    // لا نعتبر الـ Navigator جاهزاً هنا. الشاشات الرئيسية (MainLayout /
+    // AgentShell / AdminMainLayout) هي التي تنادي markNavigatorReady بعد
+    // تركيبها، حتى لا يُفتح تفاصيل السيارة فوق شاشة البداية ثم تُستبدل
+    // بالصفحة الرئيسية ويضيع الرابط.
+  }
+
+  /// بعض إصدارات iOS/Android تسلّم رابط الإقلاع بعد `getInitialLink()`.
+  /// نتحقق من `getLatestLink()` عدة مرات قصيرة قبل أن نستسلم.
+  static Future<void> _pollLatestLink() async {
+    for (final delayMs in const [250, 700, 1500]) {
+      await Future.delayed(Duration(milliseconds: delayMs));
+      if (_lastHandledId != null) return;
+      try {
+        final latest = await _appLinks.getLatestLink();
+        if (latest != null) {
+          debugPrint('[DL] latest link: $latest');
+          _handleIncomingUri(latest);
+          return;
+        }
+      } catch (e) {
+        debugPrint('[DL] getLatestLink error: $e');
       }
-    });
+    }
   }
 
   /// فحص Google Play Install Referrer (Android Deferred Deep Linking)
   static Future<void> _checkAndroidInstallReferrer() async {
     try {
       final box = Hive.box('app');
-      final alreadyChecked = box.get(_boxKeyCheckedReferrer, defaultValue: false);
+      final alreadyChecked = box.get(
+        _boxKeyCheckedReferrer,
+        defaultValue: false,
+      );
       if (alreadyChecked) return;
 
       final ReferrerDetails referrerDetails =
@@ -155,7 +276,8 @@ class DeepLinkService {
 
         // بحث عن car_id=123 أو car=123 أو utm_content=123
         final params = Uri.splitQueryString(decoded);
-        carId = params['car_id'] ??
+        carId =
+            params['car_id'] ??
             params['carId'] ??
             params['car'] ??
             params['id'] ??
@@ -170,7 +292,9 @@ class DeepLinkService {
         }
 
         if (carId != null && carId.trim().isNotEmpty) {
-          debugPrint('[DeepLinkService] Deferred Car found from Play Store: $carId');
+          debugPrint(
+            '[DeepLinkService] Deferred Car found from Play Store: $carId',
+          );
           await handleIncomingCarId(carId.trim());
         }
       }
@@ -185,7 +309,10 @@ class DeepLinkService {
   static Future<void> _checkIosClipboardDeferred() async {
     try {
       final box = Hive.box('app');
-      final alreadyChecked = box.get(_boxKeyCheckedIosClip, defaultValue: false);
+      final alreadyChecked = box.get(
+        _boxKeyCheckedIosClip,
+        defaultValue: false,
+      );
       if (alreadyChecked) return;
 
       // قراءة الحافظة
@@ -196,7 +323,9 @@ class DeepLinkService {
         String? carId;
 
         // فحص ما إذا كان النص رابط للسيارة من التطبيق أو الموقع
-        if (text.startsWith('hbwcars://') || text.contains('delta-asg.com/car/')) {
+        if (text.startsWith('$_customScheme://') ||
+            text.startsWith('$_legacyCustomScheme://') ||
+            text.contains('delta-asg.com/car/')) {
           final uri = Uri.tryParse(text);
           if (uri != null) {
             final carIndex = uri.pathSegments.indexOf('car');
@@ -209,7 +338,9 @@ class DeepLinkService {
         }
 
         if (carId != null && carId.isNotEmpty) {
-          debugPrint('[DeepLinkService] Deferred Car found from iOS Clipboard: $carId');
+          debugPrint(
+            '[DeepLinkService] Deferred Car found from iOS Clipboard: $carId',
+          );
           // تنظيف الحافظة حتى لا تفتح السيارة في كل مرة
           await Clipboard.setData(const ClipboardData(text: ''));
           await handleIncomingCarId(carId);
@@ -227,68 +358,80 @@ class DeepLinkService {
     debugPrint('[DL] incoming uri: $uri');
     String? carId;
 
-    // حالة: https://delta-asg.com/car/{id}
-    if (uri.pathSegments.isNotEmpty) {
-      final carIndex = uri.pathSegments.indexOf('car');
-      if (carIndex != -1 && carIndex + 1 < uri.pathSegments.length) {
-        carId = uri.pathSegments[carIndex + 1];
-      }
-    }
+    final segments = uri.pathSegments;
+    final scheme = uri.scheme.toLowerCase();
 
-    // حالة: hbwcars://car/{id}
-    if (carId == null && uri.scheme == _customScheme) {
-      if (uri.host == 'car' && uri.pathSegments.isNotEmpty) {
-        carId = uri.pathSegments.first;
-      } else if (uri.pathSegments.contains('car')) {
-        final idx = uri.pathSegments.indexOf('car');
-        if (idx + 1 < uri.pathSegments.length) {
-          carId = uri.pathSegments[idx + 1];
+    // حالة Custom Scheme: hajedcar://car/{id} أو hajedcar:///car/{id}
+    // ونقبل أيضاً المخطط القديم hbwcars ومخططات النسخ (hajedcar.dev).
+    final isCustomScheme =
+        scheme == _customScheme ||
+        scheme == _legacyCustomScheme ||
+        scheme.startsWith('$_customScheme.');
+    if (isCustomScheme) {
+      if (uri.host == _carPath && segments.isNotEmpty) {
+        carId = segments.first;
+      } else {
+        final carIndex = segments.indexOf(_carPath);
+        if (carIndex != -1 && carIndex + 1 < segments.length) {
+          carId = segments[carIndex + 1];
         }
       }
     }
 
+    // حالة: https://delta-asg.com/car/{id}
+    if (carId == null) {
+      final carIndex = segments.indexOf(_carPath);
+      if (carIndex != -1 && carIndex + 1 < segments.length) {
+        carId = segments[carIndex + 1];
+      }
+    }
+
     // Query parameters fallback (?car_id=123 أو ?id=123 أو ?car=123)
-    carId ??= uri.queryParameters['car_id'] ??
+    carId ??=
+        uri.queryParameters['car_id'] ??
         uri.queryParameters['carId'] ??
         uri.queryParameters['id'] ??
         uri.queryParameters['car'];
 
     // Regex fallback
     if (carId == null || carId.isEmpty) {
-      final raw = uri.toString();
-      final match = RegExp(r'/car[/:=](\w+)').firstMatch(raw);
+      final match = RegExp(r'/car[/:=]+([^/?#]+)').firstMatch(uri.toString());
       if (match != null) {
         carId = match.group(1);
       }
     }
 
     // استخراج frommakeyear و color_code من الرابط
-    final yearStr = uri.queryParameters['frommakeyear'] ??
+    final yearStr =
+        uri.queryParameters['frommakeyear'] ??
         uri.queryParameters['year'] ??
         uri.queryParameters['makeYear'];
-    final colorStr = uri.queryParameters['color_code'] ??
+    final colorStr =
+        uri.queryParameters['color_code'] ??
         uri.queryParameters['colorCode'] ??
         uri.queryParameters['color'];
     final makeYear = int.tryParse(yearStr ?? '');
     final colorCode = int.tryParse(colorStr ?? '');
 
-    if (carId != null && carId.trim().isNotEmpty) {
-      final cleanId = carId.trim();
-      final now = DateTime.now();
-      if (_lastHandledId == cleanId &&
-          _lastHandledTime != null &&
-          now.difference(_lastHandledTime!).inMilliseconds < 1500) {
-        debugPrint('[DeepLinkService] Debounced duplicate URI for car: $cleanId');
-        return;
-      }
-      _lastHandledId = cleanId;
-      _lastHandledTime = now;
-      handleIncomingCarId(
-        cleanId,
-        fromMakeYear: makeYear,
-        colorCode: colorCode,
-      );
+    final cleanId = carId?.trim();
+    if (cleanId == null ||
+        cleanId.isEmpty ||
+        cleanId.toLowerCase() == 'null' ||
+        cleanId == '0') {
+      debugPrint('[DL] ignoring link without a usable car id');
+      return;
     }
+
+    final now = DateTime.now();
+    if (_lastHandledId == cleanId &&
+        _lastHandledTime != null &&
+        now.difference(_lastHandledTime!).inMilliseconds < 1500) {
+      debugPrint('[DeepLinkService] Debounced duplicate URI for car: $cleanId');
+      return;
+    }
+    _lastHandledId = cleanId;
+    _lastHandledTime = now;
+    handleIncomingCarId(cleanId, fromMakeYear: makeYear, colorCode: colorCode);
   }
 
   /// استخراج معرّف نظيف وآمن وصالح للروابط (بدون مسافات أو رموز خاصة)
@@ -346,9 +489,11 @@ class DeepLinkService {
 
     final carId = itemCode.isNotEmpty && itemCode != '0'
         ? itemCode
-        : (chassis.isNotEmpty && chassis != '0' && chassis.toLowerCase() != 'null'
-            ? chassis
-            : (group.isNotEmpty && group != '0' ? group : id));
+        : (chassis.isNotEmpty &&
+                  chassis != '0' &&
+                  chassis.toLowerCase() != 'null'
+              ? chassis
+              : (group.isNotEmpty && group != '0' ? group : id));
 
     final num priceVal = (car.priceWithVat is num)
         ? car.priceWithVat
@@ -379,13 +524,10 @@ class DeepLinkService {
     int? makeYear,
     int? colorCode,
   }) async {
-    final link = getCarWebUrl(
-      carId,
-      makeYear: makeYear,
-      colorCode: colorCode,
-    );
+    final link = getCarWebUrl(carId, makeYear: makeYear, colorCode: colorCode);
 
-    final shareText = '''
+    final shareText =
+        '''
 🚗 $title
 💰 السعر: $price ريال
 تفقد كامل تفاصيل ومواصفات السيارة وخيارات التمويل:
@@ -393,34 +535,48 @@ $link
 ''';
 
     await SharePlus.instance.share(
-      ShareParams(
-        text: shareText,
-        subject: title,
+      ShareParams(text: shareText, subject: title),
+    );
+  }
+
+  /// إشعار الخدمة بأن الشاشة الرئيسية استُبدلت بالـ Splash وتم رسمها،
+  /// أي أن الـ Navigator صار جاهزاً لاستقبال شاشة تفاصيل السيارة.
+  static void markNavigatorReady() {
+    _isNavigatorReady = true;
+    debugPrint(
+      '[DL] markNavigatorReady, pendingCar: ${_pendingCar?.itemName}, pendingId: $_pendingCarId',
+    );
+    _processPendingLink();
+  }
+
+  /// معالجة الرابط المعلق مرة واحدة، بعد جاهزية الشاشة الرئيسية.
+  static void _processPendingLink() {
+    if (!_isNavigatorReady || _isProcessingPending) return;
+
+    final car = _pendingCar;
+    if (car != null) {
+      _processPendingCar(car);
+      return;
+    }
+
+    final id = _pendingCarId;
+    if (id == null || id.isEmpty) return;
+    unawaited(
+      handleIncomingCarId(
+        id,
+        fromMakeYear: _pendingFromMakeYear,
+        colorCode: _pendingColorCode,
       ),
     );
   }
 
-  /// إشعار الخدمة بأن شاشة البداية (Splash) أو تسجيل الدخول انتهت والـ Navigator أصبح جاهزاً
-  static void markNavigatorReady() {
-    _isNavigatorReady = true;
-    debugPrint('[DL] markNavigatorReady, pendingCar: ${_pendingCar?.itemName}, pendingId: $_pendingCarId');
-    if (_pendingCar != null) {
-      final car = _pendingCar!;
-      _pendingCar = null;
-      _navigateToCar(car);
-    } else if (_pendingCarId != null && _pendingCarId!.isNotEmpty) {
-      final id = _pendingCarId!;
-      final year = _pendingFromMakeYear;
-      final color = _pendingColorCode;
-      _pendingCarId = null;
-      _pendingFromMakeYear = null;
-      _pendingColorCode = null;
-      handleIncomingCarId(
-        id,
-        fromMakeYear: year,
-        colorCode: color,
-      );
-    }
+  /// التوجيه إلى سيارة سبق العثور عليها (مثلاً وصل الرابط أثناء الـ Splash).
+  static void _processPendingCar(GetBrandCarsDataModel car) {
+    if (_isProcessingPending) return;
+    _isProcessingPending = true;
+    unawaited(
+      _navigateToCar(car).whenComplete(() => _isProcessingPending = false),
+    );
   }
 
   /// إعادة فحص الروابط المعلقة بعد نجاح تسجيل الدخول
@@ -437,7 +593,19 @@ $link
     try {
       debugPrint('[DL] handleIncomingCarId: $rawCarId');
       final decodedId = Uri.decodeComponent(rawCarId).trim();
-      final prefixId = decodedId.contains('_') ? decodedId.split('_').first.trim() : '';
+      if (decodedId.isEmpty ||
+          decodedId.toLowerCase() == 'null' ||
+          decodedId == '0') {
+        debugPrint('[DL] invalid car id, ignoring');
+        return;
+      }
+      final prefixId = decodedId.contains('_')
+          ? decodedId.split('_').first.trim()
+          : '';
+
+      // احفظ الرابط فوراً: إذا أُغلق التطبيق قبل اكتمال التوجيه (Splash/شبكة)
+      // يُستأنف عند التشغيل التالي بدل أن يضيع ويبقى المستخدم في الرئيسية.
+      _persistPendingLink(rawCarId, makeYear: fromMakeYear, colorCode: colorCode);
 
       // إذا كان الـ Navigator غير جاهز (شاشة البداية لا تزال تعمل)، احفظ الكود كمعلق وأوقف التنفيذ
       if (!_isNavigatorReady) {
@@ -447,7 +615,14 @@ $link
         return; // ← إيقاف: لا تبحث الآن، انتظر markNavigatorReady
       }
 
-      bool matches(GetBrandCarsDataModel c) {
+      // منع معالجة نفس الرابط مرتين في نفس اللحظة (initialLink + stream)
+      if (_isProcessingPending) {
+        debugPrint('[DL] a link is already being processed, ignoring duplicate');
+        return;
+      }
+      _isProcessingPending = true;
+
+      int matchScore(GetBrandCarsDataModel c) {
         final itemCode = c.itemCode.toString().trim();
         final chassis = c.chassisNo.trim();
         final groupCode = c.groupCode.toString();
@@ -455,32 +630,67 @@ $link
         final uniqueId = HiveMethods.getCarUniqueId(c.toMap());
 
         bool idMatched = false;
-        if (itemCode.isNotEmpty && itemCode != '0' && (itemCode == decodedId || itemCode == prefixId)) {
+        if (itemCode.isNotEmpty &&
+            itemCode != '0' &&
+            (itemCode == decodedId || itemCode == prefixId)) {
           idMatched = true;
-        } else if (chassis.isNotEmpty && chassis != '0' && chassis.toLowerCase() != 'null' && (chassis == decodedId || chassis == prefixId)) {
+        } else if (chassis.isNotEmpty &&
+            chassis != '0' &&
+            chassis.toLowerCase() != 'null' &&
+            (chassis == decodedId || chassis == prefixId)) {
           idMatched = true;
-        } else if (groupCode.isNotEmpty && groupCode != '0' && (groupCode == decodedId || groupCode == prefixId)) {
+        } else if (groupCode.isNotEmpty &&
+            groupCode != '0' &&
+            (groupCode == decodedId || groupCode == prefixId)) {
           idMatched = true;
-        } else if (groupCode1.isNotEmpty && groupCode1 != '0' && (groupCode1 == decodedId || groupCode1 == prefixId)) {
+        } else if (groupCode1.isNotEmpty &&
+            groupCode1 != '0' &&
+            (groupCode1 == decodedId || groupCode1 == prefixId)) {
           idMatched = true;
-        } else if (uniqueId == decodedId || (prefixId.isNotEmpty && uniqueId.startsWith(prefixId))) {
+        } else if (uniqueId == decodedId ||
+            (prefixId.isNotEmpty && uniqueId.startsWith(prefixId))) {
           idMatched = true;
-        } else if (decodedId.length > 5 && c.itemName.isNotEmpty && decodedId.contains(c.itemName)) {
+        } else if (decodedId.length > 5 &&
+            c.itemName.isNotEmpty &&
+            decodedId.contains(c.itemName)) {
           idMatched = true;
         }
 
-        if (!idMatched) return false;
+        if (!idMatched) return 0;
 
-        // مطابقة سنة الصنع إذا تم تمريرها
-        if (fromMakeYear != null && fromMakeYear > 0 && c.makeYear > 0 && c.makeYear != fromMakeYear) {
-          return false;
+        // مطابقة تامة مع سنة الصنع واللون إن وجدا
+        bool perfect = true;
+        if (fromMakeYear != null &&
+            fromMakeYear > 0 &&
+            c.makeYear > 0 &&
+            c.makeYear != fromMakeYear) {
+          perfect = false;
         }
-        // مطابقة كود اللون إذا تم تمريره
-        if (colorCode != null && colorCode > 0 && c.colorCode > 0 && c.colorCode != colorCode) {
-          return false;
+        if (colorCode != null &&
+            colorCode > 0 &&
+            c.colorCode > 0 &&
+            c.colorCode != colorCode) {
+          perfect = false;
         }
 
-        return true;
+        return perfect ? 2 : 1;
+      }
+
+      bool matches(GetBrandCarsDataModel c) => matchScore(c) > 0;
+
+      GetBrandCarsDataModel? findBestCar(Iterable<GetBrandCarsDataModel> list) {
+        GetBrandCarsDataModel? best;
+        GetBrandCarsDataModel? fallback;
+        for (final c in list) {
+          final score = matchScore(c);
+          if (score == 2) {
+            best = c;
+            break;
+          } else if (score == 1 && fallback == null) {
+            fallback = c;
+          }
+        }
+        return best ?? fallback;
       }
 
       // 1. البحث في جميع سيارات الذاكرة بـ HomeCubit
@@ -491,7 +701,9 @@ $link
         ...?state.brandCarsStatus.data,
         ...?state.filteredCarsStatus.data,
         if (state.allPopularCarsStatus.data is Map)
-          ...(state.allPopularCarsStatus.data as Map).values.expand((list) => (list as Iterable).whereType<GetBrandCarsDataModel>()),
+          ...(state.allPopularCarsStatus.data as Map).values.expand(
+            (list) => (list as Iterable).whereType<GetBrandCarsDataModel>(),
+          ),
         ...state.promoCarOffers.map((ad) => ad.toCarDataModel()),
         if (state.financingAdsStatus.data != null)
           ...state.financingAdsStatus.data!.map((ad) => ad.toCarDataModel()),
@@ -501,24 +713,53 @@ $link
           ...state.programCarsStatus.data!.map((ad) => ad.toCarDataModel()),
       ];
 
-      GetBrandCarsDataModel? targetCar;
-      for (final c in inMemoryCars) {
-        if (matches(c)) {
-          targetCar = c;
-          break;
-        }
-      }
+      GetBrandCarsDataModel? targetCar = findBestCar(inMemoryCars);
 
       // 2. إذا لم تكن في الذاكرة، يتم جلبها من الـ API
       if (targetCar == null) {
         final homeRepo = sl<HomeRepo>();
 
-        // أ) إذا كان الكود يبدأ برقم ماركة محتمل (مثل 1008 لهيونداي أو كود رقمي من 4 خانات فأكثر)
+        // أ) الـ API يقبل GROUP_CODE في ?id=، لذا نجرب كود الرابط مباشرة أولاً
+        // (طلب صغير وسريع) قبل تحميل كل المخزون.
+        final directCode = int.tryParse(decodedId);
+        if (directCode != null && directCode > 0) {
+          final directCarsRes = await homeRepo.fetchAllCars(
+            directCode,
+            null,
+            null,
+            null,
+            null,
+            null,
+          );
+          directCarsRes.fold((_) {}, (cars) {
+            debugPrint('[DL] direct id=$directCode returned ${cars.length} cars');
+            targetCar = findBestCar(cars);
+          });
+        }
+
+        // ب) طلب واحد يجلب كل سيارات المخزون دفعة واحدة
+        if (targetCar == null && decodedId.isNotEmpty) {
+          final allCarsRes = await homeRepo.fetchAllCars(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+          );
+          allCarsRes.fold((_) {}, (cars) {
+            debugPrint('[DL] searched ${cars.length} cars from the API');
+            targetCar = findBestCar(cars);
+          });
+        }
+
+        // ب) إذا كان الكود يبدأ برقم ماركة محتمل (مثل 1008 لهيونداي أو كود رقمي من 4 خانات فأكثر)
         final potentialBrandId = prefixId.isNotEmpty && prefixId.length >= 4
             ? prefixId.substring(0, 4)
-            : (decodedId.length >= 4 && int.tryParse(decodedId.substring(0, 4)) != null
-                ? decodedId.substring(0, 4)
-                : null);
+            : (decodedId.length >= 4 &&
+                      int.tryParse(decodedId.substring(0, 4)) != null
+                  ? decodedId.substring(0, 4)
+                  : null);
 
         if (potentialBrandId != null) {
           final brandCarsRes = await homeRepo.fetchAllCars(
@@ -584,7 +825,10 @@ $link
         if (targetCar == null) {
           final brands = state.brands.isNotEmpty
               ? state.brands
-              : (await homeRepo.getCarsModels()).fold((_) => <CarModel>[], (res) => res.cars);
+              : (await homeRepo.getCarsModels()).fold(
+                  (_) => <CarModel>[],
+                  (res) => res.cars,
+                );
 
           for (final b in brands) {
             if (targetCar != null) break;
@@ -603,41 +847,91 @@ $link
 
       // 3. الانتقال لشاشة تفاصيل السيارة
       if (targetCar != null) {
-        debugPrint('[DeepLinkService] Found target car: ${targetCar!.itemName} (groupCode: ${targetCar!.groupCode}, itemCode: ${targetCar!.itemCode})');
+        debugPrint(
+          '[DeepLinkService] Found target car: ${targetCar!.itemName} (groupCode: ${targetCar!.groupCode}, itemCode: ${targetCar!.itemCode})',
+        );
         await _navigateToCar(targetCar!);
       } else {
-        debugPrint('[DeepLinkService] Car not found with id: $rawCarId (decoded: $decodedId, prefix: $prefixId)');
+        debugPrint(
+          '[DeepLinkService] Car not found with id: $rawCarId (decoded: $decodedId, prefix: $prefixId)',
+        );
+        // معرّف غير موجود فعلاً: لا نعيد المحاولة في كل تشغيل.
+        _clearPendingLink();
+        _pendingCarId = null;
+        _pendingFromMakeYear = null;
+        _pendingColorCode = null;
+        _showDeepLinkMessage(AppLocaleKey.carNotFound.tr());
       }
     } catch (e) {
+      // خطأ شبكة/سيرفر: نُبقي الرابط محفوظاً ليُعاد عند التشغيل التالي.
       debugPrint('[DeepLinkService] Error navigating to car $rawCarId: $e');
+      _showDeepLinkMessage(AppLocaleKey.deepLinkLoadFailed.tr());
+    } finally {
+      _isProcessingPending = false;
+    }
+  }
+
+  /// إظهار رسالة قصيرة للمستخدم بدل البقاء على الشاشة الرئيسية بلا تفسير.
+  static void _showDeepLinkMessage(String message) {
+    if (!_isNavigatorReady) return;
+    try {
+      CommonMethods.showToast(message: message, type: ToastType.error);
+    } catch (e) {
+      debugPrint('[DeepLinkService] toast error: $e');
     }
   }
 
   /// الانتقال لشاشة تفاصيل السيارة مع انتظار جاهزية الـ NavigatorState وانتهاء شاشة البداية
   static Future<void> _navigateToCar(GetBrandCarsDataModel targetCar) async {
-    debugPrint('[DL] navigating to car: ${targetCar.itemName} (id: ${targetCar.itemCode})');
+    debugPrint(
+      '[DL] navigating to car: ${targetCar.itemName} (id: ${targetCar.itemCode})',
+    );
     // إذا لم تكن شاشة البداية قد أعلنت جاهزية الـ Navigator، احفظها كمعلقة حتى لا تمسحها شاشة الـ Splash
     if (!_isNavigatorReady) {
       _pendingCar = targetCar;
-      debugPrint('[DeepLinkService] Navigator not ready yet (Splash/Auth active), pending car saved: ${targetCar.itemName}');
+      debugPrint(
+        '[DeepLinkService] Navigator not ready yet (Splash/Auth active), pending car saved: ${targetCar.itemName}',
+      );
       return;
     }
 
-    _pendingCar = null;
-    _pendingCarId = null;
+    final carKey = HiveMethods.getCarUniqueId(targetCar.toMap());
+    final now = DateTime.now();
+    if (_lastNavigatedId == carKey &&
+        _lastNavigatedTime != null &&
+        now.difference(_lastNavigatedTime!).inSeconds < 3) {
+      debugPrint('[DL] skipping duplicate navigation for: $carKey');
+      _clearPendingLink();
+      _pendingCar = null;
+      _pendingCarId = null;
+      return;
+    }
 
-    for (int i = 0; i < 35; i++) {
+    // انتظر ظهور الـ NavigatorState (بعد استبدال شاشة البداية بالشاشة الرئيسية).
+    // لا نحذف الرابط المعلق إلا بعد نجاح الـ push فعلياً.
+    for (int i = 0; i < 100; i++) {
       final navState = AppRouters.navigatorKey.currentState;
-      if (navState != null) {
-        debugPrint('[DeepLinkService] Pushing carDetailsScreen for car: ${targetCar.itemName}');
-        navState.pushNamed(
-          RoutesName.carDetailsScreen,
-          arguments: targetCar,
+      if (navState != null && navState.mounted) {
+        debugPrint(
+          '[DeepLinkService] Pushing carDetailsScreen for car: ${targetCar.itemName}',
         );
+        navState.pushNamed(RoutesName.carDetailsScreen, arguments: targetCar);
+
+        _lastNavigatedId = carKey;
+        _lastNavigatedTime = now;
+        _pendingCar = null;
+        _pendingCarId = null;
+        _pendingFromMakeYear = null;
+        _pendingColorCode = null;
+        _clearPendingLink();
         return;
       }
       await Future.delayed(const Duration(milliseconds: 150));
     }
+
+    // لم يجهز الـ Navigator خلال المهلة: أبقِ السيارة معلقة حتى تُعالج في
+    // markNavigatorReady القادمة بدل أن يضيع الرابط.
+    _pendingCar = targetCar;
     debugPrint('[DeepLinkService] Navigation timeout: NavigatorState was null');
   }
 

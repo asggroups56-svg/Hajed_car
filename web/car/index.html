@@ -153,18 +153,31 @@
     </div>
 
     <div class="hint" id="hint">
-      إن كان التطبيق مثبتاً على جهازك فسيُفتح تلقائياً لعرض تفاصيل السيارة.
+      إن كان التطبيق مثبتاً على جهازك فسيُفتح تلقائياً لعرض تفاصيل السيارة،
+      وإن لم يكن مثبتاً سيتم تحويلك إلى المتجر لتحميله.
+      إذا لم يفتح التطبيق تلقائياً فاضغط زر «فتح التطبيق»، أو افتح الرابط من
+      متصفح الجهاز (Chrome / Safari) بدلاً من المتصفح الداخلي للتطبيقات.
     </div>
   </main>
 
   <script>
     // ---------------------------------------------------------------------
-    // Configure these three values before deploying this page.
+    // Keep these values in sync with:
+    //   lib/core/services/deep_link_service.dart  (DeepLinkConfig)
+    //   android/app/src/main/AndroidManifest.xml
+    //   ios/Runner/Info.plist
     // ---------------------------------------------------------------------
     const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.Hajed.car';
-    const APP_STORE_URL = 'https://apps.apple.com/app/id000000000'; // Replace with your App Store id.
+    const APP_STORE_URL = 'https://apps.apple.com/sa/app/id6816629989';
     const CUSTOM_SCHEME = 'hajedcar';
     const CAR_PATH = 'car';
+    const ANDROID_PACKAGE = 'com.Hajed.car';
+    const APP_STORE_ID = '6816629989';
+
+    // Give the page a moment to paint, then try to open the app.
+    const AUTO_OPEN_DELAY = 450;
+    // If the app did not open, send the user to the correct store.
+    const STORE_FALLBACK_DELAY = 1600;
 
     const messageEl = document.getElementById('message');
     const carIdBox = document.getElementById('carIdBox');
@@ -174,15 +187,7 @@
     const iosBtn = document.getElementById('iosBtn');
     const hint = document.getElementById('hint');
 
-    function getCarId() {
-      const parts = window.location.pathname.split('/').filter(Boolean);
-      const carIndex = parts.indexOf(CAR_PATH);
-      if (carIndex !== -1 && parts[carIndex + 1]) {
-        return decodeURIComponent(parts[carIndex + 1]).trim();
-      }
-      const params = new URLSearchParams(window.location.search);
-      return (params.get('car_id') || params.get('carId') || params.get('id') || '').trim();
-    }
+    let fallbackTimer = null;
 
     function isAndroid() {
       return /android/i.test(navigator.userAgent || '');
@@ -194,38 +199,166 @@
       return /iPhone|iPad|iPod/i.test(ua) || iPadOS;
     }
 
+    function firstParam(names) {
+      const params = new URLSearchParams(window.location.search);
+      for (const name of names) {
+        const value = params.get(name);
+        if (value !== null && value.trim() !== '') return value.trim();
+      }
+      return '';
+    }
+
+    function getCarId() {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const carIndex = parts.indexOf(CAR_PATH);
+      if (carIndex !== -1 && parts[carIndex + 1]) {
+        return decodeURIComponent(parts[carIndex + 1]).trim();
+      }
+      return firstParam(['car_id', 'carId', 'id', 'car']);
+    }
+
+    function buildQuery() {
+      const params = new URLSearchParams();
+      const year = firstParam(['frommakeyear', 'year', 'makeYear']);
+      const color = firstParam(['color_code', 'colorCode', 'color']);
+      if (year) params.set('frommakeyear', year);
+      if (color) params.set('color_code', color);
+      const query = params.toString();
+      return query ? '?' + query : '';
+    }
+
+    function buildPlayLink(carId) {
+      const referrer = new URLSearchParams();
+      referrer.set('car_id', carId);
+      const year = firstParam(['frommakeyear', 'year', 'makeYear']);
+      const color = firstParam(['color_code', 'colorCode', 'color']);
+      if (year) referrer.set('frommakeyear', year);
+      if (color) referrer.set('color_code', color);
+      return PLAY_STORE_URL + '&referrer=' + encodeURIComponent(referrer.toString());
+    }
+
+    function cancelFallback() {
+      if (fallbackTimer !== null) {
+        window.clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
+    }
+
+    // iOS has no Play-Install-Referrer equivalent. The app reads the
+    // clipboard on first launch, so copy the link before leaving for the
+    // App Store; this preserves the car id after installation.
+    function copyLinkForIosDeferred(carId) {
+      const text = window.location.href;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function () {
+            legacyCopy(text);
+          });
+          return;
+        }
+      } catch (_) {}
+      legacyCopy(text);
+    }
+
+    function legacyCopy(text) {
+      try {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        document.body.removeChild(area);
+      } catch (_) {}
+    }
+
+    function goToStore(carId) {
+      cancelFallback();
+      if (isAndroid()) {
+        window.location.replace(buildPlayLink(carId));
+      } else if (isIOS()) {
+        copyLinkForIosDeferred(carId);
+        window.location.replace(APP_STORE_URL);
+      }
+    }
+
+    function openApp(carId) {
+      cancelFallback();
+      const customLink = CUSTOM_SCHEME + '://car/' + encodeURIComponent(carId) + buildQuery();
+
+      if (isAndroid()) {
+        // package= يضمن فتح هذا التطبيق تحديداً، وbrowser_fallback_url ينقل
+        // المستخدم إلى المتجر إذا لم يكن التطبيق مثبتاً.
+        const fallback = encodeURIComponent(buildPlayLink(carId));
+        const intent =
+          'intent://car/' + encodeURIComponent(carId) + buildQuery() +
+          '#Intent;scheme=' + CUSTOM_SCHEME +
+          ';package=' + ANDROID_PACKAGE +
+          ';S.browser_fallback_url=' + fallback +
+          ';end';
+        window.location.href = intent;
+      } else {
+        window.location.href = customLink;
+      }
+
+      // If the browser stayed on this page, the app is not installed (or the
+      // browser blocked the custom scheme). Send the user to the store.
+      fallbackTimer = window.setTimeout(function () {
+        if (document.visibilityState === 'visible') goToStore(carId);
+      }, STORE_FALLBACK_DELAY);
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') cancelFallback();
+    });
+    window.addEventListener('pagehide', cancelFallback);
+
     const carId = getCarId();
 
     if (!carId) {
       messageEl.textContent = 'رابط السيارة غير صالح. تأكد من فتح الرابط كاملاً.';
       hint.textContent = 'يمكنك تصفح الموقع للوصول إلى السيارات المتاحة.';
       actions.classList.remove('hidden');
-      androidBtn.classList.remove('hidden');
-      iosBtn.classList.remove('hidden');
+      if (isAndroid()) iosBtn.classList.add('hidden');
+      if (isIOS()) androidBtn.classList.add('hidden');
     } else {
       carIdBox.textContent = 'CAR ID: ' + carId;
       carIdBox.classList.remove('hidden');
 
       const encodedId = encodeURIComponent(carId);
-      const customLink = `${CUSTOM_SCHEME}://car/${encodedId}`;
-      const playLink = `${PLAY_STORE_URL}&referrer=${encodeURIComponent('car_id=' + encodedId)}`;
+      const customLink = CUSTOM_SCHEME + '://car/' + encodedId + buildQuery();
+      const playLink = buildPlayLink(carId);
 
       openAppBtn.href = customLink;
+      openAppBtn.classList.remove('hidden');
       androidBtn.href = playLink;
       iosBtn.href = APP_STORE_URL;
+      if (isAndroid()) iosBtn.classList.add('hidden');
+      if (isIOS()) androidBtn.classList.add('hidden');
+      actions.classList.remove('hidden');
 
-      if (isAndroid()) {
-        messageEl.textContent = 'جاري تحويلك إلى Google Play لتثبيت التطبيق...';
-        window.setTimeout(() => window.location.replace(playLink), 350);
-      } else if (isIOS()) {
-        messageEl.textContent = 'جاري تحويلك إلى App Store لتثبيت التطبيق...';
-        window.setTimeout(() => window.location.replace(APP_STORE_URL), 350);
+      if (isAndroid() || isIOS()) {
+        messageEl.textContent = 'جاري فتح التطبيق لعرض تفاصيل السيارة...';
+
+        // iOS: كتابة الحافظة مسموحة فقط داخل لمسة المستخدم، لذا ننسخ الرابط
+        // عند أول لمسة/ضغط على أي زر قبل التحويل إلى المتجر.
+        if (isIOS()) {
+          const copyOnce = function () {
+            copyLinkForIosDeferred(carId);
+          };
+          document.addEventListener('pointerdown', copyOnce, { once: true });
+          [openAppBtn, iosBtn, androidBtn].forEach(function (btn) {
+            btn.addEventListener('click', copyOnce, { once: true });
+          });
+        }
+
+        window.setTimeout(function () {
+          if (document.visibilityState === 'visible') openApp(carId);
+        }, AUTO_OPEN_DELAY);
       } else {
         messageEl.textContent = 'افتح التطبيق لعرض تفاصيل هذه السيارة، أو حمّله على جهازك.';
-        actions.classList.remove('hidden');
-        androidBtn.classList.remove('hidden');
-        iosBtn.classList.remove('hidden');
-        openAppBtn.classList.remove('hidden');
       }
     }
   </script>

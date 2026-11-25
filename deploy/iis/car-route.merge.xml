@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal fix for the second problem: https://delta-asg.com/car/<id> returns
+  an empty 404, so the browser shows a blank page instead of the fallback page.
+
+  The .well-known files are already served correctly on this server; only the
+  /car route is missing. Use this file if you already have a working
+  <rewrite> section and only need the car route.
+
+  MERGE this rule into <system.webServer><rewrite><rules> in the site's
+  web.config, before any catch-all / SPA / Blazor fallback rule.
+  Do not replace the existing web.config.
+
+  Also copy web/car/index.html to:
+      <site root>\wwwroot\car\index.html
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="CarDetailsFallback" stopProcessing="true">
+          <match url="^car/(.+)$" />
+          <conditions>
+            <add input="{URL}" pattern="^car/index\.html$" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/car/index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>

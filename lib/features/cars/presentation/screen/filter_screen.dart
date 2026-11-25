@@ -301,18 +301,18 @@ class _FilterScreenState extends State<FilterScreen> {
               title: AppLocaleKey.engineSystem.tr(),
               child: _buildChipsGroup(AppLocaleKey.engineSystem),
             ),
-            FilterSection(
-              title: AppLocaleKey.driveType.tr(),
-              child: _buildChipsGroup(AppLocaleKey.driveType),
-            ),
-            FilterSection(
-              title: AppLocaleKey.bodyType.tr(),
-              child: _buildChipsGroup(AppLocaleKey.bodyType),
-            ),
-            FilterSection(
-              title: AppLocaleKey.countryOfOrigin.tr(),
-              child: _buildChipsGroup(AppLocaleKey.countryOfOrigin),
-            ),
+            // FilterSection(
+            //   title: AppLocaleKey.driveType.tr(),
+            //   child: _buildChipsGroup(AppLocaleKey.driveType),
+            // ),
+            // FilterSection(
+            //   title: AppLocaleKey.bodyType.tr(),
+            //   child: _buildChipsGroup(AppLocaleKey.bodyType),
+            // ),
+            // FilterSection(
+            //   title: AppLocaleKey.countryOfOrigin.tr(),
+            //   child: _buildChipsGroup(AppLocaleKey.countryOfOrigin),
+            // ),
             FilterApplyButton(
               onPressed: () {
                 final fuelKey = _selectedItems[AppLocaleKey.engineSystem];

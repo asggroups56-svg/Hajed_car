@@ -48,6 +48,8 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="${deepLinkScheme}"/>
+                <!-- Legacy scheme used by links shared before the rename. -->
+                <data android:scheme="hbwcars"/>
             </intent-filter>
 
             <!-- Android App Links: /car/123 -->

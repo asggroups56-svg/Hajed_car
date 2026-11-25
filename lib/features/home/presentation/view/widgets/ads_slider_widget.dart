@@ -227,7 +227,7 @@ class _AdsSliderWidgetState extends State<AdsSliderWidget> {
             ),
             Gap(10.h),
             SizedBox(
-              height: 311.h,
+              height: 250.h,
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: displayAds.length * 2000,

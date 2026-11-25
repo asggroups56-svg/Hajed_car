@@ -45,6 +45,15 @@
         </rule>
 
         <!--
+          https://delta-asg.com/car       -> /car/index.html
+          https://delta-asg.com/car/      -> /car/index.html
+        -->
+        <rule name="DeepLink-CarRoot" stopProcessing="true">
+          <match url="^car/?$" />
+          <action type="Rewrite" url="/car/index.html" />
+        </rule>
+
+        <!--
           https://delta-asg.com/car/2531 -> /car/index.html
           Keep the address bar and the id intact; the page reads the id from
           window.location.pathname. The condition prevents a rewrite loop.

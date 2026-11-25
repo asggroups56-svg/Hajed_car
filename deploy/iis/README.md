@@ -1,168 +1,158 @@
 # Serving App Links / Universal Links on `delta-asg.com` (IIS + ASP.NET Core)
 
-## What the server actually is
-
-Checked from outside on 2026-11-23:
+## Current live state (checked 2026-11-25)
 
 | URL | Result |
 | --- | --- |
-| `https://delta-asg.com/` | `200 text/html` — ASP.NET Core web app (`AuroraTech.styles.css`, Blazor scoped attributes) |
-| `https://delta-asg.com/.well-known/assetlinks.json` | `404` |
-| `https://delta-asg.com/.well-known/apple-app-site-association` | `404` |
-| `https://delta-asg.com/car/2531` | `404` |
-| `https://delta-asg.com:54510/.well-known/assetlinks.json` | `200 application/json` |
-| `https://delta-asg.com:54510/car/2531` | `404 text/html` |
+| `https://delta-asg.com/.well-known/assetlinks.json` | `200 application/json` |
+| `https://delta-asg.com/.well-known/apple-app-site-association` | `200 application/json` |
+| `https://delta-asg.com/car/2531` | **`404`, empty body** |
+| `https://delta-asg.com/car/index.html` | **`404`** |
+| `https://delta-asg.com/deep-links/assetlinks.json` | `404` (not used on this server) |
 
-Both ports terminate on **Microsoft-IIS/10.0** with the same GoDaddy certificate
-(`CN=delta-asg.com`, SAN `delta-asg.com`, `www.delta-asg.com`). They are two
-different IIS sites/bindings with different physical roots, so a file copied to
-the `:54510` root is not visible on `:443`.
+So the verification files are already deployed correctly. **Only the `/car/<id>`
+fallback page is missing**, which is why the browser shows a blank page and
+never reaches the store redirect.
 
-Android **only** verifies App Links against
-`https://<host>/.well-known/assetlinks.json` on port **443**. A custom port is
-never used, so the file on `:54510` can never verify links for
-`https://delta-asg.com/car/...`.
+Google's view of the live file already contains:
 
-## Files and where they go
+- `com.Hajed.car` + `D0:EB:...:B3:14:C0:5A:4C:15:4C:21`
+- `com.Hajed.car` + `63:00:6F:...` (debug key)
 
-The `:443` site is ASP.NET Core, so its public files live in `wwwroot`:
+It does **not** contain the Play App Signing key or the `.testing` / `.dev`
+packages. Add them if you install Play builds or the other flavors.
+
+---
+
+## Minimal fix for the blank `/car/<id>` page
+
+### 1. Copy the fallback page
+
+On the server:
+
+```powershell
+$siteRoot = 'C:\inetpub\wwwroot'          # <- the :443 site physical path
+$wwwroot  = Join-Path $siteRoot 'wwwroot' # adjust if the app uses another root
+$repoWeb  = 'C:\path\to\Hajed_car\web'    # <- repo checkout
+
+New-Item -ItemType Directory -Force "$wwwroot\car" | Out-Null
+Copy-Item "$repoWeb\car\index.html" "$wwwroot\car\index.html" -Force
+```
+
+Before copying, set the real App Store id in `web/car/index.html`
+(`APP_STORE_URL`, currently `id000000000`). The Android link already uses
+`com.Hajed.car` and adds `referrer=car_id=<id>`.
+
+### 2. Route `/car/<id>` to that file
+
+**Option A — IIS URL Rewrite (no app redeploy).** Merge
+`car-route.merge.xml` into the existing `web.config`, inside
+`<system.webServer><rewrite><rules>` and **before any catch-all / SPA /
+Blazor fallback rule**:
+
+```xml
+<rule name="CarDetailsFallback" stopProcessing="true">
+  <match url="^car/(.+)$" />
+  <conditions>
+    <add input="{URL}" pattern="^car/index\.html$" negate="true" />
+  </conditions>
+  <action type="Rewrite" url="/car/index.html" />
+</rule>
+```
+
+**Option B — ASP.NET Core endpoint (most reliable).** Add to `Program.cs`,
+before the Blazor/SPA fallback:
+
+```csharp
+app.MapGet("/car/{carId}", () => Results.File(
+        Path.Combine(app.Environment.WebRootPath!, "car", "index.html"),
+        "text/html; charset=utf-8"))
+   .AllowAnonymous();
+```
+
+This keeps the public URL (`/car/2531`) unchanged and returns `200` with no
+redirect, so the JavaScript in the page can read the car id and redirect to the
+correct store.
+
+### 3. Verify
+
+```bash
+curl -sSI https://delta-asg.com/car/2531
+# HTTP/2 200
+# content-type: text/html; charset=utf-8
+
+curl -sS https://delta-asg.com/car/2531 | head -5
+# <!DOCTYPE html> ... بن وزير للسيارات
+```
+
+If it is still 404, the physical path is wrong: confirm that
+`wwwroot\car\index.html` exists in the **same** directory that IIS uses as the
+site root, and that no rule above yours routes everything to the app.
+
+---
+
+## Full deployment (only if you redo `.well-known`)
+
+The `:443` site is ASP.NET Core. Files live under `wwwroot`:
 
 ```
-<site physical root>\
-├── web.config                          <- MERGE the rules from web.config.merge.xml
+<site root>\
+├── web.config                     <- merge the rewrite rules
 └── wwwroot\
-    ├── deep-links\
+    ├── .well-known\
     │   ├── assetlinks.json
-    │   └── apple-app-site-association.json
+    │   └── apple-app-site-association
     └── car\
         └── index.html
 ```
 
-`web/.well-known/apple-app-site-association` has no extension. IIS/ASP.NET Core
-will not serve that extensionless file with `application/json` (and the default
-ASP.NET Core file provider hides dot-prefixed directories), so it is deployed
-as `deep-links/apple-app-site-association.json` and the **public URL stays
-extensionless** through an internal rewrite.
+The live server already serves `.well-known` (do not break it). If you redo it
+from scratch and ASP.NET Core hides the dot-directory, use the alternative in
+`web.config.merge.xml` (rewrite `.well-known/*` to `/deep-links/*`), or add
+explicit endpoints — see `../aspnet/DeepLinkEndpoints.cs`.
 
-## Step 1 — find the `:443` site root
+### Fingerprints
 
-On the server (elevated PowerShell):
+`web/.well-known/assetlinks.json` contains:
 
-```powershell
-Import-Module WebAdministration
-Get-Website | Format-Table Name, State, PhysicalPath -AutoSize
-Get-WebBinding | Where-Object { $_.bindingInformation -like '*:443:*' } |
-  Format-Table ItemXPath, protocol, bindingInformation -AutoSize
+| Key | SHA-256 |
+| --- | --- |
+| Play App Signing (confirm in Play Console) | `2B:AE:22:A6:2C:D3:04:75:6D:32:82:06:78:ED:21:D3:97:4D:48:1B:CD:42:55:A4:07:BE:12:56:79:27:05:23` |
+| Upload (live server value) | `D0:EB:87:2E:AC:AE:3C:FF:90:AF:BB:03:2D:6A:22:3E:A1:54:7D:D1:CE:52:5F:EB:B3:14:C0:5A:4C:15:4C:21` |
+| Upload (`key.jks`, alias `upload`) | `D0:EB:87:2E:AC:AE:3C:FF:90:AF:BB:03:2D:6A:22:3E:A1:54:7D:D1:CE:52:5F:EB:31:4C:05:A4:C1:54:C2:1B` |
+| Debug (`~/.android/debug.keystore`) | `63:00:6F:29:99:5A:FB:BD:65:18:29:5C:9C:75:AB:AE:8A:E5:96:43:D3:57:A6:AE:79:5B:08:87:4E:48:88:08` |
+
+Play-installed builds are signed with the Play App Signing key, so that
+fingerprint must be present for links to work on Play builds. Get it from Play
+Console → *Test and release* → *App integrity* → *App signing key certificate*.
+
+## App-side checklist
+
+The Dart side must call `DeepLinkService.init()` exactly once, after DI:
+
+```dart
+await ServiceInitialize.initialize();
+await DeepLinkService.init();
 ```
 
-Take the `PhysicalPath` of the site bound to `*:443:delta-asg.com`. Confirm it
-is the app that serves `https://delta-asg.com/` (it contains `wwwroot` and a
-`web.config` with `<aspNetCore>`).
+It was missing from `lib/main.dart` and has been restored. Without it the app
+opens (the OS handles the intent) but never reads the URL, so it stays on Home.
 
-## Step 2 — copy the files
-
-From the repository root on a machine that can reach the server share, or run
-this on the server after copying the repo there:
-
-```powershell
-$siteRoot = 'C:\inetpub\wwwroot'          # <- from step 1
-$wwwroot  = Join-Path $siteRoot 'wwwroot'
-$repoWeb  = 'C:\path\to\Hajed_car\web'    # <- repo checkout
-
-New-Item -ItemType Directory -Force "$wwwroot\deep-links", "$wwwroot\car" | Out-Null
-
-Copy-Item "$repoWeb\.well-known\assetlinks.json" `
-          "$wwwroot\deep-links\assetlinks.json" -Force
-
-Copy-Item "$repoWeb\.well-known\apple-app-site-association" `
-          "$wwwroot\deep-links\apple-app-site-association.json" -Force
-
-Copy-Item "$repoWeb\car\index.html" `
-          "$wwwroot\car\index.html" -Force
-```
-
-Before copying `assetlinks.json`, **replace/add the Play App Signing
-fingerprint**. Get it from Play Console → your app → *Test and release* →
-*App integrity* → *App signing key certificate* → SHA-256. The current file
-contains:
-
-- `2B:AE:22:...` — already published on `:54510`; confirm it is the Play App
-  Signing certificate.
-- `D0:EB:87:...` — local upload/release key (`/Users/asgsystems/key.jks`).
-- `63:00:6F:...` — local debug key (`~/.android/debug.keystore`).
-
-If Play Console shows a different SHA-256, add it as well; keep all of them so
-Play builds, side-loaded release builds and debug builds all verify.
-
-## Step 3 — merge the rewrite rules into `web.config`
-
-Copy the `<rewrite>` block from `web.config.merge.xml` into the existing
-`web.config` of the `:443` site, **inside `<system.webServer>` and before any
-catch-all / SPA / Blazor fallback rule**. Do not replace the file: it contains
-the `<aspNetCore>` handler that runs the app.
-
-Back up first:
-
-```powershell
-Copy-Item "$siteRoot\web.config" "$siteRoot\web.config.bak" -Force
-```
-
-Recycle the app pool afterwards:
-
-```powershell
-Restart-WebAppPool -Name (Get-Website -Name '<site name>').applicationPool
-```
-
-### If IIS URL Rewrite is not installed
-
-Install **URL Rewrite 2.1** (Microsoft Web Platform Installer / iis.net), or
-use the C# endpoints in `../aspnet/DeepLinkEndpoints.cs` instead — they do not
-depend on any IIS module and are the most reliable option for ASP.NET Core.
-
-## Step 4 — verify
-
-```bash
-# must be 200 + application/json, no Location header, no 3xx
-curl -sSI https://delta-asg.com/.well-known/assetlinks.json
-curl -sSI https://delta-asg.com/.well-known/apple-app-site-association
-
-# body must be the JSON you deployed
-curl -sS https://delta-asg.com/.well-known/assetlinks.json
-
-# fallback page, must be 200 text/html at the same URL (no redirect)
-curl -sSI https://delta-asg.com/car/2531
-
-# Google's view of the statements (should list your packages)
-curl -sS "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://delta-asg.com&relation=delegate_permission/common.handle_all_urls"
-```
-
-Then on a device:
-
-```bash
-adb shell pm set-app-links --package com.Hajed.car 0 all
-adb shell pm verify-app-links --re-verify com.Hajed.car
-adb shell pm get-app-links com.Hajed.car     # delta-asg.com: verified
-adb shell am start -a android.intent.action.VIEW -d "https://delta-asg.com/car/2531"
-```
+Cold-start links wait for `SplashScreen` to call
+`DeepLinkService.markNavigatorReady()`, then look up the id in the
+`HomeCubit` inventory (waiting for the in-flight home request) and fall back to
+`HomeRepo.fetchAllCars(...)`.
 
 ## Common pitfalls
 
-- **301/302 on `/.well-known/*`** — usually an HTTP→HTTPS redirect rule or a
-  `www` canonicalisation rule above ours. HTTPS requests to the final host must
-  return `200` directly. Check with `curl -I` and look for `location:`.
-- **Authentication** — the rewrite happens before authorization in IIS, and
-  ASP.NET Core static files run before `UseAuthorization`. Do not put
-  `/.well-known` or `/car` behind a login route.
-- **`Content-Type: text/plain` / `application/octet-stream`** — the rewrite
-  target must end in `.json`; that is what sets the header.
-- **`assetlinks.json` only contains the upload key** — Play-installed builds are
-  signed with the Play App Signing key, so verification fails. Always include
-  that fingerprint.
-- **Catch-all/SPA fallback** — if a rule above ours routes everything to
-  `index.html`, our rules never run. They must be first.
-- **Same domain for all flavors** — the Android app links are declared for
-  `com.Hajed.car`, `com.Hajed.car.testing` and `com.Hajed.car.dev`. Do not
-  install more than one of them on a test device, or Android will show an app
-  chooser. For isolation use `dev.delta-asg.com` / `staging.delta-asg.com`.
-- **API on `:54510`** — leave it untouched. The app still calls it
-  (`AppConfig.appBaseUrl`). Only the public share domain uses `:443`.
+- **Blank page** — `/car/<id>` has no route or `wwwroot/car/index.html` is
+  missing. The current live server is in this state.
+- **App opens on Home** — the installed build does not contain
+  `DeepLinkService.init()` (old APK), or the link was rejected as malformed.
+  Rebuild/reinstall and check `adb logcat | grep DeepLinkService`.
+- **No auto-open, browser opens instead** — App Links not verified. Check
+  `adb shell pm get-app-links com.Hajed.car` and the Google statements API.
+- **Verified but wrong app** — more than one flavor installed with the same
+  domain; uninstall the others or use per-flavor subdomains.
+- **301/302 on `/.well-known/*`** — verification fails. The final HTTPS URL
+  must return `200` with no `Location` header.

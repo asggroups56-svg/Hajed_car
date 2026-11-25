@@ -40,31 +40,55 @@ public static class DeepLinkEndpoints
         var webRoot = app.Environment.WebRootPath
             ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
 
-        app.MapGet("/.well-known/assetlinks.json", () =>
-                Serve(webRoot, "deep-links/assetlinks.json", "application/json"))
+        app.MapGet("/.well-known/assetlinks.json", (HttpContext context) =>
+                Serve(context, webRoot, "deep-links/assetlinks.json", "application/json"))
             .AllowAnonymous();
 
-        app.MapGet("/.well-known/apple-app-site-association", () =>
-                Serve(webRoot, "deep-links/apple-app-site-association.json", "application/json"))
+        app.MapGet("/.well-known/apple-app-site-association", (HttpContext context) =>
+                Serve(context, webRoot, "deep-links/apple-app-site-association.json", "application/json"))
             .AllowAnonymous();
 
-        // Serve the fallback page at the original /car/<id> URL (no redirect),
-        // so the address bar keeps the car id for the JavaScript in the page.
-        app.MapGet("/car/{carId}", (string carId) =>
-                Serve(webRoot, "car/index.html", "text/html; charset=utf-8"))
+        // Serve the fallback page at the original /car, /car/ and /car/<id>
+        // URLs (no redirect), so the address bar keeps the car id for the
+        // JavaScript in the page. A catch-all is used so /car, /car/ and any
+        // trailing segments all render the same page.
+        app.MapGet("/car", (HttpContext context) =>
+                Serve(context, webRoot, "car/index.html", "text/html; charset=utf-8"))
+            .AllowAnonymous();
+
+        app.MapGet("/car/{**rest}", (HttpContext context) =>
+                Serve(context, webRoot, "car/index.html", "text/html; charset=utf-8"))
             .AllowAnonymous();
 
         return app;
     }
 
-    private static IResult Serve(string webRoot, string relativePath, string contentType)
+    private static IResult Serve(
+        HttpContext context,
+        string webRoot,
+        string relativePath,
+        string contentType)
     {
         var path = Path.Combine(
             webRoot,
             relativePath.Replace('/', Path.DirectorySeparatorChar));
 
-        return File.Exists(path)
-            ? Results.File(path, contentType)
-            : Results.NotFound();
+        if (!File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        // Universal Links / App Links files change when signing keys change.
+        // Keep the cache short so a corrected file takes effect quickly.
+        if (relativePath.StartsWith("deep-links/", StringComparison.Ordinal))
+        {
+            context.Response.Headers.CacheControl = "public, max-age=300";
+        }
+        else
+        {
+            context.Response.Headers.CacheControl = "no-cache";
+        }
+
+        return Results.File(path, contentType);
     }
 }

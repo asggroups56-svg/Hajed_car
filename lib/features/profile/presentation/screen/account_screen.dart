@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/custom_widgets/custom_app_bar/custom_app_bar.dart';
 import 'package:car/core/custom_widgets/developer_contact_bottom_sheet.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
@@ -32,17 +33,19 @@ class AccountScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.all(20.w),
         children: [
-          _AccountItem(
-            icon: Icons.person_outline_rounded,
-            title: AppLocaleKey.profile.tr(),
-            onTap: () => Navigator.pushNamed(context, RoutesName.profileScreen),
-          ),
+          if (HiveMethods.getToken() != null)
+            _AccountItem(
+              icon: Icons.person_outline_rounded,
+              title: AppLocaleKey.profile.tr(),
+              onTap: () => Navigator.pushNamed(context, RoutesName.profileScreen),
+            ),
           Gap(12.h),
-          _AccountItem(
-            icon: Icons.directions_car_outlined,
-            title: AppLocaleKey.reservedCars.tr(),
-            onTap: () => Navigator.pushNamed(context, RoutesName.cartScreen),
-          ),
+          if (HiveMethods.getToken() != null)
+            _AccountItem(
+              icon: Icons.directions_car_outlined,
+              title: AppLocaleKey.reservedCars.tr(),
+              onTap: () => Navigator.pushNamed(context, RoutesName.cartScreen),
+            ),
           Gap(12.h),
           _AccountItem(
             icon: Icons.settings_outlined,
@@ -68,11 +71,12 @@ class AccountScreen extends StatelessWidget {
             onTap: () => showDeveloperContactBottomSheet(context),
           ),
           Gap(12.h),
-          _AccountItem(
-            icon: Icons.list_alt_rounded,
-            title: AppLocaleKey.trackOrder.tr(),
-            onTap: () => Navigator.pushNamed(context, RoutesName.trackOrderScreen),
-          ),
+          if (HiveMethods.getToken() != null)
+            _AccountItem(
+              icon: Icons.list_alt_rounded,
+              title: AppLocaleKey.trackOrder.tr(),
+              onTap: () => Navigator.pushNamed(context, RoutesName.trackOrderScreen),
+            ),
           Gap(12.h),
           FadeInUp(delay: const Duration(milliseconds: 200), child: const LogoutButtonWidget()),
           Gap(12.h),

@@ -120,6 +120,8 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>hajedcar</string>
+				<!-- Legacy scheme used by links shared before the rename. -->
+				<string>hbwcars</string>
 			</array>
 		</dict>
 	</array>
