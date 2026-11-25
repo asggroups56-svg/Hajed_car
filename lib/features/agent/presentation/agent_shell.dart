@@ -1,4 +1,5 @@
 import 'package:car/core/localization/app_locale_keys.dart';
+import 'package:car/core/services/app_update_service.dart';
 import 'package:car/core/services/deep_link_service.dart';
 import 'package:car/core/services/services_locator.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -30,6 +31,8 @@ class _AgentShellState extends State<AgentShell> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppUpdateService.checkForUpdate(context);
       DeepLinkService.markNavigatorReady();
     });
   }
