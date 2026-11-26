@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:car/core/cache/hive/hive_methods.dart';
 import 'package:car/core/localization/app_locale_keys.dart';
 import 'package:car/core/theme/app_colors.dart';
@@ -402,16 +403,17 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
     final int resolvedProgramId = (_activeOffer?.programId != null && _activeOffer!.programId! > 0)
         ? _activeOffer!.programId!
         : ((widget.offer?.programId != null && widget.offer!.programId! > 0)
-            ? widget.offer!.programId!
-            : ((widget.car?.programId != null && widget.car!.programId! > 0)
-                ? widget.car!.programId!
-                : 0));
-
+              ? widget.offer!.programId!
+              : ((widget.car?.programId != null && widget.car!.programId! > 0)
+                    ? widget.car!.programId!
+                    : 0));
+    final String savedName = HiveMethods.getname() ?? '';
+    final int customeron = _fullNameCtrl.text.trim() == savedName.trim() ? customerNoVal : 0;
     final model = AddLoanApplicationModel(
       applicationId: 0,
       programId: resolvedProgramId,
       programName: programNameWithBank,
-      customerNo: customerNoVal,
+      customerNo: customeron,
       REPRESCODE: repCode > 0 ? repCode : 1,
       idNo: cleanIdNo,
       areaNo: '1',
@@ -437,6 +439,8 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
       monthlyInstallment: _monthlyInstallment,
       applicationStatus: 0,
       gender: genderValue,
+      customerName: _fullNameCtrl.text.trim(),
+      Tel1: _phoneCtrl.text.trim(),
     );
 
     final filesList = _uploadedFiles.values.whereType<File>().toList();
@@ -529,7 +533,6 @@ class _FinancingScreenState extends State<FinancingScreen> with SingleTickerProv
               final textMsg =
                   'طلب تمويل جديد: ${_activeOffer?.programName ?? _activeOffer?.offerBankName ?? "برنامج التمويل"}\n'
                   'السيارة: ${widget.car?.itemName ?? "غير محدد"}\n'
-                  'سعر السيارة الكاش :  ${_carPrice.toStringAsFixed(2)} ر.س\n'
                   'مبلغ التمويل: ${_financedAmount.toStringAsFixed(2)} ر.س\n'
                   'القسط الشهري: ${_monthlyInstallment.toStringAsFixed(2)} ر.س\n'
                   'الدفعة الأولى: ${_downPayment.toStringAsFixed(2)} ر.س\n'

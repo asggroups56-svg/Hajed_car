@@ -26,6 +26,8 @@ class AddLoanApplicationModel extends Equatable {
   final int? bank;
   final String? groupCode;
   final int? colorCode;
+  final String? customerName;
+  final String? Tel1;
 
   const AddLoanApplicationModel({
     this.applicationId = 0,
@@ -53,6 +55,8 @@ class AddLoanApplicationModel extends Equatable {
     this.bank,
     this.groupCode,
     this.colorCode,
+    this.customerName,
+    this.Tel1,
   });
 
   static double _round2(double val) {
@@ -110,6 +114,8 @@ class AddLoanApplicationModel extends Equatable {
       'MonthlyInstallment': _round2(monthlyInstallment),
       'ApplicationStatus': applicationStatus,
       'Gender': gender,
+      'CUSTOMERNAME': customerName,
+      'Tel1': Tel1,
     };
   }
 
@@ -140,6 +146,8 @@ class AddLoanApplicationModel extends Equatable {
       monthlyInstallment: (json['MonthlyInstallment'] as num?)?.toDouble() ?? 0.0,
       applicationStatus: json['ApplicationStatus'] ?? 0,
       gender: json['Gender'] ?? 1,
+      customerName: json['CUSTOMERNAME']?.toString(),
+      Tel1: json['Tel1']?.toString(),
     );
   }
 
@@ -170,5 +178,7 @@ class AddLoanApplicationModel extends Equatable {
     monthlyInstallment,
     applicationStatus,
     gender,
+    customerName,
+    Tel1,
   ];
 }
